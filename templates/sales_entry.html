@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Entry Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Custom styles for the dynamic amount input */
+        #partial-payment-amount {
+            display: none;
+        }
+        .show-partial-payment #partial-payment-amount {
+            display: block;
+        }
+
+        /* Styles for the product table */
+        #product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        #product-table th, #product-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #product-table th {
+            background-color: #f0f0f0;
+        }
+        #product-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        #product-table th,
+        #product-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        /* Styles for the mobile table */
+        #product-table-mobile {
+            display: none; /* Initially hide the mobile table */
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        #product-table-mobile th,
+        #product-table-mobile td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #product-table-mobile th {
+            background-color: #f0f0f0;
+        }
+
+        #product-table-mobile tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Make table scrollable on small screens */
+        @media (max-width: 768px) {
+            #product-table {
+                display: none; /* Hide the default table on small screens */
+            }
+            #product-table-mobile {
+                display: block; /* Show the mobile table on small screens */
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            #product-table-mobile thead,
+            #product-table-mobile tbody,
+            #product-table-mobile tr,
+            #product-table-mobile td,
+            #product-table-mobile th {
+                display: block;
+            }
+
+            #product-table-mobile thead tr {
+                display: table-row;
+            }
+            #product-table thead {
+                display: none;
+            }
+            #product-table-mobile thead {
+                display: none;
+            }
+
+            #product-table-mobile th {
+                text-align: left;
+            }
+
+            #product-table-mobile td,
+            #product-table-mobile th {
+                min-width: 120px;
+            }
+
+            #product-table-mobile input,
+            #product-table-mobile select {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            #product-table-mobile td label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #718096;
+            }
+        }
+
+        /* Styles for the total and GST display */
+        #total-and-gst-container {
+            display: flex;
+            justify-content: flex-end;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 20px;
+        }
+
+        #final-total-amount-container {
+            margin-top: 20px;
+        }
+
+        /* Adjust form layout for mobile */
+        @media (max-width: 768px) {
+            .grid.grid-cols-1.md\:grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            .grid.gap-4 {
+                gap: 10px;
+            }
+            .mb-4 {
+                margin-bottom: 15px;
+            }
+            #total-and-gst-container {
+                align-items: flex-start;
+            }
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+        .powered-by-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .powered-by-text {
+            margin-bottom: 10px;
+            color: #777;
+        }
+
+        .powered-by-logo {
+            max-width: 150px;
+            height: auto;
+        }
+        .powered-by-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .form-container {
+            flex-grow: 1;
+        }
+        .customer-id-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .customer-id-container select {
+            flex-grow: 1;
+        }
+        .add-customer-link {
+            color: #3b82f6;
+            text-decoration: underline;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .add-customer-link:hover {
+            color: #2563eb;
+        }
+        .customer-id-label-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .customer-id-label-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .add-customer-link {
+            color: #3b82f6;
+            text-decoration: underline;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        .add-customer-link:hover {
+            color: #2563eb;
+        }
+
+        /* Navigation Bar Styles */
+        nav {
+            background-color: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin-right: 15px;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-inter antialiased">
+    <!-- Navigation Bar -->
+    <!--
+    <nav>
+      <a href="/">Home</a> |
+      <a href="/products">Products</a> |
+      <a href="/products/add">Add Product</a> |
+      <a href="/inventory">Inventory</a> |
+      <a href="/customers">Customers</a> |
+      <a href="/orders">Orders</a> |
+      <a href="/orders/create">Create Order</a> |
+      <a href="/invoices">Invoices</a> |
+      <a href="/sales-entry">Sales Entry</a> |
+      <a href="/new-customer">New Customer</a>
+    </nav>
+    <hr>
+    -->
+    <div class="min-h-screen flex justify-center items-center py-10 main-content">
+        <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+            </div>
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Sales Entry</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="sales-date" class="block text-gray-700 text-sm font-bold mb-2">Sales Date:</label>
+                    <input type="date" id="sales-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="executive-name" class="block text-gray-700 text-sm font-bold mb-2">Executive Name:</label>
+                    <select id="executive-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Select Executive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <div class="customer-id-label-container">
+                        <label for="customer-id" class="text-gray-700 text-sm font-bold">Customer ID:</label>
+                        <a href="{{ url_for('main.add_customer') }}" class="add-customer-link">Add New Customer</a>
+                    </div>
+                    <div class="customer-id-container">
+                        <select id="customer-id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Select Customer ID</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2">Customer Name:</label>
+                    <input type="text" id="customer-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                </div>
+            </div>
+
+            <table id="product-table" class="mb-6">
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Quantity Sold</th>
+                        <th>Price Per Unit</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product ID</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product Name</option>
+                            </select>
+                        </td>
+                        <td><input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
+                        <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
+                        <td class="amount">₹0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table id="product-table-mobile" class="mb-6">
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Quantity Sold</th>
+                        <th>Price Per Unit</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <label>Product ID</label>
+                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product ID</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label>Product Name</label>
+                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product Name</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label>Quantity Sold</label>
+                            <input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </td>
+                        <td>
+                            <label>Price Per Unit</label>
+                            <input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </td>
+                        <td class="amount">₹0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mb-6">
+                <button id="add-product" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Product</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="discount" class="block text-gray-700 text-sm font-bold mb-2">Discount:</label>
+                    <input type="number" id="discount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="" min="0">
+                </div>
+            </div>
+
+            <div id="total-and-gst-container" class="mb-6">
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Gross Amount: </span>
+                    <span id="total-amount" class="text-gray-700">₹0.00</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Discount: </span>
+                    <span id="discount-amount-display" class="text-gray-700">₹0.00</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Net Amount: </span>
+                    <span id="total-after-discount" class="text-gray-700">₹0.00</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">GST: </span>
+                    <span id="cgst" class="text-gray-700">₹0.00</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Total Payable Amount: </span>
+                    <span id="total-payable-amount" class="text-gray-700">₹0.00</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="mode-of-payment" class="block text-gray-700 text-sm font-bold mb-2">Mode of Payment:</label>
+                    <input type="text" id="mode-of-payment" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="payment-option" class="block text-gray-700 text-sm font-bold mb-2">Payment Option:</label>
+                    <select id="payment-option" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="full-payment" selected>Full Payment</option>
+                        <option value="partial-payment">Partial Payment</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4 show-partial-payment" id="partial-payment-amount">
+                <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Partial Payment Amount:</label>
+                <input type="number" id="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div id="final-total-amount-container" class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Amount Paid:</label>
+                <input type="number" id="final-total-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+            </div>
+
+            <button id="submit-sales-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+            <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                <a href="{{ url_for('main.sales_return') }}" class="btn btn-secondary" style="padding: 12px 24px; background: #f4f7fa; color: #023f90; border: 2px solid #023f90; border-radius: 8px; font-size: 16px; text-decoration: none; transition: background 0.2s, color 0.2s;">
+                    Sales Return
+                </a>
+            </div>
+        </div>
+        <div class="powered-by-container">
+            <span class="powered-by-text">Powered By</span>
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="powered-by-logo">
+        </div>
+    </div>
+    
+    <script>
+        const paymentOptionSelect = document.getElementById('payment-option');
+        const partialPaymentAmountInput = document.getElementById('partial-payment-amount');
+        const addProductButton = document.getElementById('add-product');
+        const productTable = document.getElementById('product-table');
+        const productTableMobile = document.getElementById('product-table-mobile');
+        const totalAmountDisplay = document.getElementById('total-amount');
+        const cgstDisplay = document.getElementById('cgst');
+        const finalTotalAmountInput = document.getElementById('final-total-amount');
+        const finalTotalAmountContainer = document.getElementById('final-total-amount-container');
+        const totalPayableAmountDisplay = document.getElementById('total-payable-amount');
+        const customerIdSelect = document.getElementById('customer-id');
+        const customerNameInput = document.getElementById('customer-name');
+        const salesDateInput = document.getElementById('sales-date');
+        const executiveNameSelect = document.getElementById('executive-name');
+        const discountInput = document.getElementById('discount');
+        const discountAmountDisplay = document.getElementById('discount-amount-display');
+        const totalAfterDiscountDisplay = document.getElementById('total-after-discount');
+        const submitSalesFormButton = document.getElementById('submit-sales-form');
+        const modeOfPaymentInput = document.getElementById('mode-of-payment');
+        const partialAmountInput = document.getElementById('amount');
+
+        let allProducts = []; // To store fetched product data {product_id, product_name, price_per_unit (optional)}
+        let allCustomers = []; // To store fetched customer data {customer_id, customer_name}
+        let allExecutives = []; // To store fetched executive data {executive_id, executive_name}
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set default sale date to today
+            salesDateInput.value = new Date().toISOString().split('T')[0];
+
+            await fetchInitialData();
+
+            // Initial calculation and event listeners for the first row
+            attachEventListenersToRow(productTable.querySelector('tbody tr'));
+            attachEventListenersToRow(productTableMobile.querySelector('tbody tr'));
+            calculateTotal();
+        });
+
+        async function fetchInitialData() {
+            try {
+                const [productsRes, customersRes, executivesRes] = await Promise.all([
+                    fetch('/api/products'), // Assuming your Flask API endpoint
+                    fetch('/api/customers'), // Create this endpoint in Flask
+                    fetch('/api/executives') // Create this endpoint in Flask
+                ]);
+
+                if (!productsRes.ok) throw new Error(`Failed to fetch products: ${productsRes.status}`);
+                allProducts = await productsRes.json();
+
+                if (!customersRes.ok) throw new Error(`Failed to fetch customers: ${customersRes.status}`);
+                allCustomers = await customersRes.json();
+
+                if (!executivesRes.ok) throw new Error(`Failed to fetch executives: ${executivesRes.status}`);
+                allExecutives = await executivesRes.json();
+
+                populateCustomerDropdown();
+                populateExecutiveDropdown();
+                populateProductDropdownsInRow(productTable.querySelector('tbody tr'));
+                populateProductDropdownsInRow(productTableMobile.querySelector('tbody tr'));
+
+            } catch (error) {
+                console.error("Error fetching initial data:", error);
+                alert("Error loading initial data. Please check console for details and ensure backend APIs are running.");
+            }
+        }
+
+        function populateCustomerDropdown() {
+            customerIdSelect.innerHTML = '<option value="">Select Customer ID</option>';
+            allCustomers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.customer_id;
+                option.textContent = customer.customer_id; // Or customer.customer_name if you prefer
+                customerIdSelect.appendChild(option);
+            });
+        }
+
+        function populateExecutiveDropdown() {
+            executiveNameSelect.innerHTML = '<option value="">Select Executive</option>';
+            allExecutives.forEach(executive => {
+                const option = document.createElement('option');
+                option.value = executive.full_name; // Use full_name from API
+                option.textContent = executive.full_name;
+                executiveNameSelect.appendChild(option);
+            });
+        }
+
+        function populateProductDropdownsInRow(rowElement) {
+            const productIdSelect = rowElement.querySelector('.product-id');
+            const productNameSelect = rowElement.querySelector('.product-name');
+
+            productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
+            productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+
+            allProducts.forEach(product => {
+                const optionId = document.createElement('option');
+                optionId.value = product.product_id;
+                optionId.textContent = product.product_id;
+                productIdSelect.appendChild(optionId);
+
+                const optionName = document.createElement('option');
+                optionName.value = product.product_name;
+                optionName.textContent = product.product_name;
+                productNameSelect.appendChild(optionName);
+            });
+
+            // Synchronize Product ID and Product Name
+            productIdSelect.addEventListener('change', function() {
+                const selectedProductId = this.value;
+                const product = allProducts.find(p => p.product_id == selectedProductId);
+                productNameSelect.value = product ? product.product_name : '';
+                calculateTotal();
+            });
+
+            productNameSelect.addEventListener('change', function() {
+                const selectedProductName = this.value;
+                const product = allProducts.find(p => p.product_name == selectedProductName);
+                productIdSelect.value = product ? product.product_id : '';
+                calculateTotal();
+            });
+        }
+
+        // Update Customer Name when Customer ID is selected
+        customerIdSelect.addEventListener('change', function() {
+            const selectedCustomerId = this.value;
+            const customer = allCustomers.find(c => c.customer_id === selectedCustomerId);
+            customerNameInput.value = customer ? customer.customer_name : '';
+        });
+
+        paymentOptionSelect.addEventListener('change', function() {
+            if (this.value === 'partial-payment') {
+                partialPaymentAmountInput.classList.add('show-partial-payment');
+                finalTotalAmountInput.readOnly = false;
+                finalTotalAmountInput.value = '';
+            } else {
+                partialPaymentAmountInput.classList.remove('show-partial-payment');
+                finalTotalAmountInput.readOnly = true;
+                calculateTotal();
+            }
+        });
+
+        addProductButton.addEventListener('click', function() {
+            if (allProducts.length === 0) { alert("Product data not loaded yet. Please wait or refresh."); return; }
+            let newRow;
+            if (window.innerWidth < 768) {
+                newRow = productTableMobile.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+                const cell3 = newRow.insertCell();
+                const cell4 = newRow.insertCell();
+                const cell5 = newRow.insertCell();
+
+                // Product ID Dropdown
+                const productIdSelect = document.createElement('select');
+                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
+                cell1.innerHTML = '<label>Product ID</label>';
+                cell1.appendChild(productIdSelect);
+
+                // Product Name Dropdown
+                const productNameSelect = document.createElement('select');
+                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+                cell2.innerHTML = '<label>Product Name</label>';
+                cell2.appendChild(productNameSelect);
+                
+                cell3.innerHTML = '<label>Quantity Sold</label><input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                cell4.innerHTML = '<label>Price Per Unit</label><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                cell5.className = 'amount';
+                cell5.textContent = '₹0.00';
+            }
+            else {
+                newRow = productTable.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+                const cell3 = newRow.insertCell();
+                const cell4 = newRow.insertCell();
+                const cell5 = newRow.insertCell();
+
+                // Product ID Dropdown
+                const productIdSelect = document.createElement('select');
+                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
+                cell1.appendChild(productIdSelect);
+
+                // Product Name Dropdown
+                const productNameSelect = document.createElement('select');
+                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+                cell2.appendChild(productNameSelect);
+
+                cell3.innerHTML = '<input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                cell4.innerHTML = '<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                cell5.className = 'amount';
+                cell5.textContent = '₹0.00';
+            }
+            populateProductDropdownsInRow(newRow);
+            attachEventListenersToRow(newRow);
+        });
+
+        function attachEventListenersToRow(rowElement) {
+            const inputs = rowElement.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', calculateTotal); // Use 'input' for immediate feedback
+            });
+            // Selects already have listeners from populateProductDropdownsInRow for product changes
+            // but we might need one for calculateTotal if other selects are added.
+        }
+
+        function formatIndianCurrency(amount) {
+            if (isNaN(amount) || amount === null) amount = 0;
+            const formatter = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+            return formatter.format(amount);
+        }
+
+        function calculateTotal() {
+            let grossAmount = 0;
+            const activeTable = window.innerWidth < 768 ? productTableMobile : productTable;
+            const rows = activeTable.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                const quantityInput = row.querySelector('.quantity-sold');
+                const pricePerUnitInput = row.querySelector('.price-per-unit');
+                const amountCell = row.querySelector('.amount');
+
+                const quantity = parseFloat(quantityInput.value);
+                const pricePerUnit = parseFloat(pricePerUnitInput.value);
+
+                if (!isNaN(quantity) && quantity > 0 && !isNaN(pricePerUnit) && pricePerUnit >= 0) {
+                    const itemAmount = quantity * pricePerUnit;
+                    amountCell.textContent = formatIndianCurrency(itemAmount);
+                    grossAmount += itemAmount;
+                } else {
+                    amountCell.textContent = formatIndianCurrency(0);
+                }
+            });
+
+            totalAmountDisplay.textContent = formatIndianCurrency(grossAmount);
+
+            const discountValue = parseFloat(discountInput.value) || 0;
+            discountAmountDisplay.textContent = formatIndianCurrency(discountValue);
+
+            const netAmount = Math.max(0, grossAmount - discountValue);
+            totalAfterDiscountDisplay.textContent = formatIndianCurrency(netAmount);
+
+            const gstRate = 0.18; // Assuming 18% GST
+            const gstAmount = netAmount * gstRate;
+            cgstDisplay.textContent = formatIndianCurrency(gstAmount); // Assuming CGST is the full GST here
+
+            const totalPayable = netAmount + gstAmount;
+            totalPayableAmountDisplay.textContent = formatIndianCurrency(totalPayable);
+
+            if (paymentOptionSelect.value === 'full-payment') {
+                finalTotalAmountInput.value = totalPayable.toFixed(2);
+            } else {
+                // For partial payment, the amount paid is entered manually or could be pre-filled
+                // If partialAmountInput has a value, use it, otherwise, it's manually entered
+                const partialPaid = parseFloat(partialAmountInput.value);
+                finalTotalAmountInput.value = isNaN(partialPaid) ? '' : partialPaid.toFixed(2);
+            }
+        }
+
+        // Event listener for partial payment amount input
+        partialAmountInput.addEventListener('input', function() {
+            if (paymentOptionSelect.value === 'partial-payment') {
+                const partialPaymentAmount = parseFloat(this.value);
+                finalTotalAmountInput.value = isNaN(partialPaymentAmount) ? '' : partialPaymentAmount.toFixed(2);
+            }
+        });
+
+        // Event listener for discount input
+        discountInput.addEventListener('input', calculateTotal);
+
+        // Initial calculation and event listeners for existing rows (handled in DOMContentLoaded)
+
+        submitSalesFormButton.addEventListener('click', async function(event) {
+            event.preventDefault();
+
+            const salesData = {
+                sales_date: salesDateInput.value,
+                executive_name: executiveNameSelect.value,
+                customer_id: customerIdSelect.value,
+                customer_name: customerNameInput.value, // Send this too for convenience
+                discount: parseFloat(discountInput.value) || 0,
+                gross_amount: parseFloat(totalAmountDisplay.textContent.replace(/[^0-9.-]+/g,"")),
+                discount_amount: parseFloat(discountAmountDisplay.textContent.replace(/[^0-9.-]+/g,"")),
+                net_amount: parseFloat(totalAfterDiscountDisplay.textContent.replace(/[^0-9.-]+/g,"")),
+                gst_amount: parseFloat(cgstDisplay.textContent.replace(/[^0-9.-]+/g,"")),
+                total_payable_amount: parseFloat(totalPayableAmountDisplay.textContent.replace(/[^0-9.-]+/g,"")),
+                mode_of_payment: modeOfPaymentInput.value,
+                payment_option: paymentOptionSelect.value,
+                amount_paid: parseFloat(finalTotalAmountInput.value) || 0,
+                items: []
+            };
+
+            if (salesData.payment_option === 'partial-payment') {
+                salesData.partial_payment_amount = parseFloat(partialAmountInput.value) || 0;
+            }
+
+            const activeTable = window.innerWidth < 768 ? productTableMobile : productTable;
+            const rows = activeTable.querySelectorAll('tbody tr');
+            let hasValidItem = false;
+            rows.forEach(row => {
+                const productId = row.querySelector('.product-id').value;
+                const productName = row.querySelector('.product-name').value; // Good to send for logging/display
+                const quantitySold = parseFloat(row.querySelector('.quantity-sold').value);
+                const pricePerUnit = parseFloat(row.querySelector('.price-per-unit').value);
+                const itemAmount = parseFloat(row.querySelector('.amount').textContent.replace(/[^0-9.-]+/g,""));
+
+                if (productId && quantitySold > 0 && pricePerUnit >= 0) {
+                    salesData.items.push({
+                        product_id: productId,
+                        product_name: productName,
+                        quantity_sold: quantitySold,
+                        price_per_unit: pricePerUnit,
+                        amount: itemAmount
+                    });
+                    hasValidItem = true;
+                }
+            });
+
+            // Basic Validations
+            if (!salesData.sales_date) { alert("Sales Date is required."); return; }
+            if (!salesData.customer_id) { alert("Customer ID is required."); return; }
+            if (!hasValidItem) { alert("Please add at least one valid product item."); return; }
+            if (salesData.amount_paid < 0) { alert("Amount paid cannot be negative."); return; }
+            if (salesData.payment_option === 'partial-payment' && salesData.amount_paid <= 0) {
+                alert("For partial payment, amount paid must be greater than zero."); return;
+            }
+             if (salesData.payment_option === 'partial-payment' && salesData.amount_paid > salesData.total_payable_amount) {
+                alert("Partial amount paid cannot be greater than total payable amount."); return;
+            }
+
+
+            try {
+                const response = await fetch('/api/sales', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(salesData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message || "Sale recorded successfully!");
+                    // Optionally reset the form or redirect
+                    // window.location.reload(); // Simple reset
+                    document.getElementById('sales-form-container').reset(); // Assuming form has an ID
+                    // Re-initialize or clear dynamic parts like product table
+                    productTable.querySelector('tbody').innerHTML = `<tr>...initial row structure...</tr>`; // Re-add first row
+                    productTableMobile.querySelector('tbody').innerHTML = `<tr>...initial row structure...</tr>`;
+                    populateProductDropdownsInRow(productTable.querySelector('tbody tr'));
+                    populateProductDropdownsInRow(productTableMobile.querySelector('tbody tr'));
+                    attachEventListenersToRow(productTable.querySelector('tbody tr'));
+                    attachEventListenersToRow(productTableMobile.querySelector('tbody tr'));
+                    salesDateInput.value = new Date().toISOString().split('T')[0]; // Reset date
+                    calculateTotal(); // Recalculate to reset amounts
+                } else {
+                    alert(`Error: ${result.error || 'Failed to record sale.'}`);
+                }
+            } catch (error) {
+                console.error('Error submitting sale:', error);
+                alert('An error occurred while submitting the sale. Please try again.');
+            }
+        });
+
+        // Give the main form container an ID for easier reset if needed
+        document.querySelector('.form-container').id = 'sales-form-container';
+
+    </script>
+</body>
+</html>

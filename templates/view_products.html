@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Products</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f7fa; margin: 0; padding: 0; }
+    .container { background: #fff; max-width: 700px; margin: 40px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); padding: 32px; }
+    h1 { color: #023f90; text-align: center; margin-bottom: 32px; font-size: 24px; }
+    .responsive-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .responsive-table th, .responsive-table td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 15px;
+    }
+    .responsive-table th {
+      background: #f4f7fa;
+      color: #023f90;
+      font-weight: 600;
+    }
+    .responsive-table tr:last-child td {
+      border-bottom: none;
+    }
+    @media (max-width: 600px) {
+      .responsive-table, .responsive-table thead, .responsive-table tbody, .responsive-table th, .responsive-table td, .responsive-table tr {
+        display: block;
+        width: 100%;
+      }
+      .responsive-table thead {
+        display: none;
+      }
+      .responsive-table tr {
+        margin-bottom: 18px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        padding: 8px 0;
+      }
+      .responsive-table td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        min-height: 38px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      .responsive-table td:before {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        width: 45%;
+        white-space: nowrap;
+        font-weight: bold;
+        color: #023f90;
+        content: attr(data-label);
+        font-size: 13px;
+      }
+    }
+    .logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 150px;
+    }
+    .footer-logo {
+      display: inline-block;
+      margin-left: 8px;
+      max-width: 100px;
+      vertical-align: middle;
+    }
+    .powered-by {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+    .add-product-btn {
+      text-align: right;
+      margin-bottom: 16px;
+    }
+    .add-product-btn a {
+      background: #023f90;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="App Logo" class="logo">
+    <h1>Products</h1>
+    <div class="add-product-btn">
+      <a href="{{ url_for('main.add_product') }}">+ Add Product</a>
+    </div>
+    <table class="responsive-table">
+      <thead>
+        <tr>
+          <th>Product ID</th>
+          <th>Name</th>
+          <th>Supplier</th>
+          <th>HSN Code</th>
+          <th>Unit</th>
+          <th>Reorder Level</th>
+          <th>GST %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td data-label="Product ID">{{ product.id }}</td>
+          <td data-label="Name">{{ product.product_name }}</td>
+          <td data-label="Supplier">{{ product.supplier.supplier_name if product.supplier else '' }}</td>
+          <td data-label="HSN Code">{{ product.hsn_code }}</td>
+          <td data-label="Unit">{{ product.measuring_units }}</td>
+          <td data-label="Reorder Level">{{ product.reorder_level }}</td>
+          <td data-label="GST %">{{ product.gst_percentage }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="powered-by">
+      Powered by
+      <img src="{{ url_for('static', filename='images/logo - Copy.png') }}" alt="Powered by logo" class="footer-logo">
+    </div>
+  </div>
+</body>
+</html>

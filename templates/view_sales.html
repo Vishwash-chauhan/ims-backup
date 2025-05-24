@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>View Sales & Sales Returns</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f7fa; margin: 0; padding: 0; }
+    .container { background: #fff; max-width: 700px; margin: 40px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); padding: 32px; }
+    h1 { color: #023f90; text-align: center; margin-bottom: 32px; font-size: 24px; }
+    .section { margin-bottom: 32px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f0f4fb; }
+    .section-title { color: #326ab2; font-size: 18px; margin-bottom: 12px; }
+    .invoice-btn { background: #326ab2; color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; transition: background 0.2s; }
+    .invoice-btn:hover { background: #023f90; }
+    .responsive-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .responsive-table th, .responsive-table td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 15px;
+    }
+    .responsive-table th {
+      background: #f4f7fa;
+      color: #023f90;
+      font-weight: 600;
+    }
+    .responsive-table tr:last-child td {
+      border-bottom: none;
+    }
+    @media (max-width: 600px) {
+      .responsive-table, .responsive-table thead, .responsive-table tbody, .responsive-table th, .responsive-table td, .responsive-table tr {
+        display: block;
+        width: 100%;
+      }
+      .responsive-table thead {
+        display: none;
+      }
+      .responsive-table tr {
+        margin-bottom: 18px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        padding: 8px 0;
+      }
+      .responsive-table td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        min-height: 38px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      .responsive-table td:before {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        width: 45%;
+        white-space: nowrap;
+        font-weight: bold;
+        color: #023f90;
+        content: attr(data-label);
+        font-size: 13px;
+      }
+    }
+    .logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 120px;
+      height: auto;
+    }
+    .powered-by {
+      text-align: center;
+      margin-top: 32px;
+      font-size: 14px;
+      color: #666;
+    }
+    .footer-logo {
+      height: 20px;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="App Logo" class="logo">
+    <h1>Sales & Sales Returns</h1>
+    <div class="section">
+      <div class="section-title">Sales Entries</div>
+      <table class="responsive-table">
+        <thead>
+          <tr><th>Transaction ID</th><th>Customer Name</th><th>Total Amount</th><th>Invoice</th></tr>
+        </thead>
+        <tbody>
+          <tr><td data-label="Transaction ID">TXN001</td><td data-label="Customer Name">John Doe</td><td data-label="Total Amount">₹80,000</td><td data-label="Invoice"><a href="#" class="invoice-btn">See Invoice</a></td></tr>
+          <tr><td data-label="Transaction ID">TXN002</td><td data-label="Customer Name">Jane Smith</td><td data-label="Total Amount">₹2,500</td><td data-label="Invoice"><a href="#" class="invoice-btn">See Invoice</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Sales Returns</div>
+      <table class="responsive-table">
+        <thead>
+          <tr><th>Transaction ID</th><th>Customer Name</th><th>Total Amount</th><th>Invoice</th></tr>
+        </thead>
+        <tbody>
+          <tr><td data-label="Transaction ID">RTN001</td><td data-label="Customer Name">John Doe</td><td data-label="Total Amount">₹40,000</td><td data-label="Invoice"><a href="#" class="invoice-btn">See Invoice</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="powered-by">
+      Powered by
+      <img src="{{ url_for('static', filename='images/logo - Copy.png') }}" alt="Powered by logo" class="footer-logo">
+    </div>
+  </div>
+</body>
+</html>

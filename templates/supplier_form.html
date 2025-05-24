@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Supplier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Custom styles for the dynamic amount input */
+        #partial-payment-amount {
+            display: none;
+        }
+        .show-partial-payment #partial-payment-amount {
+            display: block;
+        }
+
+        /* Styles for the product table */
+        #product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        #product-table th, #product-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #product-table th {
+            background-color: #f0f0f0;
+        }
+        #product-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        #product-table th,
+        #product-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        /* Styles for the mobile table */
+        #product-table-mobile {
+            display: none; /* Initially hide the mobile table */
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        #product-table-mobile th,
+        #product-table-mobile td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #product-table-mobile th {
+            background-color: #f0f0f0;
+        }
+
+        #product-table-mobile tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Make table scrollable on small screens */
+        @media (max-width: 768px) {
+            #product-table {
+                display: none; /* Hide the default table on small screens */
+            }
+            #product-table-mobile {
+                display: block; /* Show the mobile table on small screens */
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            #product-table-mobile thead,
+            #product-table-mobile tbody,
+            #product-table-mobile tr,
+            #product-table-mobile td,
+            #product-table-mobile th {
+                display: block;
+            }
+
+            #product-table-mobile thead tr {
+                display: table-row;
+            }
+            #product-table thead {
+                display: none;
+            }
+            #product-table-mobile thead {
+                display: none;
+            }
+            #oo{
+                display: none;
+            }
+
+            #product-table-mobile th {
+                text-align: left;
+            }
+
+            #product-table-mobile td,
+            #product-table-mobile th {
+                min-width: 120px;
+            }
+
+            #product-table-mobile input,
+            #product-table-mobile select {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            #product-table-mobile td label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #718096;
+            }
+        }
+
+        /* Styles for the total and GST display */
+        #total-and-gst-container {
+            display: flex;
+            justify-content: flex-end;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 20px;
+        }
+
+        #final-total-amount-container {
+            margin-top: 20px;
+        }
+
+        /* Adjust form layout for mobile */
+        @media (max-width: 768px) {
+            .grid.grid-cols-1.md\:grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            .grid.gap-4 {
+                gap: 10px;
+            }
+            .mb-4 {
+                margin-bottom: 15px;
+            }
+            #total-and-gst-container {
+                align-items: flex-start;
+            }
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px; /* Add some space below the logo */
+        }
+        .logo {
+            max-width: 200px; /* Adjust the maximum width as needed */
+            height: auto; /* Maintain aspect ratio */
+        }
+        .powered-by-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px; /* Add space above the container */
+            width: 100%;
+        }
+
+        .powered-by-text {
+            margin-bottom: 10px; /* Add space between text and logo */
+            color: #777; /* Optional: Style the text color */
+        }
+
+        .powered-by-logo {
+            max-width: 150px; /* Adjust size as needed */
+            height: auto;
+        }
+        /* Add this style to move the powered by container below the form */
+        .powered-by-container {
+            margin-top: 20px; /* Add some space above the container */
+            width: 100%; /* Ensure full width */
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .form-container {
+            flex-grow: 1;
+        }
+        #address-section {
+            display: none;
+        }
+        .show-address #address-section{
+            display: block;
+        }
+        #account-details-section {
+            display: none;
+        }
+        #account-details-section.show {
+            display: block !important;
+        }
+
+        /* Navigation Bar Styles */
+        nav {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+        nav a {
+            margin: 0 15px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            $('#pincode').on('blur', function() {
+                var pincode = $(this).val();
+                if (pincode.length === 6) { //basic validation
+                    $.ajax({
+                        url: 'https://api.postalpincode.in/pincode/' + pincode, // Corrected URL
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            if (data && data.length > 0 && data[0].Status === "Success") {
+                                var postOffice = data[0].PostOffice[0];
+                                $('#city').val(postOffice.District);
+                                $('#state').val(postOffice.State);
+                                $('#country').val("India");
+                            } else {
+                                $('#city').val('');
+                                $('#state').val('');
+                                alert('Invalid Pincode. Please enter a valid Indian pincode.');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error fetching data:", status, error);
+                            $('#city').val('');
+                            $('#state').val('');
+                            alert('Error fetching pincode data. Please try again.');
+                        }
+                    });
+                } else if (pincode.length > 0) {
+                    alert('Pincode should be 6 digits.');
+                    $('#city').val('');
+                    $('#state').val('');
+                }
+            });
+            $('#address-available').on('change',function(){
+                if(this.value === 'yes'){
+                    $('#address-section').addClass('show-address');
+                    $('#gst-number-section').show();
+                }
+                else{
+                    $('#address-section').removeClass('show-address');
+                    $('#gst-number-section').hide();
+                }
+            })
+             $('#gst-available').on('change', function() {
+                if (this.value === 'yes') {
+                    $('#gst-number-section').show();
+                } else {
+                    $('#gst-number-section').hide();
+                }
+            });
+        });
+    </script>
+</head>
+<body class="bg-gray-100 font-inter antialiased">
+    <!-- Navigation Bar -->
+    <!--
+    <nav>
+      <a href="/">Home</a> |
+      <a href="/products">Products</a> |
+      <a href="/products/add">Add Product</a> |
+      <a href="/inventory">Inventory</a> |
+      <a href="/customers">Customers</a> |
+      <a href="/orders">Orders</a> |
+      <a href="/orders/create">Create Order</a> |
+      <a href="/invoices">Invoices</a> |
+      <a href="/sales-entry">Sales Entry</a> |
+      <a href="/new-customer">New Customer</a>
+    </nav>
+    <hr>
+    -->
+    <div class="min-h-screen flex justify-center items-center py-10 main-content">
+        <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+            </div>
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Add New Supplier</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="supplier-name" class="block text-gray-700 text-sm font-bold mb-2">Supplier Name:</label>
+                    <input type="text" id="supplier-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="supplier-contact" class="block text-gray-700 text-sm font-bold mb-2">Contact:</label>
+                    <input type="text" id="supplier-contact" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+            </div>
+             <div class="mb-4">
+                    <label for="gst-available" class="block text-gray-700 text-sm font-bold mb-2">Is GST Available?</label>
+                    <select id="gst-available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Select</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+            <div id="gst-number-section" style="display:none;">
+                <div class="mb-4">
+                    <label for="gst-number" class="block text-gray-700 text-sm font-bold mb-2">GST Number:</label>
+                    <input type="text" id="gst-number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Address</h2>
+                <div class="border rounded-md p-4">
+                    <label for="address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
+                    <input type="text" id="address-line1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
+                            <input type="text" id="pincode" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
+                            <input type="text" id="city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
+                            <input type="text" id="state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
+                            <input type="text" id="country" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="India" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Products Supplied</h2>
+            <table id="product-table" class="mb-6">
+                <thead>
+                    <tr>
+                        <th  style="width: 50%;">Product ID</th>
+                        <th  style="width: 50%;">Product Name</th>
+                    </tr>
+
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" style="width: 100%;">
+                                <option value="">Select Product ID</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" style="width: 100%;">
+                                <option value="">Select Product Name</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table id="product-table-mobile" class="mb-6">
+                <thead>
+                    <tr>
+                         <th  style="width: 50%;">Product ID</th>
+                        <th  style="width: 50%;">Product Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <label for="product-id-mobile-1">Product ID</label>
+                            <select  id="product-id-mobile-1" class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" style="width: 100%;">
+                                <option value="">Select Product ID</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="product-name-mobile-1">Product Name</label>
+                            <select id="product-name-mobile-1" class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" style="width: 100%;">
+                                <option value="">Select Product Name</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mb-6">
+                <button id="add-product" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Product</button>
+            </div>
+
+            <div class="mb-4">
+                <label for="account-available" class="block text-gray-700 text-sm font-bold mb-2">Account Details Available?</label>
+                <select id="account-available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Select</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div id="account-details-section" style="display:none;">
+                <div class="flex flex-wrap -mx-2">
+                    <div class="w-1/2 px-2 mb-4">
+                        <label for="account-holder-name" class="block text-gray-700 text-sm font-bold mb-2">Account Holder's Name:</label>
+                        <input type="text" id="account-holder-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="w-1/2 px-2 mb-4">
+                        <label for="account-number" class="block text-gray-700 text-sm font-bold mb-2">Account Number:</label>
+                        <input type="text" id="account-number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                </div>
+                <div class="flex flex-wrap -mx-2">
+                    <div class="w-1/2 px-2 mb-4">
+                        <label for="ifsc-code" class="block text-gray-700 text-sm font-bold mb-2">IFSC Code:</label>
+                        <input type="text" id="ifsc-code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="w-1/2 px-2 mb-4">
+                        <label for="branch" class="block text-gray-700 text-sm font-bold mb-2">Branch:</label>
+                        <input type="text" id="branch" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                </div>
+            </div>
+
+            <button id="submit-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+        </div>
+        <div class="powered-by-container">
+            <span class="powered-by-text">Powered By</span>
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="powered-by-logo">
+        </div>
+    </div>
+
+    <script>
+        const addProductButton = document.getElementById('add-product');
+        const productTable = document.getElementById('product-table');
+        const productTableMobile = document.getElementById('product-table-mobile');
+        const submitFormButton = document.getElementById('submit-form');
+
+        // Sample product data (In real app, this would come from DB)
+        const productData = {
+            'P001': 'Laptop',
+            'P002': 'Mouse',
+            'P003': 'Keyboard',
+            'P004': 'Monitor',
+            'P005': 'Printer',
+            'P006': 'Software License',
+            'P007': 'Webcam',
+            'P008': 'External Hard Drive',
+            'P009': 'USB Hub',
+            'P010': 'Headphones'
+        };
+
+        // Function to populate product dropdowns
+        function populateProductDropdowns(productIdSelect, productNameSelect) {
+            productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
+            productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+            for (const productId in productData) {
+                const optionId = document.createElement('option');
+                optionId.value = productId;
+                optionId.textContent = productId;
+                productIdSelect.appendChild(optionId);
+
+                const optionName = document.createElement('option');
+                optionName.value = productData[productId];
+                optionName.textContent = productData[productId];
+                productNameSelect.appendChild(optionName);
+            }
+        }
+
+
+
+        addProductButton.addEventListener('click', function() {
+            let newRow;
+            if (window.innerWidth < 768) {
+                newRow = productTableMobile.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+
+
+                // Product ID Dropdown
+                const productIdSelect = document.createElement('select');
+                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productIdSelect.style.width = '100%';
+
+                // Product Name Dropdown
+                const productNameSelect = document.createElement('select');
+                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productNameSelect.style.width = '100%';
+
+                populateProductDropdowns(productIdSelect, productNameSelect); // Populate dropdowns for new row
+
+                cell1.appendChild(productIdSelect);
+                cell2.appendChild(productNameSelect);
+
+
+                // Event Listeners for mobile
+                productIdSelect.addEventListener('change', function() {
+                    const selectedProductId = this.value;
+                    const productName = productData[selectedProductId] || '';
+                    productNameSelect.value = productName;
+                });
+
+                productNameSelect.addEventListener('change', function() {
+                    const selectedProductName = this.value;
+                    let productId = '';
+                    for (const id in productData) {
+                        if (productData[id] === selectedProductName) {
+                            productId = id;
+                            break;
+                        }
+                    }
+                    productIdSelect.value = productId;
+                });
+
+            } else {
+                newRow = productTable.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+
+
+                // Product ID Dropdown
+                const productIdSelect = document.createElement('select');
+                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productIdSelect.style.width = '100%';
+
+                // Product Name Dropdown
+                const productNameSelect = document.createElement('select');
+                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productNameSelect.style.width = '100%';
+
+                populateProductDropdowns(productIdSelect, productNameSelect); // Populate dropdowns for new row
+
+                cell1.appendChild(productIdSelect);
+                cell2.appendChild(productNameSelect);
+
+                // Event Listeners
+                productIdSelect.addEventListener('change', function() {
+                    const selectedProductId = this.value;
+                    const productName = productData[selectedProductId] || '';
+                    productNameSelect.value = productName;
+                });
+
+                productNameSelect.addEventListener('change', function() {
+                    const selectedProductName = this.value;
+                    let productId = '';
+                    for (const id in productData) {
+                        if (productData[id] === selectedProductName) {
+                            productId = id;
+                            break;
+                        }
+                    }
+                    productIdSelect.value = productId;
+                });
+            }
+            // Populate the dropdowns for the newly added row
+
+        });
+
+        // Show/hide account details section
+        document.getElementById('account-available').addEventListener('change', function() {
+            const section = document.getElementById('account-details-section');
+            if (this.value === 'yes') {
+                section.classList.add('show');
+            } else {
+                section.classList.remove('show');
+            }
+        });
+
+        submitFormButton.addEventListener('click', function() {
+            const supplierName = document.getElementById('supplier-name').value;
+            const supplierContact = document.getElementById('supplier-contact').value;
+             const gstAvailable = document.getElementById('gst-available').value;
+            const gstNumber = document.getElementById('gst-number').value;
+            const addressLine1 = document.getElementById('address-line1').value;
+            const pincode = document.getElementById('pincode').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const country = document.getElementById('country').value;
+            const accountAvailable = document.getElementById('account-available').value;
+            let accountDetails = null;
+            if (accountAvailable === 'yes') {
+                accountDetails = {
+                    accountHolderName: document.getElementById('account-holder-name').value,
+                    accountNumber: document.getElementById('account-number').value,
+                    ifscCode: document.getElementById('ifsc-code').value,
+                    branch: document.getElementById('branch').value
+                };
+            }
+
+            const products = [];
+            let rows;
+             if (window.innerWidth < 768) {
+                rows = productTableMobile.querySelectorAll('tbody tr');
+            }
+             else{
+                rows = productTable.querySelectorAll('tbody tr');
+            }
+
+            rows.forEach(row => {
+                const productId = row.querySelector('.product-id').value;
+                const productName = row.querySelector('.product-name').value;
+
+
+                products.push({
+                    productId: productId,
+                    productName: productName,
+                });
+            });
+
+            const supplierData = {
+                supplierName: supplierName,
+                supplierContact: supplierContact,
+                gstAvailable: gstAvailable,
+                gstNumber: gstNumber,
+                address: {
+                    addressLine1: addressLine1,
+                    pincode: pincode,
+                    city: city,
+                    state: state,
+                    country: country
+                },
+                products: products,
+                accountAvailable: accountAvailable,
+                accountDetails: accountDetails
+            };
+
+            console.log(supplierData);
+            alert('Supplier data submitted! Check console for details.');
+            // In a real application, you would send this data to a backend server using fetch() or XMLHttpRequest
+        });
+        // Populate the initial product dropdowns on page load
+        const initialProductIdSelect = productTable.querySelector('.product-id');
+        const initialProductNameSelect = productTable.querySelector('.product-name');
+        populateProductDropdowns(initialProductIdSelect, initialProductNameSelect);
+
+        const initialMobileProductIdSelect = productTableMobile.querySelector('.product-id');
+        const initialMobileProductNameSelect = productTableMobile.querySelector('.product-name');
+        populateProductDropdowns(initialMobileProductIdSelect, initialMobileProductNameSelect);
+    </script>
+</body>
+</html>

@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Entry Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <style>
+        /* Custom styles for the dynamic amount input */
+        #partial-payment-amount {
+            display: none;
+        }
+        .show-partial-payment #partial-payment-amount {
+            display: block;
+        }
+
+        /* Styles for the product table */
+        #product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        #product-table th, #product-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #product-table th {
+            background-color: #f0f0f0;
+        }
+        #product-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        #product-table th,
+        #product-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        /* Styles for the mobile table */
+        #product-table-mobile {
+            display: none; /* Initially hide the mobile table */
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        #product-table-mobile th,
+        #product-table-mobile td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #product-table-mobile th {
+            background-color: #f0f0f0;
+        }
+
+        #product-table-mobile tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Make table scrollable on small screens */
+        @media (max-width: 768px) {
+            #product-table {
+                display: none; /* Hide the default table on small screens */
+            }
+            #product-table-mobile {
+                display: block; /* Show the mobile table on small screens */
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            #product-table-mobile thead,
+            #product-table-mobile tbody,
+            #product-table-mobile tr,
+            #product-table-mobile td,
+            #product-table-mobile th {
+                display: block;
+            }
+
+            #product-table-mobile thead tr {
+                display: table-row;
+            }
+            #product-table thead {
+                display: none;
+            }
+            #product-table-mobile thead {
+                display: none;
+            }
+
+            #product-table-mobile th {
+                text-align: left;
+            }
+
+            #product-table-mobile td,
+            #product-table-mobile th {
+                min-width: 120px;
+            }
+
+            #product-table-mobile input,
+            #product-table-mobile select {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            #product-table-mobile td label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #718096;
+            }
+        }
+
+        /* Styles for the total and GST display */
+        #total-and-gst-container {
+            display: flex;
+            justify-content: flex-end;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 20px;
+        }
+
+        #final-total-amount-container {
+            margin-top: 20px;
+        }
+
+        /* Adjust form layout for mobile */
+        @media (max-width: 768px) {
+            .grid.grid-cols-1.md\:grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            .grid.gap-4 {
+                gap: 10px;
+            }
+            .mb-4 {
+                margin-bottom: 15px;
+            }
+            #total-and-gst-container {
+                align-items: flex-start;
+            }
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+        .powered-by-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .powered-by-text {
+            margin-bottom: 10px;
+            color: #777;
+        }
+
+        .powered-by-logo {
+            max-width: 150px;
+            height: auto;
+        }
+        .powered-by-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .form-container {
+            flex-grow: 1;
+        }
+        .customer-id-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .customer-id-container select {
+            flex-grow: 1;
+        }
+        .add-customer-link {
+            color: #3b82f6;
+            text-decoration: underline;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .add-customer-link:hover {
+            color: #2563eb;
+        }
+        .customer-id-label-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .customer-id-label-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .add-customer-link {
+            color: #3b82f6;
+            text-decoration: underline;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        .add-customer-link:hover {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-inter antialiased">
+    <div class="min-h-screen flex justify-center items-center py-10 main-content">
+        <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
+            <div class="logo-container">
+                <img src="logo.png" alt="Company Logo" class="logo">
+            </div>
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Sales Entry</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="sales-date" class="block text-gray-700 text-sm font-bold mb-2">Sales Date:</label>
+                    <input type="date" id="sales-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="executive-name" class="block text-gray-700 text-sm font-bold mb-2">Executive Name:</label>
+                    <select id="executive-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Select Executive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <div class="customer-id-label-container">
+                        <label for="customer-id" class="text-gray-700 text-sm font-bold">Customer ID:</label>
+                        <span class="add-customer-link" onclick="window.location.href='new_customer_form.html'">Add New Customer</span>
+                    </div>
+                    <div class="customer-id-container">
+                        <select id="customer-id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Select Customer ID</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2">Customer Name:</label>
+                    <input type="text" id="customer-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                </div>
+            </div>
+
+            <table id="product-table" class="mb-6">
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Quantity Sold</th>
+                        <th>Price Per Unit</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product ID</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product Name</option>
+                            </select>
+                        </td>
+                        <td><input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
+                        <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
+                        <td class="amount">₹0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table id="product-table-mobile" class="mb-6">
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Quantity Sold</th>
+                        <th>Price Per Unit</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <label>Product ID</label>
+                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product ID</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label>Product Name</label>
+                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product Name</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label>Quantity Sold</label>
+                            <input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </td>
+                        <td>
+                            <label>Price Per Unit</label>
+                            <input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </td>
+                        <td class="amount">₹0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mb-6">
+                <button id="add-product" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Product</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="discount" class="block text-gray-700 text-sm font-bold mb-2">Discount Amount:</label>
+                    <input type="number" id="discount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="" min="0">
+                </div>
+            </div>
+
+            <div id="total-and-gst-container" class="mb-6">
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Gross Amount: </span>
+                    <span id="total-amount" class="text-gray-700">₹0.00</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Discount: </span>
+                    <span id="discount-amount-display" class="text-gray-700">₹0.00</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Net Amount: </span>
+                    <span id="total-after-discount" class="text-gray-700">₹0.00</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">GST: </span>
+                    <span id="cgst" class="text-gray-700">₹0.00</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Total Payable Amount: </span>
+                    <span id="total-payable-amount" class="text-green-600 font-bold">₹0.00</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="mode-of-payment" class="block text-gray-700 text-sm font-bold mb-2">Mode of Payment:</label>
+                    <input type="text" id="mode-of-payment" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="payment-option" class="block text-gray-700 text-sm font-bold mb-2">Payment Option:</label>
+                    <select id="payment-option" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="full-payment" selected>Full Payment</option>
+                        <option value="partial-payment">Partial Payment</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4 show-partial-payment" id="partial-payment-amount">
+                <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Partial Payment Amount:</label>
+                <input type="number" id="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div id="final-total-amount-container" class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Amount Paid:</label>
+                <input type="number" id="final-total-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+            </div>
+
+            <button id="submit-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+        </div>
+        <div class="powered-by-container">
+            <span class="powered-by-text">Powered By</span>
+            <img src="logo.png" alt="Company Logo" class="powered-by-logo">
+        </div>
+    </div>
+    
+
+    <script>
+        const paymentOptionSelect = document.getElementById('payment-option');
+        const partialPaymentAmountInput = document.getElementById('partial-payment-amount');
+        const addProductButton = document.getElementById('add-product');
+        const productTable = document.getElementById('product-table');
+        const productTableMobile = document.getElementById('product-table-mobile');
+        const totalAmountDisplay = document.getElementById('total-amount');
+        const cgstDisplay = document.getElementById('cgst');
+        const finalTotalAmountInput = document.getElementById('final-total-amount');
+        const finalTotalAmountContainer = document.getElementById('final-total-amount-container');
+        const totalPayableAmountDisplay = document.getElementById('total-payable-amount');
+        const customerIdSelect = document.getElementById('customer-id');
+        const customerNameInput = document.getElementById('customer-name');
+        const salesDateInput = document.getElementById('sales-date');
+        const executiveNameSelect = document.getElementById('executive-name');
+        const discountInput = document.getElementById('discount');
+        const discountAmountDisplay = document.getElementById('discount-amount-display');
+        const totalAfterDiscountDisplay = document.getElementById('total-after-discount');
+
+        // Sample customer data (in a real application, this would come from a database)
+        const customerData = {
+            'C001': 'Retail',
+            'C002': 'Jane Doe',
+            'C003': 'David Lee',
+            'C004': 'Sarah Kim',
+            'C005': 'Michael Brown'
+        };
+
+        // Sample executive names
+        const executiveNames = ['Alice Johnson', 'Bob Williams', 'Charlie Brown', 'Diana Miller', 'Ethan Davis'];
+
+        // Sample product data (In real app, this would come from DB)
+        const productData = {
+            'P001': 'Laptop',
+            'P002': 'Mouse',
+            'P003': 'Keyboard',
+            'P004': 'Monitor',
+            'P005': 'Printer',
+            'P006': 'Software License',
+            'P007': 'Webcam',
+            'P008': 'External Hard Drive',
+            'P009': 'USB Hub',
+            'P010': 'Headphones'
+        };
+
+        // Function to populate dropdowns in the first row
+        function populateFirstRowDropdowns() {
+            // Populate Product ID dropdown in first row (desktop)
+            const firstRowProductId = productTable.querySelector('tbody tr .product-id');
+            for (const productId in productData) {
+                const option = document.createElement('option');
+                option.value = productId;
+                option.textContent = productId;
+                firstRowProductId.appendChild(option);
+            }
+
+            // Populate Product Name dropdown in first row (desktop)
+            const firstRowProductName = productTable.querySelector('tbody tr .product-name');
+            for (const productName in productData) {
+                const option = document.createElement('option');
+                option.value = productData[productName];
+                option.textContent = productData[productName];
+                firstRowProductName.appendChild(option);
+            }
+            // Add event listener to first row product ID dropdown
+            firstRowProductId.addEventListener('change', function() {
+                const selectedProductId = this.value;
+                const productName = productData[selectedProductId] || '';
+                const firstRowProductNameSelect = productTable.querySelector('tbody tr .product-name');
+                firstRowProductNameSelect.value = productName;
+            });
+
+            // Populate Product ID dropdown in first row (mobile)
+            const firstRowMobileProductId = productTableMobile.querySelector('tbody tr .product-id');
+            for (const productId in productData) {
+                const option = document.createElement('option');
+                option.value = productId;
+                option.textContent = productId;
+                firstRowMobileProductId.appendChild(option);
+            }
+
+            // Populate Product Name dropdown in first row (mobile)
+            const firstRowMobileProductName = productTableMobile.querySelector('tbody tr .product-name');
+            for (const productName in productData) {
+                const option = document.createElement('option');
+                option.value = productData[productName];
+                option.textContent = productData[productName];
+                firstRowMobileProductName.appendChild(option);
+            }
+            // Add event listener to first row product ID dropdown
+            firstRowMobileProductId.addEventListener('change', function() {
+                const selectedProductId = this.value;
+                const productName = productData[selectedProductId] || '';
+                const firstRowMobileProductNameSelect = productTableMobile.querySelector('tbody tr .product-name');
+                firstRowMobileProductNameSelect.value = productName;
+            });
+        }
+
+        // Populate the Customer ID dropdown
+        for (const customerId in customerData) {
+            const option = document.createElement('option');
+            option.value = customerId;
+            option.textContent = customerId;
+            customerIdSelect.appendChild(option);
+        }
+
+        // Populate the Executive Name dropdown
+        executiveNames.forEach(executiveName => {
+            const option = document.createElement('option');
+            option.value = executiveName;
+            option.textContent = executiveName;
+            executiveNameSelect.appendChild(option);
+        });
+
+        // Set default value for Sales Date to today
+        salesDateInput.value = new Date().toISOString().split('T')[0];
+
+        // Populate dropdowns in the first row
+        populateFirstRowDropdowns();
+
+        // Update Customer Name when Customer ID is selected
+        customerIdSelect.addEventListener('change', function() {
+            const selectedCustomerId = this.value;
+            const customerName = customerData[selectedCustomerId] || ''; // Default to empty string if ID not found
+            customerNameInput.value = customerName;
+        });
+
+        paymentOptionSelect.addEventListener('change', function() {
+            if (this.value === 'partial-payment') {
+                partialPaymentAmountInput.classList.add('show-partial-payment');
+                finalTotalAmountInput.readOnly = false;
+                finalTotalAmountInput.value = '';
+            } else {
+                partialPaymentAmountInput.classList.remove('show-partial-payment');
+                finalTotalAmountInput.readOnly = true;
+                calculateTotal();
+            }
+        });
+
+        addProductButton.addEventListener('click', function() {
+            let newRow;
+            if (window.innerWidth < 768) {
+                newRow = productTableMobile.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+                const cell3 = newRow.insertCell();
+                const cell4 = newRow.insertCell();
+                const cell5 = newRow.insertCell();
+
+                // Product ID Dropdown
+                const productIdSelect = document.createElement('select');
+                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
+                for (const productId in productData) {
+                    const option = document.createElement('option');
+                    option.value = productId;
+                    option.textContent = productId;
+                    productIdSelect.appendChild(option);
+                }
+                cell1.innerHTML = '<label>Product ID</label>';
+                cell1.appendChild(productIdSelect);
+
+                // Product Name Dropdown
+                const productNameSelect = document.createElement('select');
+                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+                for (const productName in productData) {
+                    const option = document.createElement('option');
+                    option.value = productData[productName];
+                    option.textContent = productData[productName];
+                    productNameSelect.appendChild(option);
+                }
+                cell2.innerHTML = '<label>Product Name</label>';
+                cell2.appendChild(productNameSelect);
+                
+                cell3.innerHTML = '<label>Quantity Sold</label><input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                cell4.innerHTML = '<label>Price Per Unit</label><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                cell5.className = 'amount';
+                cell5.textContent = '₹0.00';
+
+                // Event Listeners for mobile
+                productIdSelect.addEventListener('change', function() {
+                    const selectedProductId = this.value;
+                    const productName = productData[selectedProductId] || '';
+                    productNameSelect.value = productName;
+                });
+
+                productNameSelect.addEventListener('change', function() {
+                    const selectedProductName = this.value;
+                    let productId = '';
+                    for (const id in productData) {
+                        if (productData[id] === selectedProductName) {
+                            productId = id;
+                            break;
+                        }
+                    }
+                    productIdSelect.value = productId;
+                });
+
+            }
+            else {
+                newRow = productTable.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+                const cell3 = newRow.insertCell();
+                const cell4 = newRow.insertCell();
+                const cell5 = newRow.insertCell();
+
+                // Product ID Dropdown
+                const productIdSelect = document.createElement('select');
+                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
+                for (const productId in productData) {
+                    const option = document.createElement('option');
+                    option.value = productId;
+                    option.textContent = productId;
+                    productIdSelect.appendChild(option);
+                }
+                cell1.appendChild(productIdSelect);
+
+                // Product Name Dropdown
+                const productNameSelect = document.createElement('select');
+                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+                for (const productName in productData) {
+                    const option = document.createElement('option');
+                    option.value = productData[productName];
+                    option.textContent = productData[productName];
+                    productNameSelect.appendChild(option);
+                }
+                cell2.appendChild(productNameSelect);
+
+                cell3.innerHTML = '<input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                cell4.innerHTML = '<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                cell5.className = 'amount';
+                cell5.textContent = '₹0.00';
+
+                // Event Listeners
+                productIdSelect.addEventListener('change', function() {
+                    const selectedProductId = this.value;
+                    const productName = productData[selectedProductId] || '';
+                    productNameSelect.value = productName;
+                });
+
+                productNameSelect.addEventListener('change', function() {
+                    const selectedProductName = this.value;
+                    let productId = '';
+                    for (const id in productData) {
+                        if (productData[id] === selectedProductName) {
+                            productId = id;
+                            break;
+                        }
+                    }
+                    productIdSelect.value = productId;
+                });
+            }
+
+            // Re-calculate total when fields in the new row change
+            const inputs = newRow.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('change', calculateTotal);
+            });
+            const selects = newRow.querySelectorAll('select');
+            selects.forEach(select => {
+                select.addEventListener('change', calculateTotal);
+            });
+        });
+
+        function formatIndianCurrency(amount) {
+            const formatter = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+            return formatter.format(amount);
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            let rows;
+            if (window.innerWidth < 768) {
+                rows = productTableMobile.querySelectorAll('tbody tr');
+            }
+            else {
+                rows = productTable.querySelectorAll('tbody tr');
+            }
+
+            rows.forEach(row => {
+                const quantityInput = row.querySelector('.quantity-sold');
+                const pricePerUnitInput = row.querySelector('.price-per-unit');
+                const amountCell = row.querySelector('.amount');
+                const quantity = parseFloat(quantityInput.value);
+                const pricePerUnit = parseFloat(pricePerUnitInput.value);
+
+                if (!isNaN(quantity) && !isNaN(pricePerUnit)) {
+                    const amount = quantity * pricePerUnit;
+                    amountCell.textContent = formatIndianCurrency(amount);
+                    total += amount;
+                } else {
+                    amountCell.textContent = '₹0.00';
+                }
+            });
+
+            // Apply discount
+            const discount = parseFloat(discountInput.value) || 0;
+            const discountedTotal = Math.max(0, total - discount);  // Ensure total doesn't go negative
+            totalAmountDisplay.textContent = formatIndianCurrency(total);
+            discountAmountDisplay.textContent = formatIndianCurrency(discount); // Display the discount amount
+            totalAfterDiscountDisplay.textContent = formatIndianCurrency(discountedTotal);
+            
+            const cgst = discountedTotal * 0.18;
+            cgstDisplay.textContent = formatIndianCurrency(cgst);
+            const totalPayable = discountedTotal + cgst;
+            totalPayableAmountDisplay.textContent = formatIndianCurrency(totalPayable);
+
+            if (paymentOptionSelect.value === 'partial-payment') {
+                const partialPaymentAmount = parseFloat(document.getElementById('amount').value);
+                if(!isNaN(partialPaymentAmount)) {
+                    finalTotalAmountInput.value = partialPaymentAmount;
+                }
+                else {
+                    finalTotalAmountInput.value = '';
+                }
+            } else {
+                finalTotalAmountInput.value = totalPayable;
+            }
+        }
+
+        // Event listener for partial payment amount input
+        document.getElementById('amount').addEventListener('input', function() {
+            if (paymentOptionSelect.value === 'partial-payment') {
+                const partialPaymentAmount = parseFloat(this.value);
+                if (!isNaN(partialPaymentAmount)) {
+                    finalTotalAmountInput.value = partialPaymentAmount;
+                } else {
+                    finalTotalAmountInput.value = '';
+                }
+            }
+        });
+
+        // Event listener for discount input
+        discountInput.addEventListener('input', calculateTotal);
+
+        // Calculate initial total on page load and add event listeners to existing rows
+        calculateTotal();
+        const initialRows = productTable.querySelectorAll('tbody tr');
+        initialRows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('change', calculateTotal);
+            });
+            const selects = row.querySelectorAll('select');
+            selects.forEach(select => {
+                select.addEventListener('change', calculateTotal);
+            });
+        });
+
+        const initialMobileRows = productTableMobile.querySelectorAll('tbody tr');
+        initialMobileRows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('change', calculateTotal);
+            });
+            const selects = row.querySelectorAll('select');
+            selects.forEach(select => {
+                select.addEventListener('change', calculateTotal);
+            });
+        });
+    </script>
+</body>
+</html>

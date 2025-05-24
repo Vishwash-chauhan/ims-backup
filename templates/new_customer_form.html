@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Customer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Custom styles (if needed) */
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+
+        .powered-by-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+             width: 100%;
+        }
+
+        .powered-by-text {
+            margin-bottom: 10px;
+            color: #777;
+        }
+
+        .powered-by-logo {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .form-container {
+            flex-grow: 1;
+        }
+
+        .address-box {
+            border: 1px solid #e2e8f0; /* Tailwind's border-gray-200 */
+            border-radius: 0.5rem; /* Tailwind's rounded-md */
+            padding: 1rem;           /* Tailwind's p-4 */
+            margin-bottom: 1.5rem;     /* Tailwind's mb-6 */
+            background-color: #f7fafc;  /* Tailwind's bg-gray-50 */
+        }
+
+        /* Navigation bar styles */
+        nav {
+            background-color: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            margin-right: 15px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: #e2e8f0;
+            margin: 10px 0;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            $('#billing-pincode').on('blur', function() {
+                var pincode = $(this).val();
+                if (pincode.length === 6) {
+                    $.ajax({
+                        url: 'https://api.postalpincode.in/pincode/' + pincode,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            if (data && data.length > 0 && data[0].Status === "Success") {
+                                var postOffice = data[0].PostOffice[0];
+                                $('#billing-city').val(postOffice.District);
+                                $('#billing-state').val(postOffice.State);
+                                $('#billing-country').val("India");
+
+                                if ($('#same-as-billing').is(':checked')) {
+                                    $('#shipping-city').val(postOffice.District);
+                                    $('#shipping-state').val(postOffice.State);
+                                    $('#shipping-country').val("India");
+                                }
+                            } else {
+                                $('#billing-city').val('');
+                                $('#billing-state').val('');
+                                alert('Invalid Pincode. Please enter a valid Indian pincode.');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error fetching data:", status, error);
+                            $('#billing-city').val('');
+                            $('#billing-state').val('');
+                            alert('Error fetching pincode data. Please try again.');
+                        }
+                    });
+                } else if (pincode.length > 0) {
+                    alert('Pincode should be 6 digits.');
+                    $('#billing-city').val('');
+                    $('#billing-state').val('');
+                }
+            });
+
+            $('#same-as-billing').change(function() {
+                if (this.checked) {
+                    $('#shipping-pincode').val($('#billing-pincode').val());
+                    $('#shipping-city').val($('#billing-city').val());
+                    $('#shipping-state').val($('#billing-state').val());
+                    $('#shipping-country').val($('#billing-country').val());
+                    $('#shipping-address-line1').val($('#billing-address-line1').val());
+
+
+                    $('#shipping-pincode').prop('readonly', true);
+                    $('#shipping-city').prop('readonly', true);
+                    $('#shipping-state').prop('readonly', true);
+                    $('#shipping-country').prop('readonly', true);
+                    $('#shipping-address-line1').prop('readonly', true);
+                } else {
+                    $('#shipping-pincode').prop('readonly', false);
+                    $('#shipping-city').prop('readonly', false);
+                    $('#shipping-state').prop('readonly', false);
+                    $('#shipping-country').prop('readonly', false);
+                    $('#shipping-address-line1').prop('readonly', false);
+
+
+                    $('#shipping-pincode').val('');
+                    $('#shipping-city').val('');
+                    $('#shipping-state').val('');
+                    $('#shipping-country').val('');
+                    $('#shipping-address-line1').val('');
+                }
+            });
+            $('#shipping-pincode').on('blur', function() {
+                var pincode = $(this).val();
+                if (pincode.length === 6) {
+                    $.ajax({
+                        url: 'https://api.postalpincode.in/pincode/' + pincode,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            if (data && data.length > 0 && data[0].Status === "Success") {
+                                var postOffice = data[0].PostOffice[0];
+                                $('#shipping-city').val(postOffice.District);
+                                $('#shipping-state').val(postOffice.State);
+                                $('#shipping-country').val("India");
+                            } else {
+                                $('#shipping-city').val('');
+                                $('#shipping-state').val('');
+                                alert('Invalid Pincode. Please enter a valid Indian pincode.');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error fetching data:", status, error);
+                            $('#shipping-city').val('');
+                            $('#shipping-state').val('');
+                            alert('Error fetching pincode data. Please try again.');
+                        }
+                    });
+                } else if (pincode.length > 0) {
+                    alert('Pincode should be 6 digits.');
+                    $('#shipping-city').val('');
+                    $('#shipping-state').val('');
+                }
+            });
+        });
+    </script>
+</head>
+<body class="bg-gray-100 font-inter antialiased">
+    <!-- Navigation Bar -->
+    <!--
+    <nav>
+      <a href="/">Home</a> |
+      <a href="/products">Products</a> |
+      <a href="/products/add">Add Product</a> |
+      <a href="/inventory">Inventory</a> |
+      <a href="/customers">Customers</a> |
+      <a href="/orders">Orders</a> |
+      <a href="/orders/create">Create Order</a> |
+      <a href="/invoices">Invoices</a> |
+      <a href="/sales-entry">Sales Entry</a> |
+      <a href="/new-customer">New Customer</a>
+    </nav>
+    <hr>
+    -->
+    <div class="min-h-screen flex justify-center items-center py-10 main-content">
+        <div class="bg-white rounded-lg shadow-md w-full max-w-2xl p-6 form-container">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+            </div>
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">New Customer Details</h1>
+
+            <form>
+                <div class="flex flex-wrap -mx-2 mb-4">
+                    <div class="w-1/2 px-2">
+                        <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2">Customer Name:</label>
+                        <input type="text" id="customer-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="w-1/2 px-2">
+                        <label for="contact-number" class="block text-gray-700 text-sm font-bold mb-2">Contact Number:</label>
+                        <input type="text" id="contact-number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="email-address" class="block text-gray-700 text-sm font-bold mb-2">Email Address:</label>
+                        <input type="email" id="email-address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+
+                <div class="address-box">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Billing Address</h2>
+                    <div class="mb-4">
+                        <label for="billing-address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
+                        <input type="text" id="billing-address-line1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="billing-pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
+                            <input type="text" id="billing-pincode" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="billing-city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
+                            <input type="text" id="billing-city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="billing-state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
+                            <input type="text" id="billing-state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="billing-country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
+                            <input type="text" id="billing-country" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="India" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="address-box">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Shipping Address</h2>
+                    <div class="mb-2">
+                        <label for="same-as-billing" class="inline-flex items-center">
+                            <input type="checkbox" id="same-as-billing" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                            <span class="ml-2 text-gray-700 text-sm">Same as Billing Address</span>
+                        </label>
+                    </div>
+
+
+                    <div class="mb-4">
+                        <label for="shipping-address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
+                        <input type="text" id="shipping-address-line1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="shipping-pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
+                            <input type="text" id="shipping-pincode" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="shipping-city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
+                            <input type="text" id="shipping-city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="shipping-state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
+                            <input type="text" id="shipping-state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="shipping-country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
+                            <input type="text" id="shipping-country" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="India" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
+                    <textarea id="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                </div>
+
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Add Customer</button>
+            </form>
+        </div>
+        <div class="powered-by-container">
+            <span class="powered-by-text">Powered By</span>
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="powered-by-logo">
+        </div>
+    </div>
+</body>
+</html>

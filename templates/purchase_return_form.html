@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Return Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Custom styles for the dynamic amount input */
+        #partial-refund-amount {
+            display: none;
+        }
+        .show-partial-refund #partial-refund-amount {
+            display: block;
+        }
+
+        /* Styles for the product table */
+        #product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        #product-table th, #product-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #product-table th {
+            background-color: #f0f0f0;
+        }
+        #product-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        #product-table th,
+        #product-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        /* Styles for the mobile table */
+        #product-table-mobile {
+            display: none; /* Initially hide the mobile table */
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        #product-table-mobile th,
+        #product-table-mobile td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #product-table-mobile th {
+            background-color: #f0f0f0;
+        }
+
+        #product-table-mobile tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Make table scrollable on small screens */
+        @media (max-width: 768px) {
+            #product-table {
+                display: none; /* Hide the default table on small screens */
+            }
+            #product-table-mobile {
+                display: block; /* Show the mobile table on small screens */
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            #product-table-mobile thead,
+            #product-table-mobile tbody,
+            #product-table-mobile tr,
+            #product-table-mobile td,
+            #product-table-mobile th {
+                display: block;
+            }
+
+            #product-table-mobile thead tr {
+                display: table-row;
+            }
+            #product-table thead {
+                display: none;
+            }
+            #product-table-mobile thead {
+                display: none;
+            }
+
+            #product-table-mobile th {
+                text-align: left;
+            }
+
+            #product-table-mobile td,
+            #product-table-mobile th {
+                min-width: 120px;
+            }
+
+            #product-table-mobile input,
+            #product-table-mobile select {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            #product-table-mobile td label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #718096;
+            }
+        }
+
+        /* Styles for the total and GST display */
+        #total-and-gst-container {
+            display: flex;
+            justify-content: flex-end;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 20px;
+        }
+
+        #final-refund-amount-container {
+            margin-top: 20px;
+        }
+
+        /* Adjust form layout for mobile */
+        @media (max-width: 768px) {
+            .grid.grid-cols-1.md\:grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            .grid.gap-4 {
+                gap: 10px;
+            }
+            .mb-4 {
+                margin-bottom: 15px;
+            }
+            #total-and-gst-container {
+                align-items: flex-start;
+            }
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+        .powered-by-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .powered-by-text {
+            margin-bottom: 10px;
+            color: #777;
+        }
+
+        .powered-by-logo {
+            max-width: 150px;
+            height: auto;
+        }
+        .powered-by-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .form-container {
+            flex-grow: 1;
+        }
+        .original-invoice-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .original-invoice-container select {
+            flex-grow: 1;
+        }
+        .view-invoice-link {
+            color: #3b82f6;
+            text-decoration: underline;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .view-invoice-link:hover {
+            color: #2563eb;
+        }
+        .original-invoice-label-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .original-invoice-label-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .view-invoice-link {
+            color: #3b82f6;
+            text-decoration: underline;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        .view-invoice-link:hover {
+            color: #2563eb;
+        }
+
+        /* Navigation Bar Styles */
+        nav {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            color: #333;
+            text-decoration: none;
+            margin-right: 15px;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-inter antialiased">
+    <!-- Navigation Bar -->
+    <nav>
+      <a href="/">Home</a> |
+      <a href="/products">Products</a> |
+      <a href="/products/add">Add Product</a> |
+      <a href="/inventory">Inventory</a> |
+      <a href="/customers">Customers</a> |
+      <a href="/orders">Orders</a> |
+      <a href="/orders/create">Create Order</a> |
+      <a href="/invoices">Invoices</a> |
+      <a href="/sales-entry">Sales Entry</a> |
+      <a href="/new-customer">New Customer</a>
+    </nav>
+    <hr>
+    <div class="min-h-screen flex justify-center items-center py-10 main-content">
+        <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+            </div>
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Purchase Return</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="return-date" class="block text-gray-700 text-sm font-bold mb-2">Return Date:</label>
+                    <input type="date" id="return-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <div class="original-invoice-label-container">
+                        <label for="original-invoice" class="text-gray-700 text-sm font-bold">Original Invoice:</label>
+                        <span class="view-invoice-link" onclick="window.location.href='purchase_entry_form.html'">View Invoice</span>
+                    </div>
+                    <div class="original-invoice-container">
+                        <select id="original-invoice" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Select Invoice</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="supplier-name" class="block text-gray-700 text-sm font-bold mb-2">Supplier Name:</label>
+                    <input type="text" id="supplier-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                </div>
+            </div>
+
+            <table id="product-table" class="mb-6">
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Quantity Returned</th>
+                        <th>Price Per Unit</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product ID</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product Name</option>
+                            </select>
+                        </td>
+                        <td><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
+                        <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
+                        <td class="amount">₹0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table id="product-table-mobile" class="mb-6">
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Quantity Returned</th>
+                        <th>Price Per Unit</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <label>Product ID</label>
+                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product ID</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label>Product Name</label>
+                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select Product Name</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label>Quantity Returned</label>
+                            <input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </td>
+                        <td>
+                            <label>Price Per Unit</label>
+                            <input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </td>
+                        <td class="amount">₹0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mb-6">
+                <button id="add-product" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Product</button>
+            </div>
+            <div id="total-and-gst-container" class="mb-6">
+                <div class="mb-2">
+                    <span class="text-gray-700 text-sm font-bold">Total Refundable Amount: </span>
+                    <span id="total-refundable-amount" class="text-gray-700">₹0.00</span>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="return-reason" class="block text-gray-700 text-sm font-bold mb-2">Return Reason:</label>
+                <input type="text" id="return-reason" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="mode-of-refund" class="block text-gray-700 text-sm font-bold mb-2">Mode of Refund:</label>
+                    <select id="mode-of-refund" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Select Mode</option>
+                        <option value="upi">UPI</option>
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="bank">Bank Transfer</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="refund-option" class="block text-gray-700 text-sm font-bold mb-2">Refund Option:</label>
+                    <select id="refund-option" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="full-refund" selected>Full Refund</option>
+                        <option value="partial-refund">Partial Refund</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4 show-partial-refund" id="partial-refund-amount">
+                <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Partial Refund Amount:</label>
+                <input type="number" id="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div id="final-refund-amount-container" class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Amount Refunded:</label>
+                <input type="number" id="final-refund-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+            </div>
+
+            <button id="submit-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+        </div>
+        <div class="powered-by-container">
+            <span class="powered-by-text">Powered By</span>
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="powered-by-logo">
+        </div>
+    </div>
+
+    <script>
+        const refundOptionSelect = document.getElementById('refund-option');
+        const partialRefundAmountInput = document.getElementById('partial-refund-amount');
+        const addProductButton = document.getElementById('add-product');
+        const productTable = document.getElementById('product-table');
+        const productTableMobile = document.getElementById('product-table-mobile');
+        const totalRefundableAmountDisplay = document.getElementById('total-refundable-amount');
+        const originalInvoiceSelect = document.getElementById('original-invoice');
+        const supplierNameInput = document.getElementById('supplier-name');
+        const returnDateInput = document.getElementById('return-date');
+        const finalRefundAmountInput = document.getElementById('final-refund-amount');
+        const returnReasonInput = document.getElementById('return-reason');
+        const modeOfRefundSelect = document.getElementById('mode-of-refund');
+        const submitFormButton = document.getElementById('submit-form');
+
+
+        // Sample invoice data (In a real application, this would come from a database)
+        const invoiceData = {
+            'INV001': { supplierId: 'S001', supplierName: 'ABC Suppliers' , products: [{id: 'P001', name: 'Laptop', price: 1000}, {id: 'P002', name: 'Mouse', price: 20}], total: 1020},
+            'INV002': { supplierId: 'S002', supplierName: 'XYZ Distributors', products: [{id: 'P003', name: 'Keyboard', price: 50}, {id: 'P004', name: 'Monitor', price: 300}], total: 350 },
+            'INV003': { supplierId: 'S003', supplierName: 'Tech Solutions', products: [{id: 'P005', name: 'Printer', price: 200}, {id: 'P006', name: 'Software License', price: 500}], total: 700 },
+        };
+
+        // Sample supplier data
+        const supplierData = {
+            'S001': 'ABC Suppliers',
+            'S002': 'XYZ Distributors',
+            'S003': 'Tech Solutions',
+            'S004': 'Global Electronics',
+            'S005': 'Best Buy'
+        };
+
+        // Sample executive names - Not used
+        const executiveNames = ['Alice Johnson', 'Bob Williams', 'Charlie Brown', 'Diana Miller', 'Ethan Davis'];
+
+        // Sample product data (In real app, this would come from DB)
+        const productData = {
+            'P001': 'Laptop',
+            'P002': 'Mouse',
+            'P003': 'Keyboard',
+            'P004': 'Monitor',
+            'P005': 'Printer',
+            'P006': 'Software License',
+            'P007': 'Webcam',
+            'P008': 'External Hard Drive',
+            'P009': 'USB Hub',
+            'P010': 'Headphones'
+        };
+
+        // Function to populate dropdowns in the first row
+        function populateFirstRowDropdowns() {
+            // Populate Product ID dropdown in first row (desktop)
+            const firstRowProductId = productTable.querySelector('tbody tr .product-id');
+            for (const productId in productData) {
+                const option = document.createElement('option');
+                option.value = productId;
+                option.textContent = productId;
+                firstRowProductId.appendChild(option);
+            }
+
+            // Populate Product Name dropdown in first row (desktop)
+            const firstRowProductName = productTable.querySelector('tbody tr .product-name');
+            for (const productName in productData) {
+                const option = document.createElement('option');
+                option.value = productData[productName];
+                option.textContent = productData[productName];
+                firstRowProductName.appendChild(option);
+            }
+            // Add event listener to first row product ID dropdown
+            firstRowProductId.addEventListener('change', function() {
+                const selectedProductId = this.value;
+                const productName = productData[selectedProductId] || '';
+                const firstRowProductNameSelect = productTable.querySelector('tbody tr .product-name');
+                firstRowProductNameSelect.value = productName;
+            });
+
+            // Populate Product ID dropdown in first row (mobile)
+            const firstRowMobileProductId = productTableMobile.querySelector('tbody tr .product-id');
+            for (const productId in productData) {
+                const option = document.createElement('option');
+                option.value = productId;
+                option.textContent = productId;
+                firstRowMobileProductId.appendChild(option);
+            }
+
+            // Populate Product Name dropdown in first row (mobile)
+            const firstRowMobileProductName = productTableMobile.querySelector('tbody tr .product-name');
+            for (const productName in productData) {
+                const option = document.createElement('option');
+                option.value = productData[productName];
+                option.textContent = productData[productName];
+                firstRowMobileProductName.appendChild(option);
+            }
+            // Add event listener to first row product ID dropdown
+            firstRowMobileProductId.addEventListener('change', function() {
+                const selectedProductId = this.value;
+                const productName = productData[selectedProductId] || '';
+                const firstRowMobileProductNameSelect = productTableMobile.querySelector('tbody tr .product-name');
+                firstRowMobileProductNameSelect.value = productName;
+            });
+        }
+
+        // Populate the Original Invoice dropdown
+        for (const invoiceId in invoiceData) {
+            const option = document.createElement('option');
+            option.value = invoiceId;
+            option.textContent = invoiceId;
+            originalInvoiceSelect.appendChild(option);
+        }
+
+        // Populate the Executive Name dropdown - Not used
+        // executiveNames.forEach(executiveName => {
+        //     const option = document.createElement('option');
+        //     option.value = executiveName;
+        //     option.textContent = executiveName;
+        //     executiveNameSelect.appendChild(option);
+        // });
+
+        // Set default value for Return Date to today
+        returnDateInput.value = new Date().toISOString().split('T')[0];
+
+        // Populate dropdowns in the first row
+        populateFirstRowDropdowns();
+
+        // Update Supplier Name and Products when Original Invoice is selected
+        originalInvoiceSelect.addEventListener('change', function() {
+            const selectedInvoice = this.value;
+            const supplierName = invoiceData[selectedInvoice]?.supplierName || '';
+            supplierNameInput.value = supplierName;
+
+            // Clear existing product rows
+            const productTableBody = productTable.querySelector('tbody');
+            const productTableMobileBody = productTableMobile.querySelector('tbody');
+            productTableBody.innerHTML = '';
+            productTableMobileBody.innerHTML = '';
+
+            // Add products from the selected invoice
+            if (invoiceData[selectedInvoice]?.products) {
+                invoiceData[selectedInvoice].products.forEach(product => {
+                    addRow(product.id, product.name, '', '',product.price); //changed to ''
+                });
+            }
+            else{
+                 addRow('', '', '', ''); //changed to ''
+            }
+            calculateTotal();
+        });
+
+        refundOptionSelect.addEventListener('change', function() {
+            if (this.value === 'partial-refund') {
+                partialRefundAmountInput.classList.add('show-partial-refund');
+                finalRefundAmountInput.readOnly = false;
+                finalRefundAmountInput.value = '';
+            } else {
+                partialRefundAmountInput.classList.remove('show-partial-refund');
+                finalRefundAmountInput.readOnly = true;
+                calculateTotal();
+            }
+        });
+
+        addProductButton.addEventListener('click', function() {
+            addRow('', '', '', ''); //changed to ''
+        });
+
+        function formatIndianCurrency(amount) {
+            const formatter = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+            return formatter.format(amount);
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            let rows;
+            if (window.innerWidth < 768) {
+                rows = productTableMobile.querySelectorAll('tbody tr');
+            }
+            else {
+                rows = productTable.querySelectorAll('tbody tr');
+            }
+
+            rows.forEach(row => {
+                const quantityInput = row.querySelector('.quantity-returned');
+                const pricePerUnitInput = row.querySelector('.price-per-unit');
+                const amountCell = row.querySelector('.amount');
+                const quantity = parseFloat(quantityInput.value);
+                const pricePerUnit = parseFloat(pricePerUnitInput.value);
+
+                if (!isNaN(quantity) && !isNaN(pricePerUnit)) {
+                    const amount = quantity * pricePerUnit;
+                    amountCell.textContent = formatIndianCurrency(amount);
+                    total += amount;
+                } else {
+                    amountCell.textContent = '₹0.00';
+                }
+            });
+
+            // Apply discount
+            const discount = 0;
+            const discountedTotal = Math.max(0, total - discount); // Ensure total doesn't go negative
+            totalRefundableAmountDisplay.textContent = formatIndianCurrency(discountedTotal);
+            if (refundOptionSelect.value != 'partial-refund'){
+                 finalRefundAmountInput.value = discountedTotal;
+            }
+
+        }
+
+        // Event listener for partial refund amount input
+        document.getElementById('amount').addEventListener('input', function() {
+            if (refundOptionSelect.value === 'partial-refund') {
+                const partialRefundAmount = parseFloat(this.value);
+                if (!isNaN(partialRefundAmount)) {
+                    finalRefundAmountInput.value = partialRefundAmount;
+                } else {
+                    finalRefundAmountInput.value = '';
+                }
+            }
+        });
+
+
+
+       function addRow(productIdValue, productNameValue, quantityValue, pricePerUnitValue) {
+            let newRow;
+            if (window.innerWidth < 768) {
+                newRow = productTableMobile.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+                const cell3 = newRow.insertCell();
+                const cell4 = newRow.insertCell();
+                const cell5 = newRow.insertCell();
+
+                // Product ID Dropdown
+                const productIdSelect = document.createElement('select');
+                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
+                for (const productId in productData) {
+                    const option = document.createElement('option');
+                    option.value = productId;
+                    option.textContent = productId;
+                    productIdSelect.appendChild(option);
+                }
+                cell1.innerHTML = '<label>Product ID</label>';
+                cell1.appendChild(productIdSelect);
+                productIdSelect.value = productIdValue;
+
+                // Product Name Dropdown
+                const productNameSelect = document.createElement('select');
+                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+                for (const productName in productData) {
+                    const option = document.createElement('option');
+                    option.value = productData[productName];
+                    option.textContent = productData[productName];
+                    productNameSelect.appendChild(option);
+                }
+                cell2.innerHTML = '<label>Product Name</label>';
+                cell2.appendChild(productNameSelect);
+                productNameSelect.value = productNameValue;
+
+                cell3.innerHTML = '<label>Quantity Returned</label><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                const quantityInput = newRow.querySelector('.quantity-returned');
+                quantityInput.value = quantityValue;
+
+                cell4.innerHTML = '<label>Price Per Unit</label><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                const pricePerUnitInput = newRow.querySelector('.price-per-unit');
+                pricePerUnitInput.value = pricePerUnitValue;
+                cell5.className = 'amount';
+                cell5.textContent = '₹0.00';
+
+                // Event Listeners for mobile
+                productIdSelect.addEventListener('change', function() {
+                    const selectedProductId = this.value;
+                    const productName = productData[selectedProductId] || '';
+                    productNameSelect.value = productName;
+                });
+
+                productNameSelect.addEventListener('change', function() {
+                    const selectedProductName = this.value;
+                    let productId = '';
+                    for (const id in productData) {
+                        if (productData[id] === selectedProductName) {
+                            productId = id;
+                            break;
+                        }
+                    }
+                    productIdSelect.value = productId;
+                });
+
+            }
+            else {
+                newRow = productTable.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+                const cell3 = newRow.insertCell();
+                const cell4 = newRow.insertCell();
+                const cell5 = newRow.insertCell();
+
+                // Product ID Dropdown
+                const productIdSelect = document.createElement('select');
+                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
+                for (const productId in productData) {
+                    const option = document.createElement('option');
+                    option.value = productId;
+                    option.textContent = productId;
+                    productIdSelect.appendChild(option);
+                }
+                cell1.appendChild(productIdSelect);
+                productIdSelect.value = productIdValue;
+
+                // Product Name Dropdown
+                const productNameSelect = document.createElement('select');
+                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
+                for (const productName in productData) {
+                    const option = document.createElement('option');
+                    option.value = productData[productName];
+                    option.textContent = productData[productName];
+                    productNameSelect.appendChild(option);
+                }
+                cell2.appendChild(productNameSelect);
+                productNameSelect.value = productNameValue;
+
+                cell3.innerHTML = '<input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                const quantityInput = newRow.querySelector('.quantity-returned');
+                quantityInput.value = quantityValue;
+
+                cell4.innerHTML = '<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
+                const pricePerUnitInput = newRow.querySelector('.price-per-unit');
+                pricePerUnitInput.value = pricePerUnitValue;
+                cell5.className = 'amount';
+                cell5.textContent = '₹0.00';
+
+                // Event Listeners
+                productIdSelect.addEventListener('change', function() {
+                    const selectedProductId = this.value;
+                    const productName = productData[selectedProductId] || '';
+                    productNameSelect.value = productName;
+                });
+
+                productNameSelect.addEventListener('change', function() {
+                    const selectedProductName = this.value;
+                    let productId = '';
+                    for (const id in productData) {
+                        if (productData[id] === selectedProductName) {
+                            productId = id;
+                            break;
+                        }
+                    }
+                    productIdSelect.value = productId;
+                });
+            }
+
+            // Re-calculate total when fields in the new row change
+            const inputs = newRow.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('change', calculateTotal);
+            });
+            const selects = newRow.querySelectorAll('select');
+            selects.forEach(select => {
+                select.addEventListener('change', calculateTotal);
+            });
+             calculateTotal();
+        }
+
+        // Calculate initial total on page load and add event listeners to existing rows
+        calculateTotal();
+        const initialRows = productTable.querySelectorAll('tbody tr');
+        initialRows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('change', calculateTotal);
+            });
+            const selects = row.querySelectorAll('select');
+            selects.forEach(select => {
+                select.addEventListener('change', calculateTotal);
+            });
+        });
+
+        const initialMobileRows = productTableMobile.querySelectorAll('tbody tr');
+        initialMobileRows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('change', calculateTotal);
+            });
+            const selects = row.querySelectorAll('select');
+            selects.forEach(select => {
+                select.addEventListener('change', calculateTotal);
+            });
+        });
+
+        // Form Submission Logic
+        submitFormButton.addEventListener('click',function() {
+            const returnDate = returnDateInput.value;
+            const originalInvoice = originalInvoiceSelect.value;
+            const supplierName = supplierNameInput.value;
+            const returnReason = returnReasonInput.value;
+            const modeOfRefund = modeOfRefundSelect.value;
+            const refundOption = refundOptionSelect.value;
+            const partialRefundAmount = document.getElementById('amount').value;
+            const finalRefundAmount = finalRefundAmountInput.value;
+
+            if (!returnDate) {
+                alert('Please enter the return date.');
+                return;
+            }
+            
+            if (!originalInvoice) {
+                alert('Please select the original invoice.');
+                return;
+            }
+            if (!supplierName) {
+                alert('Supplier name is not available for this invoice.');
+                return;
+            }
+            if (!returnReason) {
+                alert('Please enter the return reason.');
+                return;
+            }
+             if (!modeOfRefund) {
+                alert('Please select the mode of refund.');
+                return;
+            }
+            if (refundOption === 'partial-refund' && !partialRefundAmount) {
+                alert('Please enter the partial refund amount.');
+                return;
+            }
+            if (!finalRefundAmount) {
+                alert('Please enter the refund amount.');
+                return;
+            }
+
+            const products = [];
+            let rows;
+             if (window.innerWidth < 768) {
+                rows = productTableMobile.querySelectorAll('tbody tr');
+            }
+            else{
+                 rows = productTable.querySelectorAll('tbody tr');
+            }
+            rows.forEach(row => {
+                const productIdSelect = row.querySelector('.product-id');
+                const quantityInput = row.querySelector('.quantity-returned');
+                const pricePerUnitInput = row.querySelector('.price-per-unit');
+
+                const productId = productIdSelect.value;
+                const quantity = parseFloat(quantityInput.value);
+                const pricePerUnit = parseFloat(pricePerUnitInput.value);
+
+                if (productId && !isNaN(quantity) && !isNaN(pricePerUnit)) {
+                    products.push({
+                        productId: productId,
+                        quantity: quantity,
+                        pricePerUnit: pricePerUnit,
+                    });
+                }
+                else if (productId || !isNaN(quantity) || !isNaN(pricePerUnit)) {
+                     alert('Please enter valid data for all product fields.');
+                     return;
+                }
+            });
+
+            if (products.length === 0) {
+                alert('Please add at least one product to the return.');
+                return;
+            }
+
+            const returnData = {
+                returnDate: returnDate,
+                originalInvoice: originalInvoice,
+                supplierName: supplierName,
+                returnReason: returnReason,
+                modeOfRefund: modeOfRefund,
+                refundOption: refundOption,
+                partialRefundAmount: partialRefundAmount,
+                finalRefundAmount: finalRefundAmount,
+                products: products,
+            };
+
+            console.log(returnData);
+            alert('Form submitted successfully! Check console for data.');
+        });
+    </script>
+</body>
+</html>
