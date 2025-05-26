@@ -22,6 +22,7 @@ class Customer(db.Model):
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted = db.Column(db.Boolean, default=False, nullable=False)
     sales_invoices = db.relationship('SalesInvoice', backref='customer', lazy=True, cascade='all, delete')
     sales_returns = db.relationship('SalesReturn', backref='customer', lazy=True, cascade='all, delete')
 
@@ -40,6 +41,7 @@ class Product(db.Model):
     current_stock = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted = db.Column(db.Boolean, default=False, nullable=False)
     purchase_invoice_items = db.relationship('PurchaseInvoiceItem', backref='product', lazy=True, cascade='all, delete')
     sales_invoice_items = db.relationship('SalesInvoiceItem', backref='product', lazy=True, cascade='all, delete')
     purchase_return_items = db.relationship('PurchaseReturnItem', backref='product', lazy=True, cascade='all, delete')
@@ -65,6 +67,7 @@ class Supplier(db.Model):
     branch = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted = db.Column(db.Boolean, default=False, nullable=False)
     purchase_invoices = db.relationship('PurchaseInvoice', backref='supplier', lazy=True, cascade='all, delete')
     purchase_returns = db.relationship('PurchaseReturn', backref='supplier', lazy=True, cascade='all, delete')
     products = db.relationship('Product', secondary='supplier_products', back_populates='suppliers')

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Customer</title>
+    <title>{{ "Edit Customer" if customer else "Add New Customer" }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -84,6 +84,9 @@
         }
     </style>
     <script>
+        // Pass customer ID to JavaScript if in edit mode
+        const CUSTOMER_ID = {{ customer.id | tojson if customer else 'null' }};
+
         $(document).ready(function() {
             $('#billing-pincode').on('blur', function() {
                 var pincode = $(this).val();
@@ -185,6 +188,87 @@
                     $('#shipping-state').val('');
                 }
             });
+
+            // Client-side form validation
+            $('#new-customer-form').on('submit', async function(event) {
+                event.preventDefault(); // Prevent default submission
+
+                let isValid = true;
+                let errorMessages = [];
+
+                // Clear previous client-side errors and styles
+                $('#form-errors').html(''); // Clear previous client-side error messages
+                $('input, textarea').removeClass('border-red-500'); // Remove red borders
+
+                // --- Field Values ---
+                const customerName = $('#customer-name').val().trim();
+                const emailAddress = $('#email-address').val().trim();
+
+                // --- Basic Validations ---
+                if (!customerName) {
+                    isValid = false;
+                    errorMessages.push('Customer name is required.');
+                    $('#customer-name').addClass('border-red-500');
+                }
+
+                if (emailAddress && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailAddress)) {
+                    isValid = false;
+                    errorMessages.push('Please enter a valid email address.');
+                    $('#email-address').addClass('border-red-500');
+                }
+
+                // --- Duplicate Checks (Async) ---
+                if (customerName) {
+                    try {
+                        const response = await fetch("{{ url_for('main.api_check_customer_exists') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ field: 'customer_name', value: customerName, customer_id: CUSTOMER_ID })
+                        });
+                        const data = await response.json();
+                        if (data.exists) {
+                            isValid = false;
+                            errorMessages.push('Customer name already exists.');
+                            $('#customer-name').addClass('border-red-500');
+                        }
+                    } catch (error) {
+                        console.error('Error checking customer name:', error);
+                        errorMessages.push('Could not verify customer name. Please try again.');
+                        isValid = false;
+                    }
+                }
+
+                if (emailAddress) {
+                    try {
+                        const response = await fetch("{{ url_for('main.api_check_customer_exists') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ field: 'email_address', value: emailAddress, customer_id: CUSTOMER_ID })
+                        });
+                        const data = await response.json();
+                        if (data.exists) {
+                            isValid = false;
+                            errorMessages.push('Email address already exists.');
+                            $('#email-address').addClass('border-red-500');
+                        }
+                    } catch (error) {
+                        console.error('Error checking email:', error);
+                        errorMessages.push('Could not verify email address. Please try again.');
+                        isValid = false;
+                    }
+                }
+
+                // --- Display Errors or Submit ---
+                if (!isValid) {
+                    const errorContainer = $('#form-errors');
+                    errorMessages.forEach(msg => {
+                        errorContainer.append(`<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">${msg}</div>`);
+                    });
+                    $('html, body').animate({ scrollTop: errorContainer.offset().top - 20 }, 'smooth');
+                } else {
+                    this.submit(); // Native form submission
+                }
+            });
         });
     </script>
 </head>
@@ -210,51 +294,81 @@
             <div class="logo-container">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
             </div>
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">New Customer Details</h1>
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">{{ "Edit Customer Details" if customer else "New Customer Details" }}</h1>
 
-            <form>
+            <!-- General flashed messages (e.g., success, info) -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% set alert_class = 'bg-blue-100 border-blue-400 text-blue-700' %} <!-- Default for info -->
+                        {% if category == 'success' %}
+                            {% set alert_class = 'bg-green-100 border-green-400 text-green-700' %}
+                        {% elif category == 'danger' %}
+                            {% set alert_class = 'bg-red-100 border-red-400 text-red-700' %}
+                        {% elif category == 'warning' %}
+                            {% set alert_class = 'bg-yellow-100 border-yellow-400 text-yellow-700' %}
+                        {% endif %}
+                        <div class="{{ alert_class }} px-4 py-3 rounded relative mb-4" role="alert">
+                            <span class="block sm:inline">{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Placeholder for client-side validation errors -->
+            <div id="form-errors" class="mb-4"></div>
+
+            <!-- Server-side error display -->
+            {% if error %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline">{{ error }}</span>
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('main.add_customer') if not customer else url_for('main.edit_customer', customer_id=customer.id) }}" id="new-customer-form">
                 <div class="flex flex-wrap -mx-2 mb-4">
                     <div class="w-1/2 px-2">
                         <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2">Customer Name:</label>
-                        <input type="text" id="customer-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <input type="text" id="customer-name" name="customer_name" value="{{ form_data.get('customer_name', customer.customer_name if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     </div>
                     <div class="w-1/2 px-2">
                         <label for="contact-number" class="block text-gray-700 text-sm font-bold mb-2">Contact Number:</label>
-                        <input type="text" id="contact-number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <input type="text" id="contact-number" name="contact_number" value="{{ form_data.get('contact_number', customer.contact_number if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label for="email-address" class="block text-gray-700 text-sm font-bold mb-2">Email Address:</label>
-                        <input type="email" id="email-address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <input type="email" id="email-address" name="email_address" value="{{ form_data.get('email_address', customer.email_address if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
 
                 <div class="address-box">
                     <h2 class="text-lg font-semibold text-gray-800 mb-2">Billing Address</h2>
                     <div class="mb-4">
                         <label for="billing-address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
-                        <input type="text" id="billing-address-line1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <input type="text" id="billing-address-line1" name="billing_address_line1" value="{{ form_data.get('billing_address_line1', customer.billing_address_line1 if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     </div>
 
                     <div class="flex flex-wrap -mx-2 mb-4">
                         <div class="w-1/2 px-2">
                             <label for="billing-pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
-                            <input type="text" id="billing-pincode" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <input type="text" id="billing-pincode" name="billing_pincode" value="{{ form_data.get('billing_pincode', customer.billing_pincode if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <div class="w-1/2 px-2">
                             <label for="billing-city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
-                            <input type="text" id="billing-city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                            <input type="text" id="billing-city" name="billing_city" value="{{ form_data.get('billing_city', customer.billing_city if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
                         </div>
                     </div>
 
                     <div class="flex flex-wrap -mx-2 mb-4">
                         <div class="w-1/2 px-2">
                             <label for="billing-state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
-                            <input type="text" id="billing-state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                            <input type="text" id="billing-state" name="billing_state" value="{{ form_data.get('billing_state', customer.billing_state if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
                         </div>
                         <div class="w-1/2 px-2">
                             <label for="billing-country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
-                            <input type="text" id="billing-country" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="India" readonly>
+                            <input type="text" id="billing-country" name="billing_country" value="{{ form_data.get('billing_country', customer.billing_country if customer else 'India') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
                         </div>
                     </div>
                 </div>
@@ -263,46 +377,47 @@
                     <h2 class="text-lg font-semibold text-gray-800 mb-2">Shipping Address</h2>
                     <div class="mb-2">
                         <label for="same-as-billing" class="inline-flex items-center">
-                            <input type="checkbox" id="same-as-billing" class="form-checkbox h-5 w-5 text-blue-600 rounded">
-                            <span class="ml-2 text-gray-700 text-sm">Same as Billing Address</span>
+                            <input type="checkbox" id="same-as-billing" name="same_as_billing" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                            <span class="ml-2 text-gray-700 text-sm whitespace-nowrap">Same as Billing Address</span>
                         </label>
                     </div>
 
-
                     <div class="mb-4">
                         <label for="shipping-address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
-                        <input type="text" id="shipping-address-line1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <input type="text" id="shipping-address-line1" name="shipping_address_line1" value="{{ form_data.get('shipping_address_line1', customer.shipping_address_line1 if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     </div>
 
                     <div class="flex flex-wrap -mx-2 mb-4">
                         <div class="w-1/2 px-2">
                             <label for="shipping-pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
-                            <input type="text" id="shipping-pincode" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <input type="text" id="shipping-pincode" name="shipping_pincode" value="{{ form_data.get('shipping_pincode', customer.shipping_pincode if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <div class="w-1/2 px-2">
                             <label for="shipping-city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
-                            <input type="text" id="shipping-city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                            <input type="text" id="shipping-city" name="shipping_city" value="{{ form_data.get('shipping_city', customer.shipping_city if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
                         </div>
                     </div>
 
                     <div class="flex flex-wrap -mx-2 mb-4">
                         <div class="w-1/2 px-2">
                             <label for="shipping-state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
-                            <input type="text" id="shipping-state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                            <input type="text" id="shipping-state" name="shipping_state" value="{{ form_data.get('shipping_state', customer.shipping_state if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
                         </div>
                         <div class="w-1/2 px-2">
                             <label for="shipping-country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
-                            <input type="text" id="shipping-country" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="India" readonly>
+                            <input type="text" id="shipping-country" name="shipping_country" value="{{ form_data.get('shipping_country', customer.shipping_country if customer else 'India') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-6">
                     <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
-                    <textarea id="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ form_data.get('description', customer.description if customer else '') }}</textarea>
                 </div>
 
-                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Add Customer</button>
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+                    {{ "Update Customer" if customer else "Add Customer" }}
+                </button>
             </form>
         </div>
         <div class="powered-by-container">

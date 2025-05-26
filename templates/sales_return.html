@@ -291,12 +291,10 @@
                 <div>
                     <div class="original-invoice-label-container">
                         <label for="original-invoice" class="text-gray-700 text-sm font-bold">Original Invoice:</label>
-                        <span class="view-invoice-link" onclick="window.location.href='sales_entry_form.html'">View Invoice</span>
+                        <span class="view-invoice-link" onclick="window.location.href='{{ url_for('main.sales_transactions') }}'">View Invoices</span>
                     </div>
-                    <div class="original-invoice-container">
-                        <select id="original-invoice" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            <option value="">Select Invoice</option>
-                        </select>
+                    <div class="original-invoice-container">                        
+                        <input type="text" id="original-invoice" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter Invoice Number">
                     </div>
                 </div>
                 <div>
@@ -371,9 +369,11 @@
                 </tbody>
             </table>
 
+            <!--
             <div class="mb-6">
                 <button id="add-product" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Product</button>
             </div>
+            -->
             <div id="total-and-gst-container" class="mb-6">
                 <div class="mb-2">
                     <span class="text-green-600 font-bold">Total Refundable Amount: </span>
@@ -428,11 +428,11 @@
     <script>
         const refundOptionSelect = document.getElementById('refund-option');
         const partialRefundAmountInput = document.getElementById('partial-refund-amount');
-        const addProductButton = document.getElementById('add-product');
+        // const addProductButton = document.getElementById('add-product'); // Button is removed
         const productTable = document.getElementById('product-table');
         const productTableMobile = document.getElementById('product-table-mobile');
         const totalRefundableAmountDisplay = document.getElementById('total-refundable-amount');
-        const originalInvoiceSelect = document.getElementById('original-invoice');
+        const originalInvoiceInput = document.getElementById('original-invoice'); // Changed from Select
         const customerNameInput = document.getElementById('customer-name');
         const returnDateInput = document.getElementById('return-date');
         const executiveNameSelect = document.getElementById('executive-name');
@@ -441,138 +441,101 @@
         const modeOfRefundSelect = document.getElementById('mode-of-refund');
         const submitFormButton = document.getElementById('submit-form');
 
+        // Remove static sample data (invoiceData, customerData, executiveNames, productData)
+        // These will be fetched or handled dynamically.
 
-        // Sample invoice data (In a real application, this would come from a database)
-        const invoiceData = {
-            'INV001': { customerId: 'C001', customerName: 'Retail' , products: [{id: 'P001', name: 'Laptop', price: 1000}, {id: 'P002', name: 'Mouse', price: 20}], total: 1020},
-            'INV002': { customerId: 'C002', customerName: 'Jane Doe', products: [{id: 'P003', name: 'Keyboard', price: 50}, {id: 'P004', name: 'Monitor', price: 300}], total: 350 },
-            'INV003': { customerId: 'C003', customerName: 'David Lee', products: [{id: 'P005', name: 'Printer', price: 200}, {id: 'P006', name: 'Software License', price: 500}], total: 700 },
-        };
-
-        // Sample customer data
-        const customerData = {
-            'C001': 'Retail',
-            'C002': 'Jane Doe',
-            'C003': 'David Lee',
-            'C004': 'Sarah Kim',
-            'C005': 'Michael Brown'
-        };
-
-        // Sample executive names
-        const executiveNames = ['Alice Johnson', 'Bob Williams', 'Charlie Brown', 'Diana Miller', 'Ethan Davis'];
-
-        // Sample product data (In real app, this would come from DB)
-        const productData = {
-            'P001': 'Laptop',
-            'P002': 'Mouse',
-            'P003': 'Keyboard',
-            'P004': 'Monitor',
-            'P005': 'Printer',
-            'P006': 'Software License',
-            'P007': 'Webcam',
-            'P008': 'External Hard Drive',
-            'P009': 'USB Hub',
-            'P010': 'Headphones'
-        };
-
-        // Function to populate dropdowns in the first row
-        function populateFirstRowDropdowns() {
-            // Populate Product ID dropdown in first row (desktop)
-            const firstRowProductId = productTable.querySelector('tbody tr .product-id');
-            for (const productId in productData) {
-                const option = document.createElement('option');
-                option.value = productId;
-                option.textContent = productId;
-                firstRowProductId.appendChild(option);
+        // Populate Executive Name dropdown from API
+        async function populateExecutives() {
+            try {
+                const response = await fetch('/api/executives'); // Assuming this endpoint exists from sales_entry
+                if (!response.ok) throw new Error('Failed to fetch executives');
+                const executives = await response.json();
+                executiveNameSelect.innerHTML = '<option value="">Select Executive</option>'; // Clear existing
+                executives.forEach(exec => {
+                    const option = document.createElement('option');
+                    option.value = exec.executive_id; // Use executive_id
+                    option.textContent = exec.full_name;
+                    executiveNameSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching executives:", error);
+                // Optionally, add a default "Error loading executives" option or disable the select
             }
-
-            // Populate Product Name dropdown in first row (desktop)
-            const firstRowProductName = productTable.querySelector('tbody tr .product-name');
-            for (const productName in productData) {
-                const option = document.createElement('option');
-                option.value = productData[productName];
-                option.textContent = productData[productName];
-                firstRowProductName.appendChild(option);
-            }
-            // Add event listener to first row product ID dropdown
-            firstRowProductId.addEventListener('change', function() {
-                const selectedProductId = this.value;
-                const productName = productData[selectedProductId] || '';
-                const firstRowProductNameSelect = productTable.querySelector('tbody tr .product-name');
-                firstRowProductNameSelect.value = productName;
-            });
-
-            // Populate Product ID dropdown in first row (mobile)
-            const firstRowMobileProductId = productTableMobile.querySelector('tbody tr .product-id');
-            for (const productId in productData) {
-                const option = document.createElement('option');
-                option.value = productId;
-                option.textContent = productId;
-                firstRowMobileProductId.appendChild(option);
-            }
-
-            // Populate Product Name dropdown in first row (mobile)
-            const firstRowMobileProductName = productTableMobile.querySelector('tbody tr .product-name');
-            for (const productName in productData) {
-                const option = document.createElement('option');
-                option.value = productData[productName];
-                option.textContent = productData[productName];
-                firstRowMobileProductName.appendChild(option);
-            }
-            // Add event listener to first row product ID dropdown
-            firstRowMobileProductId.addEventListener('change', function() {
-                const selectedProductId = this.value;
-                const productName = productData[selectedProductId] || '';
-                const firstRowMobileProductNameSelect = productTableMobile.querySelector('tbody tr .product-name');
-                firstRowMobileProductNameSelect.value = productName;
-            });
         }
 
-        // Populate the Original Invoice dropdown
-        for (const invoiceId in invoiceData) {
-            const option = document.createElement('option');
-            option.value = invoiceId;
-            option.textContent = invoiceId;
-            originalInvoiceSelect.appendChild(option);
+        // Function to clear invoice details from the form
+        function clearInvoiceDetails() {
+            customerNameInput.value = '';
+            originalInvoiceInput.dataset.invoiceId = ''; // Clear stored invoice ID
+            const productTableBody = productTable.querySelector('tbody');
+            const productTableMobileBody = productTableMobile.querySelector('tbody');
+            productTableBody.innerHTML = '';
+            productTableMobileBody.innerHTML = '';
+            // Add a default blank row or a message
+            addRow(null, '', '', '', '', 0, 0); // Add a blank row for structure
+            calculateTotal();
         }
 
-        // Populate the Executive Name dropdown
-        executiveNames.forEach(executiveName => {
-            const option = document.createElement('option');
-            option.value = executiveName;
-            option.textContent = executiveName;
-            executiveNameSelect.appendChild(option);
+        // Event listener for Original Invoice input field (on blur)
+        originalInvoiceInput.addEventListener('blur', async function() {
+            const invoiceNumber = this.value.trim();
+            if (!invoiceNumber) {
+                clearInvoiceDetails();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/invoice-details/${invoiceNumber}`);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        alert('Invoice not found.');
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Error fetching invoice details: ${errorData.error || response.statusText}`);
+                    }
+                    clearInvoiceDetails();
+                    return;
+                }
+                const data = await response.json();
+                customerNameInput.value = data.customer_name;
+                originalInvoiceInput.dataset.invoiceId = data.invoice_id; // Store the invoice ID
+
+                const productTableBody = productTable.querySelector('tbody');
+                const productTableMobileBody = productTableMobile.querySelector('tbody');
+                productTableBody.innerHTML = ''; // Clear existing rows
+                productTableMobileBody.innerHTML = ''; // Clear existing rows
+
+                if (data.items && data.items.length > 0) {
+                    data.items.forEach(item => {
+                        addRow(
+                            item.original_sales_invoice_item_id,
+                            item.product_id,
+                            item.product_name,
+                            '', // Quantity returned initially empty
+                            item.price_per_unit_at_return,
+                            item.gst_percentage,
+                            item.original_quantity_sold // Max quantity that can be returned
+                        );
+                    });
+                } else {
+                    // If no items, add a blank row or a message
+                    addRow(null, '', '', '', '', 0, 0);
+                    alert('No items found for this invoice or invoice has no items.');
+                }
+                calculateTotal(); // Recalculate after populating
+            } catch (error) {
+                console.error('Error fetching invoice details:', error);
+                alert('An error occurred while fetching invoice details.');
+                clearInvoiceDetails();
+            }
         });
 
         // Set default value for Return Date to today
         returnDateInput.value = new Date().toISOString().split('T')[0];
 
-        // Populate dropdowns in the first row
-        populateFirstRowDropdowns();
+        populateExecutives(); // Fetch and populate executives on page load
+        addRow(null, '', '', '', '', 0, 0); // Add an initial blank row for structure
 
-        // Update Customer Name and Products when Original Invoice is selected
-        originalInvoiceSelect.addEventListener('change', function() {
-            const selectedInvoice = this.value;
-            const customerName = invoiceData[selectedInvoice]?.customerName || '';
-            customerNameInput.value = customerName;
-
-            // Clear existing product rows
-            const productTableBody = productTable.querySelector('tbody');
-            const productTableMobileBody = productTableMobile.querySelector('tbody');
-            productTableBody.innerHTML = '';
-            productTableMobileBody.innerHTML = '';
-
-            // Add products from the selected invoice
-            if (invoiceData[selectedInvoice]?.products) {
-                invoiceData[selectedInvoice].products.forEach(product => {
-                    addRow(product.id, product.name, '', '',product.price); //changed to ''
-                });
-            }
-            else{
-                 addRow('', '', '', ''); //changed to ''
-            }
-            calculateTotal();
-        });
 
         refundOptionSelect.addEventListener('change', function() {
             if (this.value === 'partial-refund') {
@@ -586,9 +549,12 @@
             }
         });
 
+        /* Button removed, so this event listener is no longer needed
         addProductButton.addEventListener('click', function() {
-            addRow('', '', '', ''); //changed to ''
+            // This button might be removed if returns are strictly from invoice items.
+            alert("Please ensure items are from the selected invoice. Manual addition is not standard for returns against a specific invoice.");
         });
+        */
 
         function formatIndianCurrency(amount) {
             const formatter = new Intl.NumberFormat('en-IN', {
@@ -601,41 +567,46 @@
         }
 
         function calculateTotal() {
-            let total = 0;
-            let rows;
-            if (window.innerWidth < 768) {
-                rows = productTableMobile.querySelectorAll('tbody tr');
-            }
-            else {
-                rows = productTable.querySelectorAll('tbody tr');
-            }
+            let totalRefundableBeforeGst = 0;
+            let totalGstReversed = 0;
+
+            const isMobile = window.innerWidth < 768;
+            const tableToQuery = isMobile ? productTableMobile : productTable;
+            const rows = tableToQuery.querySelectorAll('tbody tr');
 
             rows.forEach(row => {
                 const quantityInput = row.querySelector('.quantity-returned');
-                const pricePerUnitInput = row.querySelector('.price-per-unit');
-                const amountCell = row.querySelector('.amount');
-                const quantity = parseFloat(quantityInput.value);
-                const pricePerUnit = parseFloat(pricePerUnitInput.value);
+                const pricePerUnitInput = row.querySelector('.price-per-unit'); // This is price BEFORE GST
+                const gstPercentageInput = row.querySelector('.gst-percentage'); // Hidden input
+                const amountCellDisplay = row.querySelector(isMobile ? '.amount span' : '.amount');
 
-                if (!isNaN(quantity) && !isNaN(pricePerUnit)) {
-                    const amount = quantity * pricePerUnit;
-                    amountCell.textContent = formatIndianCurrency(amount);
-                    total += amount;
+                const quantity = parseFloat(quantityInput ? quantityInput.value : 0);
+                const pricePerUnit = parseFloat(pricePerUnitInput ? pricePerUnitInput.value : 0);
+                const gstPercentage = parseFloat(gstPercentageInput ? gstPercentageInput.value : 0);
+
+                if (!isNaN(quantity) && quantity > 0 && !isNaN(pricePerUnit)) {
+                    const itemSubTotalBeforeGst = quantity * pricePerUnit;
+                    const itemGstAmount = itemSubTotalBeforeGst * (gstPercentage / 100);
+                    const itemFinalAmount = itemSubTotalBeforeGst + itemGstAmount;
+
+                    if (amountCellDisplay) amountCellDisplay.textContent = formatIndianCurrency(itemFinalAmount);
+                    totalRefundableBeforeGst += itemSubTotalBeforeGst;
+                    totalGstReversed += itemGstAmount;
                 } else {
-                    amountCell.textContent = '₹0.00';
+                    if (amountCellDisplay) amountCellDisplay.textContent = '₹0.00';
                 }
             });
 
-            // Apply discount
-            const discount = 0;
-            const discountedTotal = Math.max(0, total - discount); // Ensure total doesn't go negative
-            totalRefundableAmountDisplay.textContent = formatIndianCurrency(discountedTotal);
-            if (refundOptionSelect.value != 'partial-refund'){
-                 finalRefundAmountInput.value = discountedTotal;
+            const netRefundableAmount = totalRefundableBeforeGst + totalGstReversed;
+            totalRefundableAmountDisplay.textContent = formatIndianCurrency(netRefundableAmount);
+
+            if (refundOptionSelect.value !== 'partial-refund') {
+                finalRefundAmountInput.value = netRefundableAmount.toFixed(2);
+            } else {
+                // For partial refund, user inputs the amount, but we can validate it here or on submit
+                // For now, let user input freely for partial, final validation on submit.
             }
-
         }
-
         // Event listener for partial refund amount input
         document.getElementById('amount').addEventListener('input', function() {
             if (refundOptionSelect.value === 'partial-refund') {
@@ -648,150 +619,77 @@
             }
         });
 
-
-
-        function addRow(productIdValue, productNameValue, quantityValue, pricePerUnitValue) {
+        function addRow(originalItemId, productId, productName, quantityReturned, pricePerUnit, gstPercentage, maxQuantity) {
             let newRow;
-            if (window.innerWidth < 768) {
-                newRow = productTableMobile.insertRow();
-                const cell1 = newRow.insertCell();
-                const cell2 = newRow.insertCell();
-                const cell3 = newRow.insertCell();
-                const cell4 = newRow.insertCell();
-                const cell5 = newRow.insertCell();
-
-                // Product ID Dropdown
-                const productIdSelect = document.createElement('select');
-                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
-                for (const productId in productData) {
-                    const option = document.createElement('option');
-                    option.value = productId;
-                    option.textContent = productId;
-                    productIdSelect.appendChild(option);
-                }
-                cell1.innerHTML = '<label>Product ID</label>';
-                cell1.appendChild(productIdSelect);
-                productIdSelect.value = productIdValue;
-
-                // Product Name Dropdown
-                const productNameSelect = document.createElement('select');
-                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
-                for (const productName in productData) {
-                    const option = document.createElement('option');
-                    option.value = productData[productName];
-                    option.textContent = productData[productName];
-                    productNameSelect.appendChild(option);
-                }
-                cell2.innerHTML = '<label>Product Name</label>';
-                cell2.appendChild(productNameSelect);
-                productNameSelect.value = productNameValue;
-
-                cell3.innerHTML = '<label>Quantity Returned</label><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
-                const quantityInput = newRow.querySelector('.quantity-returned');
-                quantityInput.value = quantityValue;
-
-                cell4.innerHTML = '<label>Price Per Unit</label><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
-                const pricePerUnitInput = newRow.querySelector('.price-per-unit');
-                pricePerUnitInput.value = pricePerUnitValue;
-                cell5.className = 'amount';
-                cell5.textContent = '₹0.00';
-
-                // Event Listeners for mobile
-                productIdSelect.addEventListener('change', function() {
-                    const selectedProductId = this.value;
-                    const productName = productData[selectedProductId] || '';
-                    productNameSelect.value = productName;
-                });
-
-                productNameSelect.addEventListener('change', function() {
-                    const selectedProductName = this.value;
-                    let productId = '';
-                    for (const id in productData) {
-                        if (productData[id] === selectedProductName) {
-                            productId = id;
-                            break;
-                        }
-                    }
-                    productIdSelect.value = productId;
-                });
-
+            const isMobile = window.innerWidth < 768;
+            const tableBody = isMobile ? productTableMobile.querySelector('tbody') : productTable.querySelector('tbody');
+            
+            // Prevent adding row if tableBody is not found (e.g. if table is hidden and then shown)
+            if (!tableBody) {
+                console.error("Table body not found for adding row.");
+                return;
             }
-            else {
-                newRow = productTable.insertRow();
-                const cell1 = newRow.insertCell();
-                const cell2 = newRow.insertCell();
-                const cell3 = newRow.insertCell();
-                const cell4 = newRow.insertCell();
-                const cell5 = newRow.insertCell();
+            newRow = tableBody.insertRow();
 
-                // Product ID Dropdown
-                const productIdSelect = document.createElement('select');
-                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
-                for (const productId in productData) {
-                    const option = document.createElement('option');
-                    option.value = productId;
-                    option.textContent = productId;
-                    productIdSelect.appendChild(option);
-                }
-                cell1.appendChild(productIdSelect);
-                productIdSelect.value = productIdValue;
+            const originalItemIdInputEl = document.createElement('input');
+            originalItemIdInputEl.type = 'hidden';
+            originalItemIdInputEl.className = 'original-sales-invoice-item-id';
+            originalItemIdInputEl.value = originalItemId || '';
 
-                // Product Name Dropdown
-                const productNameSelect = document.createElement('select');
-                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
-                for (const productName in productData) {
-                    const option = document.createElement('option');
-                    option.value = productData[productName];
-                    option.textContent = productData[productName];
-                    productNameSelect.appendChild(option);
-                }
-                cell2.appendChild(productNameSelect);
-                productNameSelect.value = productNameValue;
+            const gstPercentageInputEl = document.createElement('input');
+            gstPercentageInputEl.type = 'hidden';
+            gstPercentageInputEl.className = 'gst-percentage';
+            gstPercentageInputEl.value = gstPercentage || '0';
 
-                cell3.innerHTML = '<input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
-                const quantityInput = newRow.querySelector('.quantity-returned');
-                quantityInput.value = quantityValue;
+            if (isMobile) {
+                const cellProductId = newRow.insertCell();
+                cellProductId.innerHTML = `<label>Product ID</label><span class="product-id-text">${productId || 'N/A'}</span>`;
+                cellProductId.appendChild(originalItemIdInputEl);
+                cellProductId.appendChild(gstPercentageInputEl);
 
-                cell4.innerHTML = '<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
-                const pricePerUnitInput = newRow.querySelector('.price-per-unit');
-                pricePerUnitInput.value = pricePerUnitValue;
-                cell5.className = 'amount';
-                cell5.textContent = '₹0.00';
+                const cellProductName = newRow.insertCell();
+                cellProductName.innerHTML = `<label>Product Name</label><span class="product-name-text">${productName || 'N/A'}</span>`;
 
-                // Event Listeners
-                productIdSelect.addEventListener('change', function() {
-                    const selectedProductId = this.value;
-                    const productName = productData[selectedProductId] || '';
-                    productNameSelect.value = productName;
-                });
+                const cellQuantity = newRow.insertCell();
+                cellQuantity.innerHTML = `<label>Quantity Returned (Max: ${maxQuantity !== undefined && maxQuantity !== null ? maxQuantity : 'N/A'})</label><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${quantityReturned || ''}" min="0" ${maxQuantity !== undefined && maxQuantity !== null ? `max="${maxQuantity}"` : ''}>`;
 
-                productNameSelect.addEventListener('change', function() {
-                    const selectedProductName = this.value;
-                    let productId = '';
-                    for (const id in productData) {
-                        if (productData[id] === selectedProductName) {
-                            productId = id;
-                            break;
-                        }
-                    }
-                    productIdSelect.value = productId;
-                });
+                const cellPrice = newRow.insertCell();
+                cellPrice.innerHTML = `<label>Price Per Unit</label><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${pricePerUnit || ''}">`;
+
+                const cellAmount = newRow.insertCell();
+                cellAmount.className = 'amount'; // This cell will contain the span
+                cellAmount.innerHTML = `<label>Amount</label><span>₹0.00</span>`;
+            } else {
+                const cellProductId = newRow.insertCell();
+                cellProductId.textContent = productId || 'N/A';
+                cellProductId.appendChild(originalItemIdInputEl);
+                cellProductId.appendChild(gstPercentageInputEl);
+
+                const cellProductName = newRow.insertCell();
+                cellProductName.textContent = productName || 'N/A';
+
+                const cellQuantity = newRow.insertCell();
+                cellQuantity.innerHTML = `<input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${quantityReturned || ''}" min="0" ${maxQuantity !== undefined && maxQuantity !== null ? `max="${maxQuantity}"` : ''} title="Max: ${maxQuantity !== undefined && maxQuantity !== null ? maxQuantity : 'N/A'}">`;
+
+                const cellPrice = newRow.insertCell();
+                cellPrice.innerHTML = `<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${pricePerUnit || ''}">`;
+
+                const cellAmount = newRow.insertCell();
+                cellAmount.className = 'amount';
+                cellAmount.textContent = '₹0.00';
             }
 
-            // Re-calculate total when fields in the new row change
-            const inputs = newRow.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('change', calculateTotal);
-            });
-            const selects = newRow.querySelectorAll('select');
-            selects.forEach(select => {
-                select.addEventListener('change', calculateTotal);
-            });
-             calculateTotal();
+            const quantityInput = newRow.querySelector('.quantity-returned');
+            if (quantityInput) {
+                quantityInput.addEventListener('input', calculateTotal);
+                quantityInput.addEventListener('change', calculateTotal);
+            }
+            const priceInput = newRow.querySelector('.price-per-unit');
+            if (priceInput) {
+                priceInput.addEventListener('input', calculateTotal);
+                priceInput.addEventListener('change', calculateTotal);
+            }
+            calculateTotal(); // Initial calculation for the new row
         }
 
         // Calculate initial total on page load and add event listeners to existing rows
@@ -821,10 +719,10 @@
         });
 
         // Form Submission Logic
-submitFormButton.addEventListener('click', function() {
+        submitFormButton.addEventListener('click', async function() { // Make async for fetch
             const returnDate = returnDateInput.value;
-            const executiveName = executiveNameSelect.value;
-            const originalInvoice = originalInvoiceSelect.value;
+            const executiveId = executiveNameSelect.value; // This is executive_id
+            const originalInvoiceNumber = originalInvoiceInput.value.trim();
             const customerName = customerNameInput.value;
             const returnReason = returnReasonInput.value;
             const modeOfRefund = modeOfRefundSelect.value;
@@ -836,11 +734,11 @@ submitFormButton.addEventListener('click', function() {
                 alert('Please enter the return date.');
                 return;
             }
-            if (!executiveName) {
+            if (!executiveId) {
                 alert('Please select the executive name.');
                 return;
             }
-            if (!originalInvoice) {
+            if (!originalInvoiceNumber) {
                 alert('Please select the original invoice.');
                 return;
             }
@@ -866,32 +764,47 @@ submitFormButton.addEventListener('click', function() {
             }
 
             const products = [];
-            let rows;
-             if (window.innerWidth < 768) {
-                rows = productTableMobile.querySelectorAll('tbody tr');
-            }
-            else{
-                 rows = productTable.querySelectorAll('tbody tr');
-            }
+            const isMobile = window.innerWidth < 768;
+            const tableToQuery = isMobile ? productTableMobile : productTable;
+            const rows = tableToQuery.querySelectorAll('tbody tr');
+            let formIsValid = true;
+
             rows.forEach(row => {
-                const productIdSelect = row.querySelector('.product-id');
+                const originalItemIdInput = row.querySelector('.original-sales-invoice-item-id');
+                // For product_id, it's safer to get it from the hidden originalItemIdInput or a data attribute if needed,
+                // rather than parsing text content which might be "N/A" for blank rows.
+                // However, for the backend, original_sales_invoice_item_id is key.
+                const productIdFromCell = isMobile ? row.querySelector('.product-id-text')?.textContent : row.cells[0]?.textContent.trim();
+
                 const quantityInput = row.querySelector('.quantity-returned');
                 const pricePerUnitInput = row.querySelector('.price-per-unit');
+                const gstPercentageInput = row.querySelector('.gst-percentage');
 
-                const productId = productIdSelect.value;
-                const quantity = parseFloat(quantityInput.value);
-                const pricePerUnit = parseFloat(pricePerUnitInput.value);
+                const originalSalesInvoiceItemId = originalItemIdInput ? originalItemIdInput.value : null;
+                const quantity = parseFloat(quantityInput ? quantityInput.value : 0);
+                const pricePerUnit = parseFloat(pricePerUnitInput ? pricePerUnitInput.value : 0);
+                const gstPercentage = parseFloat(gstPercentageInput ? gstPercentageInput.value : 0);
 
-                if (productId && !isNaN(quantity) && !isNaN(pricePerUnit)) {
+                if (originalSalesInvoiceItemId && !isNaN(quantity) && quantity > 0) { // Key check: original item ID and valid quantity
+                    if (isNaN(pricePerUnit)) {
+                        alert(`Invalid price for an item. Please check product table.`);
+                        formIsValid = false;
+                        return; // from forEach callback
+                    }
+                    const itemSubTotalBeforeGst = quantity * pricePerUnit;
+                    const itemTotalGstReversed = itemSubTotalBeforeGst * (gstPercentage / 100);
+                    const itemFinalValue = itemSubTotalBeforeGst + itemTotalGstReversed;
+
                     products.push({
-                        productId: productId,
-                        quantity: quantity,
-                        pricePerUnit: pricePerUnit,
+                        original_sales_invoice_item_id: originalSalesInvoiceItemId,
+                        quantity_returned: quantity,
+                        price_per_unit_at_return: pricePerUnit, // This is price before GST
+                        gst_percentage_applied: gstPercentage,
+                        // Backend will recalculate these for accuracy, but good to have them for reference
+                        // item_sub_total_before_gst: itemSubTotalBeforeGst,
+                        // item_total_gst_reversed: itemTotalGstReversed,
+                        // item_final_value: itemFinalValue
                     });
-                }
-                else if (productId || !isNaN(quantity) || !isNaN(pricePerUnit)) {
-                     alert('Please enter valid data for all product fields.');
-                     return;
                 }
             });
 
@@ -899,22 +812,73 @@ submitFormButton.addEventListener('click', function() {
                 alert('Please add at least one product to the return.');
                 return;
             }
+            if (!formIsValid) return;
+
+            // Recalculate totals on client-side to compare with final_amount_refunded
+            let clientSideTotalItemsValueBeforeGst = 0;
+            let clientSideTotalGstReversed = 0;
+            products.forEach(p => {
+                clientSideTotalItemsValueBeforeGst += p.quantity_returned * p.price_per_unit_at_return;
+                clientSideTotalGstReversed += (p.quantity_returned * p.price_per_unit_at_return) * (p.gst_percentage_applied / 100);
+            });
+            const clientSideNetRefundableAmount = clientSideTotalItemsValueBeforeGst + clientSideTotalGstReversed;
+
+            const finalRefundAmountNum = parseFloat(finalRefundAmount);
+            if (isNaN(finalRefundAmountNum) || finalRefundAmountNum < 0) {
+                alert('Final refund amount is invalid.');
+                return;
+            }
+
+            if (refundOption === 'full-refund' && Math.abs(finalRefundAmountNum - clientSideNetRefundableAmount) > 0.01) {
+                alert('For Full Refund, the Amount Refunded must match the Total Refundable Amount. Calculated: ' + formatIndianCurrency(clientSideNetRefundableAmount));
+                return;
+            }
+            if (refundOption === 'partial-refund') {
+                const partialAmountNum = parseFloat(document.getElementById('amount').value);
+                 if (isNaN(partialAmountNum) || partialAmountNum <=0) {
+                    alert('Please enter a valid partial refund amount.');
+                    return;
+                }
+                if (Math.abs(finalRefundAmountNum - partialAmountNum) > 0.01) {
+                    alert('Final refunded amount does not match the entered partial refund amount.');
+                    return;
+                }
+                if (finalRefundAmountNum > clientSideNetRefundableAmount) {
+                    alert('Partial refund amount cannot exceed the total refundable amount. Max: ' + formatIndianCurrency(clientSideNetRefundableAmount));
+                    return;
+                }
+            }
 
             const returnData = {
-                returnDate: returnDate,
-                executiveName: executiveName,
-                originalInvoice: originalInvoice,
-                customerName: customerName,
-                returnReason: returnReason,
-                modeOfRefund: modeOfRefund,
-                refundOption: refundOption,
-                partialRefundAmount: partialRefundAmount,
-                finalRefundAmount: finalRefundAmount,
+                return_date: returnDate,
+                executive_id: executiveId,
+                original_invoice_number: originalInvoiceNumber,
+                // customer_name and customer_id will be derived by backend from invoice_number
+                return_reason: returnReason,
+                mode_of_refund: modeOfRefund,
+                refund_option: refundOption,
+                partial_refund_amount_input: refundOption === 'partial-refund' ? document.getElementById('amount').value : null,
+                final_amount_refunded: finalRefundAmount,
                 products: products,
             };
 
-            console.log(returnData);
-            alert('Form submitted successfully! Check console for data.');
+            try {
+                const response = await fetch('/api/sales-return', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', },
+                    body: JSON.stringify(returnData),
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message || 'Sales return created successfully!');
+                    window.location.href = "{{ url_for('main.sales_transactions') }}"; // Redirect to transactions page
+                } else {
+                    alert(`Error: ${result.error || 'Failed to create sales return.'}`);
+                }
+            } catch (error) {
+                console.error('Error submitting sales return:', error);
+                alert('An error occurred while submitting the sales return.');
+            }
         });
     </script>
 </body>

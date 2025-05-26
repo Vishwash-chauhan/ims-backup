@@ -105,21 +105,19 @@
       display: flex;
       gap: 10px;
     }
-    .actions a, .actions button {
-      font-weight: 600;
-      cursor: pointer;
+    .actions .delete-btn {
+      background: #e74c3c;
+      color: white;
       padding: 6px 12px;
-      border: none;
       border-radius: 4px;
-    }
-    .actions a {
-      color: #2563eb;
-      background: none;
       text-decoration: none;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
     }
-    .actions button {
-      color: #d32f2f;
-      background: none;
+    .actions .delete-btn:hover {
+      background: #c0392b;
     }
   </style>
 </head>
@@ -132,7 +130,7 @@
     </div>
     <table class="responsive-table">
       <thead>
-        <tr><th>Supplier ID</th><th>Supplier Name</th><th>Contact</th><th>Products Supplied</th></tr>
+        <tr><th>Supplier ID</th><th>Supplier Name</th><th>Contact</th><th>GST Number</th><th>Actions</th></tr>
       </thead>
       <tbody>
         {% for supplier in suppliers %}
@@ -140,12 +138,11 @@
           <td data-label="Supplier ID">{{ supplier.id }}</td>
           <td data-label="Supplier Name">{{ supplier.supplier_name }}</td>
           <td data-label="Contact">{{ supplier.supplier_contact }}</td>
-          <td data-label="Products Supplied" class="products-list">
-            {% if supplier.products %}
-              {{ supplier.products|map(attribute='product_name')|join(', ') }}
-            {% else %}
-              -
-            {% endif %}
+          <td data-label="GST Number">{{ supplier.gst_number if supplier.gst_available == 'yes' and supplier.gst_number else '-' }}</td>
+          <td class="actions">
+            <form action="{{ url_for('main.delete_supplier', supplier_id=supplier.id) }}" method="post" style="display:inline;">
+              <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this supplier?')">Delete</button>
+            </form>
           </td>
         </tr>
         {% endfor %}
