@@ -1,23 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales & Sales Return Transactions</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 font-inter">
-    <script type="text/javascript">
-        // Injected from Flask backend
-        var salesData = {{ sales|tojson|safe }};
-        var salesReturnData = {{ returns|tojson|safe }};
-    </script>
+{% extends "base.html" %}
 
-    <div class="bg-white shadow-xl rounded-xl p-6 sm:p-8 md:p-12 w-full max-w-7xl mx-auto">
-
+{% block content %}    <div class="bg-white shadow-xl rounded-xl p-6 sm:p-8 md:p-12 w-full max-w-7xl mx-auto">
         <div class="flex justify-center mb-10">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="max-w-[200px] h-auto rounded-lg shadow-sm">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="h-12 w-auto">
         </div>
 
         <h1 class="text-3xl font-extrabold text-gray-900 mb-12 text-center leading-tight">Sales & Sales Return Transactions Overview</h1>
@@ -36,8 +21,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">View Invoice</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -57,20 +41,18 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">View Return</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
-
-        <div class="flex flex-col items-center mt-16 text-gray-600">
-            <span class="text-sm mb-2">Powered By</span>
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Powered By Logo" class="max-w-[150px] h-auto rounded-md opacity-80">
-        </div>
     </div>
 
-    <script>
+    <script type="text/javascript">
+        // Injected from Flask backend
+        var salesData = {{ sales|tojson|safe }};
+        var salesReturnData = {{ returns|tojson|safe }};
+
         /**
          * Formats a given amount into Indian Rupees currency format.
          * @param {number} amount - The numeric amount to format.
@@ -151,5 +133,4 @@
             populateTable('sales-return-table', salesReturnData, true);
         });
     </script>
-</body>
-</html>
+{% endblock %}

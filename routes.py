@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from datetime import datetime, timedelta
 import uuid
 import re # Added for email validation
+from flask_login import login_required, current_user
 from models import db, Product, Customer, User, SalesInvoice, SalesInvoiceItem, PurchaseInvoice, PurchaseInvoiceItem, SalesReturn, SalesReturnItem, PurchaseReturn, PurchaseReturnItem, Supplier # Add Supplier here
 
 main = Blueprint('main', __name__)
@@ -1365,3 +1366,7 @@ def purchase_transactions():
     } for r in purchase_returns_data] if purchase_returns_data else []
 
     return render_template('purchase_transactions.html', purchaseData=purchase_data, purchaseReturnData=purchase_return_data_list)
+
+@main.route('/base')
+def base_preview():
+    return render_template('base.html')

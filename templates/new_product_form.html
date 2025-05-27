@@ -1,381 +1,206 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Product Form</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Custom styles for the dynamic supplier fields */
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .logo {
-            max-width: 200px;
-            height: auto;
-        }
-        .powered-by-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 30px;
-            width: 100%;
-        }
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
 
-        .powered-by-text {
-            margin-bottom: 10px;
-            color: #777;
-        }
+<div class="main-content">
+    <div class="form-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+        </div>
+        <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">New Product Entry</h1>
 
-        .powered-by-logo {
-            max-width: 150px;
-            height: auto;
-        }
-        .powered-by-container {
-            margin-top: 20px;
-            width: 100%;
-        }
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .form-container {
-            flex-grow: 1;
-        }
-        #gst-percentage-container {
-            display: none;
-        }
-        .show-gst-percentage {
-            display: block !important;
-        }
-        .hsn-image-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .hsn-code-wrapper {
-            flex: 1;
-            margin-right: 1rem;
-        }
-        .image-wrapper {
-            flex: 1;
-        }
-        #image {
-            /* Remove the text field appearance */
-            appearance: none;
-            -webkit-appearance: none;
-            /* Style it as a button */
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem; /* Rounded corners */
-            padding: 0.5rem 0.75rem;
-            color: #374151;
-            cursor: pointer;
-            font-size: 0.875rem;
-            line-height: 1.25rem;
-            transition: border-color 0.15s ease-in-out, shadow-sm 0.15s ease-in-out;
-            /* Add focus styles */
-            &:focus {
-                outline: none;
-                border-color: #3b82f6; /* Blue border on focus */
-                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Light blue shadow */
-            }
-            /* Style for the file input button text */
-            &::-webkit-file-upload-button {
-                background-color: #3b82f6; /* Blue background for the button */
-                color: #fff;
-                padding: 0.5rem 0.75rem;
-                border-radius: 0.375rem;
-                border: none;
-                font-size: 0.875rem;
-                line-height: 1.25rem;
-                cursor: pointer;
-                margin-right: 0.75rem; /* Add some margin to the right of the button */
-                transition: background-color 0.15s ease-in-out;
-                &:hover {
-                    background-color: #2563eb; /* Darker blue on hover */
-                }
-            }
-        }
-        .reorder-measuring-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .measuring-units-wrapper {
-            flex: 1;
-            margin-right: 1rem;
-        }
-        .reorder-level-wrapper {
-            flex: 1;
-        }
-        /* Navigation bar styles */
-        nav {
-            background-color: #3b82f6;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            margin-bottom: 1.5rem;
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            margin-right: 1rem;
-            font-weight: 500;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        hr {
-            border: 0;
-            height: 1px;
-            background: #e5e7eb; /* Softer color for hr */
-            margin: 1rem 0;
-        }
-        .error-message { color: #dc2626; font-size: 0.875em; margin-top: 0.25rem; display: block; }
-        .input-error { border-color: #dc2626 !important; }
-        #form-errors-summary { margin-bottom: 1rem; padding: 0.75rem; background-color: #fee2e2; border: 1px solid #fecaca; border-radius: 0.375rem; color: #b91c1c; }
-        #form-errors-summary ul { list-style-type: disc; margin-left: 1.25rem; }
-    </style>
-</head>
-<body class="bg-gray-100 font-inter antialiased">
-    <!-- Navigation Bar -->
-    <!--
-    <nav>
-      <a href="/">Home</a> |
-      <a href="/products">Products</a> |
-      <a href="/products/add">Add Product</a> |
-      <a href="/inventory">Inventory</a> |
-      <a href="/customers">Customers</a> |
-      <a href="/orders">Orders</a> |
-      <a href="/orders/create">Create Order</a> |
-      <a href="/invoices">Invoices</a> |
-      <a href="/sales-entry">Sales Entry</a> |
-      <a href="/new-customer">New Customer</a>
-    </nav>
-    <hr>
-    -->
-    <div class="min-h-screen flex justify-center items-center py-10 main-content">
-        <div class="bg-white rounded-lg shadow-md w-full max-w-2xl p-6 form-container">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+        <form id="new-product-form" method="POST" action="{{ url_for('main.add_product') }}" enctype="multipart/form-data">            <div id="form-errors-summary" class="alert alert-danger"></div>
+
+            {% if error or form_errors %}
+            <div class="alert alert-danger">
+              {{ error }}
+              {% if form_errors %}
+                <ul>
+                  {% for field, errors in form_errors.items() %}
+                    {% for e in errors %}
+                      <li>{{ field|capitalize }}: {{ e }}</li>
+                    {% endfor %}
+                  {% endfor %}
+                </ul>
+              {% endif %}
             </div>
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">New Product Entry</h1>
+            {% endif %}
 
-            <form id="new-product-form" method="POST" action="{{ url_for('main.add_product') }}" enctype="multipart/form-data">
-                <div id="form-errors-summary" style="display:none;"></div>
+            <div class="mb-4">
+                <label for="product-name" class="block text-gray-700 text-sm font-bold mb-2">Product Name:</label>
+                <input type="text" id="product-name" name="product_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       value="{{ request.form.get('product_name') if request and request.form else product.product_name if product else '' }}">
+                <span class="error-message" id="product-name-error"></span>
+            </div>
 
-                {% if error or form_errors %}
-                <div class="alert alert-danger" style="color: #b91c1c; background: #fee2e2; padding: 10px; border-radius: 6px; margin-bottom: 16px;">
-                  {{ error }}
-                  {% if form_errors %}
-                    <ul>
-                      {% for field, errors in form_errors.items() %}
-                        {% for e in errors %}
-                          <li>{{ field|capitalize }}: {{ e }}</li>
-                        {% endfor %}
-                      {% endfor %}
-                    </ul>
-                  {% endif %}
+            <div class="mb-4">
+                <label for="product-code" class="block text-gray-700 text-sm font-bold mb-2">Product Code:</label>
+                <input type="text" id="product-code" name="product_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       value="{{ request.form.get('product_code') if request and request.form else product.product_code if product else '' }}">
+                <span class="error-message" id="product-code-error"></span>
+            </div>
+
+            <div class="hsn-image-container">
+                <div class="hsn-code-wrapper">
+                    <label for="hsn-code" class="block text-gray-700 text-sm font-bold mb-2">HSN Code:</label>
+                    <input type="text" id="hsn-code" name="hsn_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                           value="{{ request.form.get('hsn_code') if request and request.form else product.hsn_code if product else '' }}">
+                    <span class="error-message" id="hsn-code-error"></span>
                 </div>
-                {% endif %}
-
-                <div class="mb-4">
-                    <label for="product-name" class="block text-gray-700 text-sm font-bold mb-2">Product Name:</label>
-                    <input type="text" id="product-name" name="product_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                           value="{{ request.form.get('product_name') if request and request.form else product.product_name if product else '' }}">
-                    <span class="error-message" id="product-name-error"></span>
+                <div class="image-wrapper">
+                    <label for="image" class="block text-gray-700 text-sm font-bold mb-2">Product Image:</label>
+                    <input type="file" id="image" name="product_image" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <!-- Image preview logic can be added here if needed -->
+                    <span class="error-message" id="image-error"></span>
                 </div>
+            </div>
 
-                <div class="mb-4">
-                    <label for="product-code" class="block text-gray-700 text-sm font-bold mb-2">Product Code:</label>
-                    <input type="text" id="product-code" name="product_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                           value="{{ request.form.get('product_code') if request and request.form else product.product_code if product else '' }}">
-                    <span class="error-message" id="product-code-error"></span>
+            <div class="reorder-measuring-container">
+                <div class="measuring-units-wrapper">
+                    <label for="measuring-units" class="block text-gray-700 text-sm font-bold mb-2">Measuring Units:</label>
+                    <input type="text" id="measuring-units" name="measuring_units" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                           value="{{ request.form.get('measuring_units') if request and request.form else product.measuring_units if product else '' }}">
+                    <span class="error-message" id="measuring-units-error"></span>
                 </div>
-
-                <div class="hsn-image-container">
-                    <div class="hsn-code-wrapper">
-                        <label for="hsn-code" class="block text-gray-700 text-sm font-bold mb-2">HSN Code:</label>
-                        <input type="text" id="hsn-code" name="hsn_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                               value="{{ request.form.get('hsn_code') if request and request.form else product.hsn_code if product else '' }}">
-                        <span class="error-message" id="hsn-code-error"></span>
-                    </div>
-                    <div class="image-wrapper">
-                        <label for="image" class="block text-gray-700 text-sm font-bold mb-2">Product Image:</label>
-                        <input type="file" id="image" name="product_image" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <!-- Image preview logic can be added here if needed -->
-                        <span class="error-message" id="image-error"></span>
-                    </div>
+                <div class="reorder-level-wrapper">
+                    <label for="reorder-level" class="block text-gray-700 text-sm font-bold mb-2">Reorder Level:</label>
+                    <input type="number" id="reorder-level" name="reorder_level" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                           value="{{ request.form.get('reorder_level') if request and request.form else product.reorder_level if product else '' }}">
+                    <span class="error-message" id="reorder-level-error"></span>
                 </div>
+            </div>
 
-                <div class="reorder-measuring-container">
-                    <div class="measuring-units-wrapper">
-                        <label for="measuring-units" class="block text-gray-700 text-sm font-bold mb-2">Measuring Units:</label>
-                        <input type="text" id="measuring-units" name="measuring_units" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                               value="{{ request.form.get('measuring_units') if request and request.form else product.measuring_units if product else '' }}">
-                        <span class="error-message" id="measuring-units-error"></span>
-                    </div>
-                    <div class="reorder-level-wrapper">
-                        <label for="reorder-level" class="block text-gray-700 text-sm font-bold mb-2">Reorder Level:</label>
-                        <input type="number" id="reorder-level" name="reorder_level" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                               value="{{ request.form.get('reorder_level') if request and request.form else product.reorder_level if product else '' }}">
-                        <span class="error-message" id="reorder-level-error"></span>
-                    </div>
-                </div>
+            <div class="mb-4">
+                <label for="gst-available" class="block text-gray-700 text-sm font-bold mb-2">GST Available:</label>
+                {% set gst_available_val = (request.form.get('gst_available') if request and request.form else product.gst_available if product else 'no') %}
+                <select id="gst-available" name="gst_available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="no" {{ 'selected' if gst_available_val == 'no' }}>No</option>
+                    <option value="yes" {{ 'selected' if gst_available_val == 'yes' }}>Yes</option>
+                </select>
+            </div>            <div class="mb-4" id="gst-percentage-container">
+                <label for="gst-percentage" class="block text-gray-700 text-sm font-bold mb-2">GST Percentage:</label>
+                <input type="number" id="gst-percentage" name="gst_percentage" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       value="{{ request.form.get('gst_percentage') if request and request.form else product.gst_percentage if product else '' }}">
+                <span class="error-message" id="gst-percentage-error"></span>
+            </div>
 
-                <div class="mb-4">
-                    <label for="gst-available" class="block text-gray-700 text-sm font-bold mb-2">GST Available:</label>
-                    {% set gst_available_val = (request.form.get('gst_available') if request and request.form else product.gst_available if product else 'no') %}
-                    <select id="gst-available" name="gst_available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="no" {{ 'selected' if gst_available_val == 'no' }}>No</option>
-                        <option value="yes" {{ 'selected' if gst_available_val == 'yes' }}>Yes</option>
-                    </select>
-                </div>
+            <div class="mb-4">
+                <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
+                <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ request.form.get('description') if request and request.form else product.description if product else '' }}</textarea>
+                <span class="error-message" id="description-error"></span>
+            </div>
 
-                <div class="mb-4" id="gst-percentage-container" style="{{ 'display:block;' if gst_available_val == 'yes' else 'display:none;' }}">
-                    <label for="gst-percentage" class="block text-gray-700 text-sm font-bold mb-2">GST Percentage:</label>
-                    <input type="number" id="gst-percentage" name="gst_percentage" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                           value="{{ request.form.get('gst_percentage') if request and request.form else product.gst_percentage if product else '' }}">
-                    <span class="error-message" id="gst-percentage-error"></span>
-                </div>
+            <!-- Current Stock (usually not manually set on new product form, but if it is) -->
+            <!-- <div class="mb-4">
+                <label for="current-stock" class="block text-gray-700 text-sm font-bold mb-2">Current Stock:</label>
+                <input type="number" id="current-stock" name="current_stock" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       value="{{ request.form.get('current_stock') if request and request.form else product.current_stock if product else '0' }}">
+                <span class="error-message" id="current-stock-error"></span>
+            </div> -->
 
-                <div class="mb-4">
-                    <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
-                    <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ request.form.get('description') if request and request.form else product.description if product else '' }}</textarea>
-                    <span class="error-message" id="description-error"></span>
-                </div>
-
-                <!-- Current Stock (usually not manually set on new product form, but if it is) -->
-                <!-- <div class="mb-4">
-                    <label for="current-stock" class="block text-gray-700 text-sm font-bold mb-2">Current Stock:</label>
-                    <input type="number" id="current-stock" name="current_stock" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                           value="{{ request.form.get('current_stock') if request and request.form else product.current_stock if product else '0' }}">
-                    <span class="error-message" id="current-stock-error"></span>
-                </div> -->
-
-                <button type="submit" id="submit-product-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
-            </form>
-        </div>
-        <div class="powered-by-container">
-            <span class="powered-by-text">Powered By</span>
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="powered-by-logo">
-        </div>
+            <button type="submit" id="submit-product-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+        </form>
     </div>
+</div>
 
-    <script>
-        const gstAvailableSelect = document.getElementById('gst-available');
-        const gstPercentageContainer = document.getElementById('gst-percentage-container');
-        // const gstPercentageInput = document.getElementById('gst-percentage'); // Not strictly needed here as it's accessed within the event listener
+<script>
+    const gstAvailableSelect = document.getElementById('gst-available');
+    const gstPercentageContainer = document.getElementById('gst-percentage-container');
 
-        gstAvailableSelect.addEventListener('change', function() {
-            if (this.value === 'yes') {
-                gstPercentageContainer.style.display = 'block'; // More direct than class manipulation for simple show/hide
-                // gstPercentageInput.required = true; // HTML5 required attribute can be set if desired
-            } else {
-                gstPercentageContainer.style.display = 'none';
-                // gstPercentageInput.required = false;
+    gstAvailableSelect.addEventListener('change', function() {
+        if (this.value === 'yes') {
+            gstPercentageContainer.classList.add('show-gst-percentage');
+        } else {
+            gstPercentageContainer.classList.remove('show-gst-percentage');
+        }
+    });
+
+    const productForm = document.getElementById('new-product-form');
+    const formErrorsSummaryDiv = document.getElementById('form-errors-summary');
+
+    productForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        let isValid = true;
+        const errorMessages = [];
+
+        // Clear previous errors
+        document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
+        document.querySelectorAll('.input-error').forEach(input => input.classList.remove('input-error'));
+        formErrorsSummaryDiv.classList.remove('show');
+        formErrorsSummaryDiv.innerHTML = '';
+
+        function setError(inputId, message) {
+            const inputElement = document.getElementById(inputId);
+            const errorSpan = document.getElementById(inputId + '-error');
+            if (inputElement) inputElement.classList.add('input-error');
+            if (errorSpan) errorSpan.textContent = message;
+            if (!errorMessages.includes(message)) {
+                errorMessages.push(message);
             }
-        });
+            isValid = false;
+        }
 
-        const productForm = document.getElementById('new-product-form');
-        const formErrorsSummaryDiv = document.getElementById('form-errors-summary');
+        // Product Name
+        const productNameInput = document.getElementById('product-name');
+        if (!productNameInput.value.trim()) {
+            setError('product-name', 'Product Name is required.');
+        }
 
-        productForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent default submission
-            let isValid = true;
-            const errorMessages = [];
+        // Product Code
+        const productCodeInput = document.getElementById('product-code');
+        if (!productCodeInput.value.trim()) {
+            setError('product-code', 'Product Code is required.');
+        } else if (!/^[a-zA-Z0-9-_]+$/.test(productCodeInput.value.trim())) {
+            setError('product-code', 'Product Code can only contain letters, numbers, hyphens, and underscores.');
+        }
 
-            // Clear previous errors
-            document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
-            document.querySelectorAll('.input-error').forEach(input => input.classList.remove('input-error'));
-            formErrorsSummaryDiv.style.display = 'none';
-            formErrorsSummaryDiv.innerHTML = '';
+        // HSN Code
+        const hsnCodeInput = document.getElementById('hsn-code');
+        if (hsnCodeInput.value.trim() && !/^\d{4,8}$/.test(hsnCodeInput.value.trim())) {
+            setError('hsn-code', 'HSN Code should be 4 to 8 digits.');
+        }
 
-            function setError(inputId, message) {
-                const inputElement = document.getElementById(inputId);
-                const errorSpan = document.getElementById(inputId + '-error');
-                if (inputElement) inputElement.classList.add('input-error');
-                if (errorSpan) errorSpan.textContent = message;
-                if (!errorMessages.includes(message)) {
-                    errorMessages.push(message);
-                }
-                isValid = false;
+        // Measuring Units
+        const measuringUnitsInput = document.getElementById('measuring-units');
+        if (!measuringUnitsInput.value.trim()) {
+            setError('measuring-units', 'Measuring Units are required.');
+        }
+
+        // Reorder Level
+        const reorderLevelInput = document.getElementById('reorder-level');
+        const reorderLevelValue = parseFloat(reorderLevelInput.value);
+        if (reorderLevelInput.value.trim() && (isNaN(reorderLevelValue) || reorderLevelValue < 0)) {
+            setError('reorder-level', 'Reorder Level must be a non-negative number.');
+        }
+
+        // GST Percentage
+        const gstAvailable = document.getElementById('gst-available').value;
+        const gstPercentageInput = document.getElementById('gst-percentage');
+        const gstPercentageValue = parseFloat(gstPercentageInput.value);
+        if (gstAvailable === 'yes') {
+            if (!gstPercentageInput.value.trim()) {
+                setError('gst-percentage', 'GST Percentage is required when GST is available.');
+            } else if (isNaN(gstPercentageValue) || gstPercentageValue < 0 || gstPercentageValue > 100) {
+                setError('gst-percentage', 'GST Percentage must be a number between 0 and 100.');
             }
+        }
 
-            // Product Name
-            const productNameInput = document.getElementById('product-name');
-            if (!productNameInput.value.trim()) {
-                setError('product-name', 'Product Name is required.');
+        if (isValid) {
+            productForm.submit();
+        } else {
+            if (errorMessages.length > 0) {
+                const ul = document.createElement('ul');
+                errorMessages.forEach(msg => {
+                    const li = document.createElement('li');
+                    li.textContent = msg;
+                    ul.appendChild(li);
+                });
+                formErrorsSummaryDiv.appendChild(ul);
+                formErrorsSummaryDiv.classList.add('show');
+                window.scrollTo(0, 0);
             }
-
-            // Product Code
-            const productCodeInput = document.getElementById('product-code');
-            if (!productCodeInput.value.trim()) {
-                setError('product-code', 'Product Code is required.');
-            }
-            // Basic product code format (e.g., alphanumeric, no spaces) - adjust regex as needed
-            else if (!/^[a-zA-Z0-9-_]+$/.test(productCodeInput.value.trim())) {
-                setError('product-code', 'Product Code can only contain letters, numbers, hyphens, and underscores.');
-            }
-
-            // HSN Code (Optional, but if entered, validate format - e.g., numeric, specific length)
-            const hsnCodeInput = document.getElementById('hsn-code');
-            if (hsnCodeInput.value.trim() && !/^\d{4,8}$/.test(hsnCodeInput.value.trim())) {
-                setError('hsn-code', 'HSN Code should be 4 to 8 digits.');
-            }
-
-            // Measuring Units
-            const measuringUnitsInput = document.getElementById('measuring-units');
-            if (!measuringUnitsInput.value.trim()) {
-                setError('measuring-units', 'Measuring Units are required.');
-            }
-
-            // Reorder Level
-            const reorderLevelInput = document.getElementById('reorder-level');
-            const reorderLevelValue = parseFloat(reorderLevelInput.value);
-            if (reorderLevelInput.value.trim() && (isNaN(reorderLevelValue) || reorderLevelValue < 0)) {
-                setError('reorder-level', 'Reorder Level must be a non-negative number.');
-            }
-
-            // GST Percentage
-            const gstAvailable = document.getElementById('gst-available').value;
-            const gstPercentageInput = document.getElementById('gst-percentage');
-            const gstPercentageValue = parseFloat(gstPercentageInput.value);
-            if (gstAvailable === 'yes') {
-                if (!gstPercentageInput.value.trim()) {
-                    setError('gst-percentage', 'GST Percentage is required when GST is available.');
-                } else if (isNaN(gstPercentageValue) || gstPercentageValue < 0 || gstPercentageValue > 100) {
-                    setError('gst-percentage', 'GST Percentage must be a number between 0 and 100.');
-                }
-            }
-
-            // Description (Optional, no specific validation here unless needed)
-
-            if (isValid) {
-                productForm.submit(); // Submit the form if all validations pass
-            } else {
-                // Display summary of errors
-                if (errorMessages.length > 0) {
-                    const ul = document.createElement('ul');
-                    errorMessages.forEach(msg => {
-                        const li = document.createElement('li');
-                        li.textContent = msg;
-                        ul.appendChild(li);
-                    });
-                    formErrorsSummaryDiv.appendChild(ul);
-                    formErrorsSummaryDiv.style.display = 'block';
-                    window.scrollTo(0, 0); // Scroll to top to see errors
-                }
-            }
-        });
-    </script>
-</body>
+        }
+    });
+</script>
+{% endblock %}
 </html>

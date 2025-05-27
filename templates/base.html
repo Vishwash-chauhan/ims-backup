@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>VyapaarNiti ERP</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-12">
+                <div class="flex-shrink-0 flex items-center">
+                    <img class="h-12 w-auto" src="/static/images/logo.png" alt="Logo">
+                    <span class="ml-2 font-bold text-2xl text-blue-700">ERP</span>
+                </div>                <div class="hidden sm:flex sm:items-center sm:space-x-1">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.dashboard') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Dashboard</a>
+                    <span class="text-gray-300 mx-0.5">|</span>
+                    <a href="{{ url_for('main.sales_entry') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Sales Entry</a>
+                    <span class="text-gray-300 mx-0.5">|</span>
+                    <a href="{{ url_for('main.purchases_form') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Purchase Entry</a>
+                    <span class="text-gray-300 mx-0.5">|</span>
+                    <a href="{{ url_for('main.add_product') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Products</a>
+                    <span class="text-gray-300 mx-0.5">|</span>
+                    <a href="{{ url_for('main.add_customer') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Customers</a>
+                    <span class="text-gray-300 mx-0.5">|</span>                    <a href="{{ url_for('main.add_supplier') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Suppliers</a>
+                    <span class="text-gray-300 mx-0.5">|</span>
+                    <a href="{{ url_for('auth.profile') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Profile</a>
+                    <span class="text-gray-300 mx-0.5">|</span>
+                    <a href="{{ url_for('auth.logout') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Logout</a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Login</a>
+                    <span class="text-gray-300 mx-0.5">|</span>
+                    <a href="{{ url_for('auth.register') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Register</a>
+                    {% endif %}
+                </div>
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button" type="button" class="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-blue-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu, show/hide based on menu state. -->
+        <div class="sm:hidden" id="mobile-menu" style="display: none;">
+            <div class="pt-1 pb-2 space-y-0.5">
+                <a href="{{ url_for('main.dashboard') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Dashboard</a>
+                <a href="{{ url_for('main.sales_entry') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Sales Entry</a>
+                <a href="{{ url_for('main.purchases_form') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Purchase Entry</a>
+                <a href="{{ url_for('main.add_product') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Add Products</a>
+                <a href="{{ url_for('main.add_customer') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Add Customers</a>
+                <a href="{{ url_for('main.add_supplier') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition">Add Suppliers</a>
+            </div>
+        </div>
+    </nav>
+    <script>
+        // Mobile menu toggle
+        const btn = document.getElementById('mobile-menu-button');
+        const menu = document.getElementById('mobile-menu');
+        btn.addEventListener('click', () => {
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        });
+    </script>
+    <div class="container mx-auto mt-8">
+        {% block content %}{% endblock %}
+    </div>
+    <footer class="w-full bg-white border-t mt-8 py-4 flex flex-col items-center justify-center">
+        <span class="text-gray-500 text-sm">Powered by</span>
+        <img src="/static/images/logo.png" alt="Powered by logo" class="h-8 mt-1">
+    </footer>
+</body>
+</html>

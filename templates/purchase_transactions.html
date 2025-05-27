@@ -1,22 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchases & Purchase Return Transactions</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 font-inter">
-    <script type="text/javascript">
-        // Injected from Flask backend
-        var purchaseData = {{ purchaseData|tojson|safe }};
-        var purchaseReturnData = {{ purchaseReturnData|tojson|safe }};
-    </script>
+{% extends "base.html" %}
 
+{% block content %}    
     <div class="bg-white shadow-xl rounded-xl p-6 sm:p-8 md:p-12 w-full max-w-7xl mx-auto">
         <div class="flex justify-center mb-10">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="max-w-[200px] h-auto rounded-lg shadow-sm">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="h-12 w-auto">
         </div>
 
         <h1 class="text-3xl font-extrabold text-gray-900 mb-12 text-center leading-tight">Purchases & Purchase Return Transactions Overview</h1>
@@ -35,8 +22,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">View Invoice</th>
                             </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -56,20 +42,23 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">View Return</th>
                             </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
-
-        <div class="flex flex-col items-center mt-16 text-gray-600">
-            <span class="text-sm mb-2">Powered By</span>
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Powered By Logo" class="max-w-[150px] h-auto rounded-md opacity-80">
-        </div>
     </div>
 
-    <script>
+    <script type="text/javascript">
+        // Injected from Flask backend
+        var purchaseData = {{ purchaseData|tojson|safe }};
+        var purchaseReturnData = {{ purchaseReturnData|tojson|safe }};
+
+        /**
+         * Formats a given amount into Indian Rupees currency format.
+         * @param {number} amount - The numeric amount to format.
+         * @returns {string} The formatted currency string (e.g., "₹1,500.00").
+         */
         function formatIndianCurrency(amount) {
             const formatter = new Intl.NumberFormat('en-IN', {
                 style: 'currency',
@@ -80,14 +69,21 @@
             return formatter.format(amount);
         }
 
+        /**
+         * Populates a given HTML table with transaction data.
+         * @param {string} tableId - The ID of the table to populate (e.g., 'purchase-table').
+         * @param {Array<Object>} data - An array of transaction objects.
+         * @param {boolean} isReturnTable - True if populating the purchase return table, false otherwise.
+         */
         function populateTable(tableId, data, isReturnTable = false) {
             const tableBody = document.getElementById(tableId).querySelector('tbody');
-            tableBody.innerHTML = '';
+            tableBody.innerHTML = ''; // Clear any existing rows to prevent duplicates on re-render
 
             data.forEach(item => {
-                const row = tableBody.insertRow();
+                const row = tableBody.insertRow(); // Create a new table row
                 row.className = 'hover:bg-gray-50';
 
+                // Determine the appropriate ID and amount keys based on table type
                 const idKey = isReturnTable ? 'returnId' : 'purchaseId';
                 const amountKey = 'totalAmount';
                 const viewLinkText = isReturnTable ? 'View Return' : 'View Invoice';
@@ -128,10 +124,12 @@
             });
         }
 
+        // Event listener to populate tables once the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', () => {
+            // Populate the purchase transactions table
             populateTable('purchase-table', purchaseData);
+            // Populate the purchase return transactions table, indicating it's a return table
             populateTable('purchase-return-table', purchaseReturnData, true);
         });
     </script>
-</body>
-</html>
+{% endblock %}

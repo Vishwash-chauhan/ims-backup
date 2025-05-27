@@ -1,0 +1,585 @@
+/* Custom styles for the dynamic amount input */
+/* #partial-payment-amount display is now controlled by JS */
+
+/* Styles for the product table */
+#product-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+#product-table th, #product-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+#product-table th {
+    background-color: #f0f0f0;
+    font-size: 0.92rem; /* Slightly smaller than base font size */
+    font-weight: 600;
+    color: #374151; /* Tailwind's gray-700 for consistency */
+}
+#product-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+#product-table th,
+#product-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+/* Styles for the mobile table */
+#product-table-mobile {
+    display: none; /* Initially hide the mobile table */
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#product-table-mobile th,
+#product-table-mobile td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#product-table-mobile th {
+    background-color: #f0f0f0;
+    font-size: 0.92rem; /* Slightly smaller than base font size */
+    font-weight: 600;
+    color: #374151; /* Tailwind's gray-700 for consistency */
+}
+
+#product-table-mobile tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Make table scrollable on small screens */
+@media (max-width: 768px) {
+    #product-table {
+        display: none; /* Hide the default table on small screens */
+    }
+    #product-table-mobile {
+        display: block; /* Show the mobile table on small screens */
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    #product-table-mobile thead,
+    #product-table-mobile tbody,
+    #product-table-mobile tr,
+    #product-table-mobile td,
+    #product-table-mobile th {
+        display: block;
+    }
+
+    #product-table-mobile thead tr {
+        display: table-row;
+    }
+    #product-table thead {
+        display: none;
+    }
+    #product-table-mobile thead {
+        display: none;
+    }
+
+    #product-table-mobile th {
+        text-align: left;
+    }
+
+    #product-table-mobile td,
+    #product-table-mobile th {
+        min-width: 120px;
+    }
+
+    #product-table-mobile input,
+    #product-table-mobile select {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    #product-table-mobile td label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #718096;
+    }
+}
+
+/* Styles for the total and GST display */
+#total-and-gst-container {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-top: 20px;
+}
+
+#final-total-amount-container {
+    margin-top: 20px;
+}
+
+/* Adjust form layout for mobile */
+@media (max-width: 768px) {
+    .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    .grid.gap-4 {
+        gap: 10px;
+    }
+    .mb-4 {
+        margin-bottom: 15px;
+    }
+    #total-and-gst-container {
+        align-items: flex-start;
+    }
+}
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.logo {
+    max-width: 200px;
+    height: auto;
+}
+.powered-by-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px;
+    width: 100%;
+}
+
+.powered-by-text {
+    margin-bottom: 10px;
+    color: #777;
+}
+
+.powered-by-logo {
+    max-width: 150px;
+    height: auto;
+}
+.powered-by-container {
+    margin-top: 20px;
+    width: 100%;
+}
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 160px); /* Adjust for header and footer */
+    padding: 2rem 1rem;
+}
+.form-container {
+    flex-grow: 1;
+    width: 100%;
+    max-width: 42rem; /* Equivalent to max-w-2xl */
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 1.5rem;
+    margin: 0 auto;
+}
+.customer-id-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.customer-id-container select {
+    flex-grow: 1;
+}
+.add-customer-link {
+    color: #3b82f6;
+    text-decoration: underline;
+    font-size: 0.875rem;
+    cursor: pointer;
+    margin-left: 10px;
+}
+.add-customer-link:hover {
+    color: #2563eb;
+}
+.customer-id-label-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.customer-id-label-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.add-customer-link {
+    color: #3b82f6;
+    text-decoration: underline;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+.add-customer-link:hover {
+    color: #2563eb;
+}
+
+/* Navigation Bar Styles */
+nav {
+    background-color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+nav a {
+    color: #3b82f6;
+    text-decoration: none;
+    margin-right: 15px;
+    font-weight: 500;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #ddd;
+    margin: 10px 0;
+}
+
+.input-error {
+    border-color: #f56565 !important;
+}
+
+#form-errors {
+    display: none; /* Hide by default */
+}
+
+#form-errors:not(:empty) {
+    display: block;
+    background-color: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 0.375rem;
+    color: #b91c1c;
+    margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+/* Improve display of conditional sections */
+#gst-number-section,
+#address-section,
+#account-details-section {
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+}
+
+#gst-number-section.visible,
+#address-section.visible,
+#account-details-section.visible {
+    opacity: 1;
+    max-height: 1000px; /* Large enough to contain content */
+}
+
+/* Override Tailwind form styles for consistency */
+.form-container input[type="text"],
+.form-container input[type="email"],
+.form-container input[type="number"],
+.form-container select,
+.form-container textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-container input[type="text"]:focus,
+.form-container input[type="email"]:focus,
+.form-container input[type="number"]:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.form-container input[readonly] {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+}
+
+/* Improve button styles */
+.form-container button[type="submit"] {
+    background-color: #059669;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-container button[type="submit"]:hover {
+    background-color: #047857;
+    transform: translateY(-1px);
+}
+
+.form-container button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+/* Flash message improvements */
+.alert {
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background-color: #ecfdf5;
+    border-color: #6ee7b7;
+    color: #047857;
+}
+
+.alert-danger {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+.alert-warning {
+    background-color: #fffbeb;
+    border-color: #fcd34d;
+    color: #92400e;
+}
+
+.alert-info {
+    background-color: #eff6ff;
+    border-color: #93c5fd;
+    color: #1e40af;
+}
+
+/* Show/hide GST percentage container */
+#gst-percentage-container {
+    display: none;
+}
+
+#gst-percentage-container.show-gst-percentage {
+    display: block;
+}
+
+/* Form errors styling */
+#form-errors-summary {
+    display: none;
+}
+
+#form-errors-summary.show {
+    display: block;
+}
+
+/* Purchase Return Form specific styles */
+#partial-refund-amount {
+    display: none;
+}
+.show-partial-refund #partial-refund-amount {
+    display: block;
+}
+
+/* Total and GST display styles */
+#total-and-gst-container {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-top: 20px;
+}
+
+#final-refund-amount-container {
+    margin-top: 20px;
+}
+
+/* Logo and powered by container styles */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.logo {
+    max-width: 200px;
+    height: auto;
+}
+
+.original-invoice-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.original-invoice-container select {
+    flex-grow: 1;
+}
+
+.view-invoice-link {
+    color: #3b82f6;
+    text-decoration: underline;
+    font-size: 0.875rem;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.view-invoice-link:hover {
+    color: #2563eb;
+}
+
+/* Common styles for view pages (customers, products, suppliers) */
+.view-page-container {
+    background: #fff;
+    max-width: 700px;
+    margin: 40px auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    padding: 32px;
+}
+
+.view-page-container h1 {
+    color: #023f90;
+    text-align: center;
+    margin-bottom: 32px;
+    font-size: 24px;
+}
+
+.view-page-container .responsive-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.view-page-container .responsive-table th,
+.view-page-container .responsive-table td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 15px;
+}
+
+.view-page-container .responsive-table th {
+    background: #f4f7fa;
+    color: #023f90;
+    font-weight: 600;
+}
+
+.view-page-container .responsive-table tr:last-child td {
+    border-bottom: none;
+}
+
+.view-page-container .add-button {
+    text-align: right;
+    margin-bottom: 16px;
+}
+
+.view-page-container .add-button a {
+    background: #023f90;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.view-page-container .actions {
+    display: flex;
+    gap: 10px;
+}
+
+.view-page-container .actions .delete-btn {
+    background: #e74c3c;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.view-page-container .actions .delete-btn:hover {
+    background: #c0392b;
+}
+
+.view-page-container .logo {
+    display: block;
+    margin: 0 auto 20px;
+    max-width: 150px;
+}
+
+.view-page-container .powered-by {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #777;
+}
+
+.view-page-container .footer-logo {
+    vertical-align: middle;
+    max-width: 100px;
+    margin-left: 5px;
+}
+
+/* Responsive table for mobile devices */
+@media (max-width: 600px) {
+    .view-page-container {
+        padding: 16px;
+    }
+
+    .view-page-container .responsive-table,
+    .view-page-container .responsive-table thead,
+    .view-page-container .responsive-table tbody,
+    .view-page-container .responsive-table th,
+    .view-page-container .responsive-table td,
+    .view-page-container .responsive-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .view-page-container .responsive-table thead {
+        display: none;
+    }
+
+    .view-page-container .responsive-table tr {
+        margin-bottom: 18px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        padding: 8px 0;
+    }
+
+    .view-page-container .responsive-table td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        min-height: 38px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    .view-page-container .responsive-table td:before {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        width: 45%;
+        white-space: nowrap;
+        font-weight: bold;
+        color: #023f90;
+        content: attr(data-label);
+        font-size: 13px;
+    }
+}

@@ -1,180 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard | Inventory App</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f7fa;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      flex-direction: column;
-    }
-
-    .container {
-      background-color: #fff;
-      padding: 40px 30px;
-      border-radius: 15px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    .logo {
-      max-width: 120px;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      font-size: 24px;
-      color: #023f90;
-      margin-bottom: 30px;
-    }
-
-    .menu {
-      display: grid;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .menu a {
-      display: block;
-      padding: 14px;
-      background-color: white;
-      color: #326ab2;
-      text-decoration: none;
-      border: 2px solid #023f90;
-      border-radius: 0;
-      font-size: 16px;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    .menu a:hover {
-      background-color: #f0f4fb;
-      color: #023f90;
-    }
-
-    .menu a span {
-      margin-right: 8px;
-    }
-
-    .powered-by {
-      text-align: center;
-      font-size: 13px;
-      color: #777;
-      margin-top: 20px;
-    }
-
-    .footer-logo {
-      max-width: 100px;
-      vertical-align: middle;
-      margin-left: 10px;
-    }
-
-    /* Navigation Bar Styles */
-    nav {
-      background-color: #023f90;
-      width: 100%;
-      padding: 10px 0;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1000;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      padding: 10px 15px;
-      display: inline-block;
-      font-size: 14px;
-    }
-
-    nav a:hover {
-      background-color: #326ab2;
-    }
-
-    hr {
-      border: 0;
-      height: 1px;
-      background: #ddd;
-      margin: 10px 0;
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 30px 20px;
-      }
-
-      h1 {
-        font-size: 20px;
-      }
-
-      .menu a {
-        font-size: 14px;
-        padding: 12px;
-      }
-
-      .logo {
-        max-width: 100px;
-      }
-
-      .footer-logo {
-        max-width: 80px;
-      }
-
-      nav a {
-        font-size: 12px;
-        padding: 8px 10px;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Navigation Bar -->
-  <!--
-  <nav>
-    <a href="/">Home</a> |
-    <a href="/products">Products</a> |
-    <a href="/products/add">Add Product</a> |
-    <a href="/inventory">Inventory</a> |
-    <a href="/customers">Customers</a> |
-    <a href="/orders">Orders</a> |
-    <a href="/orders/create">Create Order</a> |
-    <a href="/invoices">Invoices</a> |
-    <a href="/sales-entry">Sales Entry</a> |
-    <a href="/new-customer">New Customer</a>
-  </nav>
-  <hr>
-  -->
-
-  <div class="container">
-    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="App Logo" class="logo">
-    <h1>Dashboard</h1>
-
-    <div class="menu">
-      <a href="{{ url_for('main.sales_invoice_list') }}"><span aria-hidden="true">📄</span>View Sales</a>
-      <a href="{{ url_for('main.purchase_transactions') }}"><span aria-hidden="true">🧾</span>View Purchases</a>
-      <a href="{{ url_for('main.supplier_list') }}"><span aria-hidden="true">🏬</span>View Suppliers</a>
-      <a href="{{ url_for('main.product_list') }}"><span aria-hidden="true">📦</span>View Products</a>
-      <a href="{{ url_for('main.customer_list') }}"><span aria-hidden="true">👥</span>View Customers</a>
-      <a href="{{ url_for('main.dashboard') }}"><span aria-hidden="true">📊</span>Analytics</a>
-    </div>
-
-    <div class="powered-by">
-      Powered by
-      <img src="{{ url_for('static', filename='images/powered_by_logo.png') }}" alt="Powered by logo" class="footer-logo"> <!-- Example: if renamed -->
+{% extends 'base.html' %}
+{% block content %}
+  <div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; flex-direction: column;">
+    <div class="container" style="background-color: #fff; padding: 40px 30px; border-radius: 15px; max-width: 500px; width: 90%; box-shadow: 0 8px 20px rgba(0,0,0,0.1); text-align: center;">
+      <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="App Logo" class="logo" style="max-width: 120px; margin-bottom: 20px; display: block;">
+      </div>
+      <h1 style="font-size: 24px; color: #023f90; margin-bottom: 30px; font-weight: bold;">Dashboard</h1>
+      <div class="menu" style="display: grid; gap: 15px; margin-bottom: 30px;">
+        <a href="{{ url_for('main.sales_invoice_list') }}" style="display: block; padding: 14px; background-color: white; color: #326ab2; text-decoration: none; border: 2px solid #023f90; border-radius: 0; font-size: 16px; transition: background-color 0.3s ease, color 0.3s ease;"><span aria-hidden="true">📄</span>View Sales</a>
+        <a href="{{ url_for('main.purchase_transactions') }}" style="display: block; padding: 14px; background-color: white; color: #326ab2; text-decoration: none; border: 2px solid #023f90; border-radius: 0; font-size: 16px; transition: background-color 0.3s ease, color 0.3s ease;"><span aria-hidden="true">🧾</span>View Purchases</a>
+        <a href="{{ url_for('main.supplier_list') }}" style="display: block; padding: 14px; background-color: white; color: #326ab2; text-decoration: none; border: 2px solid #023f90; border-radius: 0; font-size: 16px; transition: background-color 0.3s ease, color 0.3s ease;"><span aria-hidden="true">🏬</span>View Suppliers</a>
+        <a href="{{ url_for('main.product_list') }}" style="display: block; padding: 14px; background-color: white; color: #326ab2; text-decoration: none; border: 2px solid #023f90; border-radius: 0; font-size: 16px; transition: background-color 0.3s ease, color 0.3s ease;"><span aria-hidden="true">📦</span>View Products</a>
+        <a href="{{ url_for('main.customer_list') }}" style="display: block; padding: 14px; background-color: white; color: #326ab2; text-decoration: none; border: 2px solid #023f90; border-radius: 0; font-size: 16px; transition: background-color 0.3s ease, color 0.3s ease;"><span aria-hidden="true">👥</span>View Customers</a>
+        <a href="{{ url_for('main.dashboard') }}" style="display: block; padding: 14px; background-color: white; color: #326ab2; text-decoration: none; border: 2px solid #023f90; border-radius: 0; font-size: 16px; transition: background-color 0.3s ease, color 0.3s ease;"><span aria-hidden="true">📊</span>Analytics</a>
+      </div>
     </div>
   </div>
-
-</body>
-</html>
+{% endblock %}

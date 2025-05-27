@@ -1,626 +1,324 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if supplier %}Edit Supplier{% else %}Add New Supplier{% endif %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        /* Custom styles for the dynamic amount input */
-        #partial-payment-amount {
-            display: none;
-        }
-        .show-partial-payment #partial-payment-amount {
-            display: block;
-        }
+{% extends "base.html" %}
 
-        /* Styles for the product table */
-        #product-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        #product-table th, #product-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        #product-table th {
-            background-color: #f0f0f0;
-        }
-        #product-table tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        #product-table th,
-        #product-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
+{% block title %}{% if supplier %}Edit Supplier{% else %}Add New Supplier{% endif %}{% endblock %}
 
-        /* Styles for the mobile table */
-        #product-table-mobile {
-            display: none; /* Initially hide the mobile table */
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
+{% block head %}
+{{ super() }}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock %}
 
-        #product-table-mobile th,
-        #product-table-mobile td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
+{% block content %}
 
-        #product-table-mobile th {
-            background-color: #f0f0f0;
-        }
+<div class="min-h-screen flex justify-center items-center py-10 main-content">    <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
+        <div class="flex justify-center mb-4">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="h-16 w-auto">
+        </div>
+        <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">
+            {% if supplier %}Edit Supplier{% else %}Add New Supplier{% endif %}
+        </h1><!-- Flashed Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% set alert_class = 'alert alert-info' %}
+                    {% if category == 'success' %}
+                        {% set alert_class = 'alert alert-success' %}
+                    {% elif category == 'danger' %}
+                        {% set alert_class = 'alert alert-danger' %}
+                    {% elif category == 'warning' %}
+                        {% set alert_class = 'alert alert-warning' %}
+                    {% endif %}
+                    <div class="{{ alert_class }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-        #product-table-mobile tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
+        <!-- Form Validation Errors -->
+        {% if error %}
+            <div class="alert alert-danger" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline">{{ error }}</span>
+            </div>
+        {% endif %}        <!-- Client-side validation summary -->
+        <div id="form-errors" class="alert alert-danger" style="display:none;"></div>
 
-        /* Make table scrollable on small screens */
-        @media (max-width: 768px) {
-            #product-table {
-                display: none; /* Hide the default table on small screens */
-            }
-            #product-table-mobile {
-                display: block; /* Show the mobile table on small screens */
-                overflow-x: auto;
-                white-space: nowrap;
-            }
+        <form method="POST" action="{{ url_for('main.edit_supplier', supplier_id=supplier.id) if supplier else url_for('main.add_supplier') }}" id="supplier-form">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="supplier-name" class="block text-gray-700 text-sm font-bold mb-2">Supplier Name:</label>
+                    <input type="text" id="supplier-name" name="supplier_name" value="{{ form_data.get('supplier_name', supplier.supplier_name if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="supplier-contact" class="block text-gray-700 text-sm font-bold mb-2">Contact Number:</label>
+                    <input type="text" id="supplier-contact" name="supplier_contact" value="{{ form_data.get('supplier_contact', supplier.supplier_contact if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+            </div>
 
-            #product-table-mobile thead,
-            #product-table-mobile tbody,
-            #product-table-mobile tr,
-            #product-table-mobile td,
-            #product-table-mobile th {
-                display: block;
-            }
+            <div class="mb-4">
+                <label for="email-address" class="block text-gray-700 text-sm font-bold mb-2">Email Address:</label>
+                <input type="email" id="email-address" name="email_address" value="{{ form_data.get('email_address', supplier.email_address if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
 
-            #product-table-mobile thead tr {
-                display: table-row;
-            }
-            #product-table thead {
-                display: none;
-            }
-            #product-table-mobile thead {
-                display: none;
-            }
-            #oo{
-                display: none;
-            }
+            <div class="mb-4">
+                <label for="gst-available" class="block text-gray-700 text-sm font-bold mb-2">GST Available:</label>
+                <select id="gst-available" name="gst_available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="no" {% if form_data.get('gst_available', supplier.gst_available if supplier else '') == 'no' %}selected{% endif %}>No</option>
+                    <option value="yes" {% if form_data.get('gst_available', supplier.gst_available if supplier else '') == 'yes' %}selected{% endif %}>Yes</option>
+                </select>
+            </div>            <div id="gst-number-section" class="mb-4">
+                <label for="gst-number" class="block text-gray-700 text-sm font-bold mb-2">GST Number:</label>
+                <input type="text" id="gst-number" name="gst_number" value="{{ form_data.get('gst_number', supplier.gst_number if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
 
-            #product-table-mobile th {
-                text-align: left;
-            }
+            <div class="mb-4">
+                <label for="address-available" class="block text-gray-700 text-sm font-bold mb-2">Address Available:</label>
+                <select id="address-available" name="address_available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="no" {% if form_data.get('address_available') == 'no' %}selected{% endif %}>No</option>
+                    <option value="yes" {% if form_data.get('address_available') == 'yes' %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
 
-            #product-table-mobile td,
-            #product-table-mobile th {
-                min-width: 120px;
-            }
+            <div id="address-section" class="mb-4">
+                <div class="mb-4">
+                    <label for="address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
+                    <input type="text" id="address-line1" name="address_line1" value="{{ form_data.get('address_line1', supplier.address_line1 if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
 
-            #product-table-mobile input,
-            #product-table-mobile select {
-                width: 100%;
-                margin-bottom: 5px;
-            }
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
+                        <input type="text" id="pincode" name="pincode" value="{{ form_data.get('pincode', supplier.pincode if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
+                        <input type="text" id="city" name="city" value="{{ form_data.get('city', supplier.city if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                    </div>
+                </div>
 
-            #product-table-mobile td label {
-                display: block;
-                font-weight: bold;
-                margin-bottom: 5px;
-                color: #718096;
-            }
-        }
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
+                        <input type="text" id="state" name="state" value="{{ form_data.get('state', supplier.state if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                    </div>
+                    <div>
+                        <label for="country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
+                        <input type="text" id="country" name="country" value="{{ form_data.get('country', supplier.country if supplier else 'India') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                    </div>
+                </div>
+            </div>
 
-        /* Styles for the total and GST display */
-        #total-and-gst-container {
-            display: flex;
-            justify-content: flex-end;
-            flex-direction: column;
-            align-items: flex-end;
-            margin-top: 20px;
-        }
+            <div class="mb-4">
+                <label for="account-available" class="block text-gray-700 text-sm font-bold mb-2">Account Available:</label>
+                <select id="account-available" name="account_available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="no" {% if form_data.get('account_available', supplier.account_available if supplier else '') == 'no' %}selected{% endif %}>No</option>
+                    <option value="yes" {% if form_data.get('account_available', supplier.account_available if supplier else '') == 'yes' %}selected{% endif %}>Yes</option>
+                </select>
+            </div>            <div id="account-details-section" class="mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="account-number" class="block text-gray-700 text-sm font-bold mb-2">Account Number:</label>
+                        <input type="text" id="account-number" name="account_number" value="{{ form_data.get('account_number', supplier.account_number if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="bank-name" class="block text-gray-700 text-sm font-bold mb-2">Bank Name:</label>
+                        <input type="text" id="bank-name" name="bank_name" value="{{ form_data.get('bank_name', supplier.bank_name if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label for="ifsc-code" class="block text-gray-700 text-sm font-bold mb-2">IFSC Code:</label>
+                    <input type="text" id="ifsc-code" name="ifsc_code" value="{{ form_data.get('ifsc_code', supplier.ifsc_code if supplier else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+            </div>
 
-        #final-total-amount-container {
-            margin-top: 20px;
-        }
+            <div class="mb-6">
+                <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
+                <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ form_data.get('description', supplier.description if supplier else '') }}</textarea>
+            </div>
 
-        /* Adjust form layout for mobile */
-        @media (max-width: 768px) {
-            .grid.grid-cols-1.md\:grid-cols-2 {
-                grid-template-columns: 1fr;
-            }
-            .grid.gap-4 {
-                gap: 10px;
-            }
-            .mb-4 {
-                margin-bottom: 15px;
-            }
-            #total-and-gst-container {
-                align-items: flex-start;
-            }
-        }
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px; /* Add some space below the logo */
-        }
-        .logo {
-            max-width: 200px; /* Adjust the maximum width as needed */
-            height: auto; /* Maintain aspect ratio */
-        }
-        .powered-by-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 30px; /* Add space above the container */
-            width: 100%;
-        }
+            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+                {{ "Update Supplier" if supplier else "Add Supplier" }}
+            </button>
+        </form>
+    </div>
+</div>
 
-        .powered-by-text {
-            margin-bottom: 10px; /* Add space between text and logo */
-            color: #777; /* Optional: Style the text color */
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup conditional sections visibility
+    function setupConditionalSection(selectId, sectionId) {
+        const select = document.getElementById(selectId);
+        const section = document.getElementById(sectionId);
+        
+        // Remove inline display style to allow CSS transitions to work
+        section.style.display = '';
+        
+        // Set initial state
+        if (select.value === 'yes') {
+            section.classList.add('visible');
         }
+        
+        // Add change listener
+        select.addEventListener('change', function() {
+            section.classList.toggle('visible', this.value === 'yes');
+        });
+    }
 
-        .powered-by-logo {
-            max-width: 150px; /* Adjust size as needed */
-            height: auto;
-        }
-        /* Add this style to move the powered by container below the form */
-        .powered-by-container {
-            margin-top: 20px; /* Add some space above the container */
-            width: 100%; /* Ensure full width */
-        }
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .form-container {
-            flex-grow: 1;
-        }
-        #address-section {
-            display: none;
-        }
-        .show-address #address-section{
-            display: block;
-        }
-        #account-details-section {
-            display: none;
-        }
-        #account-details-section.show {
-            display: block !important;
-        }
+    // Setup all conditional sections
+    setupConditionalSection('gst-available', 'gst-number-section');
+    setupConditionalSection('account-available', 'account-details-section');
+    setupConditionalSection('address-available', 'address-section');
 
-        /* Navigation Bar Styles */
-        nav {
-            background-color: #f8f8f8;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            text-align: center;
-        }
-        nav a {
-            margin: 0 15px;
-            color: #007bff;
-            text-decoration: none;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        .error-message { color: #dc2626; font-size: 0.875em; margin-top: 0.25rem; }
-        .input-error { border-color: #dc2626 !important; }
-        #form-errors { margin-bottom: 1rem; padding: 0.75rem; background-color: #fee2e2; border: 1px solid #fecaca; border-radius: 0.375rem; color: #b91c1c; }
-        #form-errors ul { list-style-type: disc; margin-left: 1.25rem; }
-    </style>
-    <script>
-        $(document).ready(function() {
-            $('#pincode').on('blur', function() {
-                var pincode = $(this).val();
-                if (pincode.length === 6) { //basic validation
-                    $.ajax({
-                        url: 'https://api.postalpincode.in/pincode/' + pincode, // Corrected URL
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function(data) {
-                            if (data && data.length > 0 && data[0].Status === "Success") {
-                                var postOffice = data[0].PostOffice[0];
-                                $('#city').val(postOffice.District);
-                                $('#state').val(postOffice.State);
-                                $('#country').val("India");
-                            } else {
-                                $('#city').val('');
-                                $('#state').val('');
-                                alert('Invalid Pincode. Please enter a valid Indian pincode.');
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("Error fetching data:", status, error);
-                            $('#city').val('');
-                            $('#state').val('');
-                            alert('Error fetching pincode data. Please try again.');
-                        }
-                    });
-                } else if (pincode.length > 0) {
-                    alert('Pincode should be 6 digits.');
+    // Pincode validation and autofill
+    $('#pincode').on('blur', function() {
+        var pincode = $(this).val();
+        if (pincode.length === 6) {
+            $.ajax({
+                url: 'https://api.postalpincode.in/pincode/' + pincode,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data && data.length > 0 && data[0].Status === "Success") {
+                        $('#city').val(data[0].PostOffice[0].Block);
+                        $('#state').val(data[0].PostOffice[0].State);
+                        $('#country').val("India");
+                    } else {
+                        $('#city').val('');
+                        $('#state').val('');
+                        alert('Invalid pincode. Please enter a valid one.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching data:", status, error);
                     $('#city').val('');
                     $('#state').val('');
+                    alert('Error fetching pincode data. Please try again.');
                 }
             });
-            $('#address-available').on('change',function(){
-                if(this.value === 'yes'){
-                    $('#address-section').addClass('show-address');
-                    $('#gst-number-section').show();
+        } else if (pincode.length > 0) {
+            alert('Pincode should be 6 digits.');
+            $('#city').val('');
+            $('#state').val('');
+        }
+    });
+
+    // Form validation
+    const supplierForm = document.getElementById('supplier-form');
+    const formErrorsDiv = document.getElementById('form-errors');
+
+    supplierForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default submission
+        let isValid = true;
+        const errorMessages = [];
+
+        // Clear previous errors
+        document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
+        document.querySelectorAll('.input-error').forEach(input => input.classList.remove('input-error'));
+        formErrorsDiv.style.display = 'none';
+        formErrorsDiv.innerHTML = '';
+
+        function setError(inputId, message) {
+            const inputElement = document.getElementById(inputId);
+            if (inputElement) {
+                inputElement.classList.add('input-error');
+                // Create or update error message element
+                let errorSpan = document.getElementById(inputId + '-error');
+                if (!errorSpan) {
+                    errorSpan = document.createElement('span');
+                    errorSpan.id = inputId + '-error';
+                    errorSpan.className = 'error-message text-red-500 text-sm mt-1 block';
+                    inputElement.parentNode.appendChild(errorSpan);
                 }
-                else{
-                    $('#address-section').removeClass('show-address');
-                    $('#gst-number-section').hide();
-                }
-            })
-             $('#gst-available').on('change', function() {
-                if (this.value === 'yes') {
-                    $('#gst-number-section').show();
-                } else {
-                    $('#gst-number-section').hide();
-                }
-            });
-        });
-    </script>
-</head>
-<body class="bg-gray-100 font-inter antialiased">
-    <!-- Navigation Bar -->
-    <!--
-    <nav>
-      <a href="/">Home</a> |
-      <a href="/products">Products</a> |
-      <a href="/products/add">Add Product</a> |
-      <a href="/inventory">Inventory</a> |
-      <a href="/customers">Customers</a> |
-      <a href="/orders">Orders</a> |
-      <a href="/orders/create">Create Order</a> |
-      <a href="/invoices">Invoices</a> |
-      <a href="/sales-entry">Sales Entry</a> |
-      <a href="/new-customer">New Customer</a>
-    </nav>
-    <hr>
-    -->
-    <div class="min-h-screen flex justify-center items-center py-10 main-content">
-        <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
-            </div>
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">
-                {% if supplier %}Edit Supplier{% else %}Add New Supplier{% endif %}
-            </h1>
-
-            <!-- Flashed Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} {% if category == 'success' %}bg-green-100 border-green-400 text-green-700{% elif category == 'danger' %}bg-red-100 border-red-400 text-red-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} border px-4 py-3 rounded relative mb-4" role="alert">
-                            <span class="block sm:inline">{{ message }}</span>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <!-- Form Validation Errors (passed directly from route) -->
-                {% if error %}
-                <div class="alert alert-danger" style="color: #b91c1c; background: #fee2e2; padding: 10px; border-radius: 6px; margin-bottom: 16px;">
-                  {{ error }}
-                </div>
-                {% endif %}
-
-            <!-- Client-side validation summary (populated by JS) -->
-            <div id="form-errors" style="display:none;"></div>
-    
-            <form method="POST" action="{{ url_for('main.edit_supplier', supplier_id=supplier.id) if supplier else url_for('main.add_supplier') }}">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label for="supplier-name" class="block text-gray-700 text-sm font-bold mb-2">Supplier Name:</label>
-                        <input type="text" id="supplier-name" name="supplier_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('supplier_name', '') }}">
-                        <span class="error-message" id="supplier-name-error"></span>
-                    </div>
-                    <div>
-                        <label for="supplier-contact" class="block text-gray-700 text-sm font-bold mb-2">Contact:</label>
-                        <input type="text" id="supplier-contact" name="supplier_contact" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('supplier_contact', '') }}">
-                        <span class="error-message" id="supplier-contact-error"></span>
-                    </div>
-                    <div>
-                        <label for="email-address" class="block text-gray-700 text-sm font-bold mb-2">Email Address:</label>
-                        <input type="email" id="email-address" name="email_address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('email_address', '') }}">
-                        <span class="error-message" id="email-address-error"></span>
-                    </div>
-                </div>
-                 <div class="mb-4">
-                        <label for="gst-available" class="block text-gray-700 text-sm font-bold mb-2">Is GST Available?</label>
-                        <select id="gst-available" name="gst_available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            <option value="no" {{ 'selected' if not form_data.get('gst_available') or form_data.get('gst_available') == 'no' }}>No</option>
-                            <option value="yes" {{ 'selected' if form_data.get('gst_available') == 'yes' }}>Yes</option>
-                        </select>
-                        <span class="error-message" id="gst-available-error"></span>
-                    </div>
-    
-                <div id="gst-number-section" style="{{ 'display:block;' if form_data.get('gst_available') == 'yes' else 'display:none;' }}">
-                    <div class="mb-4">
-                        <label for="gst-number" class="block text-gray-700 text-sm font-bold mb-2">GST Number:</label>
-                        <input type="text" id="gst-number" name="gst_number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('gst_number', '') }}">
-                        <span class="error-message" id="gst-number-error"></span>
-                    </div>
-                </div>
-    
-                <div class="mb-4">
-                    <h2 class="text-lg font-semibold text-gray-700 mb-2">Address</h2>
-                    <div class="border rounded-md p-4">
-                        <div class="mb-2">
-                            <label for="address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
-                            <input type="text" id="address-line1" name="address_line1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('address_line1', '') }}">
-                            <span class="error-message" id="address-line1-error"></span>
-                        </div>
-                        <div class="flex flex-wrap -mx-2 mb-4">
-                            <div class="w-1/2 px-2">
-                                <label for="pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
-                                <input type="text" id="pincode" name="address_pincode" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('address_pincode', '') }}">
-                                <span class="error-message" id="pincode-error"></span>
-                            </div>
-                            <div class="w-1/2 px-2">
-                                <label for="city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
-                                <input type="text" id="city" name="address_city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('address_city', '') }}" readonly>
-                                <span class="error-message" id="city-error"></span>
-                            </div>
-                        </div>
-    
-                        <div class="flex flex-wrap -mx-2 mb-4">
-                            <div class="w-1/2 px-2">
-                                <label for="state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
-                                <input type="text" id="state" name="address_state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('address_state', '') }}" readonly>
-                                <span class="error-message" id="state-error"></span>
-                            </div>
-                            <div class="w-1/2 px-2">
-                                <label for="country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
-                                <input type="text" id="country" name="address_country" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('address_country', 'India') }}" readonly>
-                                <span class="error-message" id="country-error"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-    
-                <div class="mb-4">
-                    <label for="account-available" class="block text-gray-700 text-sm font-bold mb-2">Account Details Available?</label>
-                    <select id="account-available" name="account_available" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="no" {{ 'selected' if not form_data.get('account_available') or form_data.get('account_available') == 'no' }}>No</option>
-                        <option value="yes" {{ 'selected' if form_data.get('account_available') == 'yes' }}>Yes</option>
-                    </select>
-                </div>
-                <div id="account-details-section" style="{{ 'display:block;' if form_data.get('account_available') == 'yes' else 'display:none;' }}" class="{{ 'show' if form_data.get('account_available') == 'yes' }}">
-                    <div class="flex flex-wrap -mx-2">
-                        <div class="w-1/2 px-2">
-                            <label for="account-holder-name" class="block text-gray-700 text-sm font-bold mb-2">Account Holder's Name:</label>
-                            <input type="text" id="account-holder-name" name="account_holder_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('account_holder_name', '') }}">
-                            <span class="error-message" id="account-holder-name-error"></span>
-                        </div>
-                        <div class="w-1/2 px-2">
-                            <label for="account-number" class="block text-gray-700 text-sm font-bold mb-2">Account Number:</label>
-                            <input type="text" id="account-number" name="account_number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('account_number', '') }}">
-                            <span class="error-message" id="account-number-error"></span>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-2">
-                        <div class="w-1/2 px-2">
-                            <label for="ifsc-code" class="block text-gray-700 text-sm font-bold mb-2">IFSC Code:</label>
-                            <input type="text" id="ifsc-code" name="ifsc_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('ifsc_code', '') }}">
-                            <span class="error-message" id="ifsc-code-error"></span>
-                        </div>
-                        <div class="w-1/2 px-2">
-                            <label for="branch" class="block text-gray-700 text-sm font-bold mb-2">Branch:</label>
-                            <input type="text" id="branch" name="branch" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ form_data.get('branch', '') }}">
-                            <span class="error-message" id="branch-error"></span>
-                        </div>
-                    </div>
-                </div>
-    
-                <button type="submit" id="submit-supplier-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">
-                    {% if supplier %}Update Supplier{% else %}Add Supplier{% endif %}
-                </button>
-            </form>
-        </div>
-        <div class="powered-by-container">
-            <span class="powered-by-text">Powered By</span>
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="powered-by-logo">
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const gstAvailableSelect = document.getElementById('gst-available');
-            const gstNumberSection = document.getElementById('gst-number-section');
-            // Initial state based on form_data which sets the select value and inline style
-            if (gstAvailableSelect.value === 'yes') {
-                gstNumberSection.style.display = 'block';
-            } else {
-                gstNumberSection.style.display = 'none';
+                errorSpan.textContent = message;
             }
-            gstAvailableSelect.addEventListener('change', function() {
-                if (this.value === 'yes') {
-                    gstNumberSection.style.display = 'block';
-                } else {
-                    gstNumberSection.style.display = 'none';
-                    document.getElementById('gst-number').value = ''; // Clear GST number
-                }
-            });
-
-            const accountAvailableSelect = document.getElementById('account-available');
-            const accountDetailsSection = document.getElementById('account-details-section');
-            // Initial state
-            if (accountAvailableSelect.value === 'yes') {
-                accountDetailsSection.style.display = 'block'; // Use style.display for consistency
-            } else {
-                accountDetailsSection.style.display = 'none';
+            if (!errorMessages.includes(message)) {
+                errorMessages.push(message);
             }
-            accountAvailableSelect.addEventListener('change', function() {
-                if (this.value === 'yes') {
-                    accountDetailsSection.style.display = 'block';
-                } else {
-                    accountDetailsSection.style.display = 'none';
-                    // Optionally clear account fields
-                    document.getElementById('account-holder-name').value = '';
-                    document.getElementById('account-number').value = '';
-                    document.getElementById('ifsc-code').value = '';
-                    document.getElementById('branch').value = '';
-                }
-            });
-        });
+            isValid = false;
+        }
 
+        // Validate required fields
+        // Supplier Name
+        const supplierName = document.getElementById('supplier-name').value.trim();
+        if (!supplierName) {
+            setError('supplier-name', 'Supplier Name is required.');
+        }
 
-        const supplierForm = document.querySelector('form');
-        const formErrorsDiv = document.getElementById('form-errors');
+        // Supplier Contact
+        const supplierContact = document.getElementById('supplier-contact').value.trim();
+        if (!supplierContact) {
+            setError('supplier-contact', 'Supplier Contact is required.');
+        }
 
-        supplierForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent default submission
-            let isValid = true;
-            const errorMessages = [];
+        // Email Address format
+        const emailAddressInput = document.getElementById('email-address');
+        const emailAddress = emailAddressInput.value.trim();
+        if (emailAddress && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress)) {
+            setError('email-address', 'Invalid email address format.');
+        }
 
-            // Clear previous errors
-            document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
-            document.querySelectorAll('.input-error').forEach(input => input.classList.remove('input-error'));
-            formErrorsDiv.style.display = 'none';
-            formErrorsDiv.innerHTML = '';
-
-            function setError(inputId, message) {
-                const inputElement = document.getElementById(inputId);
-                const errorSpan = document.getElementById(inputId + '-error');
-                if (inputElement) inputElement.classList.add('input-error');
-                if (errorSpan) errorSpan.textContent = message;
-                if (!errorMessages.includes(message)) { // Avoid duplicate summary messages
-                    errorMessages.push(message);
-                }
-                isValid = false;
+        // GST Number validation
+        const gstAvailable = document.getElementById('gst-available').value;
+        if (gstAvailable === 'yes') {
+            const gstNumber = document.getElementById('gst-number').value.trim();
+            if (!gstNumber) {
+                setError('gst-number', 'GST Number is required when GST is available.');
+            } else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstNumber)) {
+                setError('gst-number', 'Invalid GST Number format.');
             }
+        }
 
-            // Supplier Name
-            const supplierName = document.getElementById('supplier-name').value.trim();
-            if (!supplierName) {
-                setError('supplier-name', 'Supplier Name is required.');
+        // Address validation when available is selected
+        if (document.getElementById('address-available').value === 'yes') {
+            const addressLine1 = document.getElementById('address-line1').value.trim();
+            const pincode = document.getElementById('pincode').value.trim();
+            
+            if (!addressLine1) {
+                setError('address-line1', 'Address Line 1 is required when address is available.');
             }
-
-            // Supplier Contact
-            const supplierContact = document.getElementById('supplier-contact').value.trim();
-            if (!supplierContact) {
-                setError('supplier-contact', 'Supplier Contact is required.');
-            }
-
-            // Email Address
-            const emailAddressInput = document.getElementById('email-address');
-            const emailAddress = emailAddressInput.value.trim();
-            if (emailAddress && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress)) {
-                setError('email-address', 'Invalid email address format.');
-            }
-
-            // GST
-            const gstAvailable = document.getElementById('gst-available').value;
-            const gstNumberInput = document.getElementById('gst-number');
-            const gstNumber = gstNumberInput.value.trim();
-            if (gstAvailable === 'yes') {
-                if (!gstNumber) {
-                    setError('gst-number', 'GST Number is required when GST is available.');
-                } else if (!/^[a-zA-Z0-9]{15}$/.test(gstNumber)) {
-                    setError('gst-number', 'GST Number must be 15 alphanumeric characters.');
-                }
-            }
-
-            // Pincode
-            const pincodeInput = document.getElementById('pincode');
-            const pincode = pincodeInput.value.trim();
-            if (pincode && !/^\d{6}$/.test(pincode)) {
+            if (!pincode) {
+                setError('pincode', 'Pincode is required when address is available.');
+            } else if (!/^\d{6}$/.test(pincode)) {
                 setError('pincode', 'Pincode must be 6 digits.');
             }
+        }
 
-            // Account Details
-            const accountAvailable = document.getElementById('account-available').value;
-            if (accountAvailable === 'yes') {
-                const accountHolderName = document.getElementById('account-holder-name').value.trim();
-                if (!accountHolderName) {
-                    setError('account-holder-name', "Account Holder's Name is required.");
-                }
-                const accountNumber = document.getElementById('account-number').value.trim();
-                if (!accountNumber) {
-                    setError('account-number', 'Account Number is required.');
-                }
-                const ifscCode = document.getElementById('ifsc-code').value.trim();
-                if (!ifscCode) {
-                    setError('ifsc-code', 'IFSC Code is required.');
-                } else if (!/^[A-Za-z]{4}0[A-Z0-9]{6}$/.test(ifscCode)) {
-                    setError('ifsc-code', 'Invalid IFSC Code format (e.g., ABCD0123456).');
-                }
+        // Bank account details validation when available is selected
+        if (document.getElementById('account-available').value === 'yes') {
+            const accountNumber = document.getElementById('account-number').value.trim();
+            const bankName = document.getElementById('bank-name').value.trim();
+            const ifscCode = document.getElementById('ifsc-code').value.trim();
+
+            if (!accountNumber) {
+                setError('account-number', 'Account Number is required when bank account is available.');
             }
-
-            if (isValid) {
-                supplierForm.submit(); // Submit the form if all validations pass
-            } else {
-                // Display summary of errors
-                if (errorMessages.length > 0) {
-                    const ul = document.createElement('ul');
-                    errorMessages.forEach(msg => {
-                        const li = document.createElement('li');
-                        li.textContent = msg;
-                        ul.appendChild(li);
-                    });
-                    formErrorsDiv.appendChild(ul);
-                    formErrorsDiv.style.display = 'block';
-                    window.scrollTo(0, 0); // Scroll to top to see errors
-                }
+            if (!bankName) {
+                setError('bank-name', 'Bank Name is required when bank account is available.');
             }
-        });
-
-        /* // Commenting out the manual JS submission as we are using standard form submission now.
-            const supplierName = document.getElementById('supplier-name').value;
-            const supplierContact = document.getElementById('supplier-contact').value;
-             const gstAvailable = document.getElementById('gst-available').value;
-            const gstNumber = document.getElementById('gst-number').value;
-            const addressLine1 = document.getElementById('address-line1').value;
-            const pincode = document.getElementById('pincode').value;
-            const city = document.getElementById('city').value;
-            const state = document.getElementById('state').value;
-            const country = document.getElementById('country').value;
-            const accountAvailable = document.getElementById('account-available').value;
-            let accountDetails = null;
-            if (accountAvailable === 'yes') {
-                accountDetails = {
-                    accountHolderName: document.getElementById('account-holder-name').value,
-                    accountNumber: document.getElementById('account-number').value,
-                    ifscCode: document.getElementById('ifsc-code').value,
-                    branch: document.getElementById('branch').value
-                };
+            if (!ifscCode) {
+                setError('ifsc-code', 'IFSC Code is required when bank account is available.');
+            } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode)) {
+                setError('ifsc-code', 'Invalid IFSC Code format (e.g., ABCD0123456).');
             }
+        }
 
-            const supplierData = {
-                supplierName: supplierName,
-                supplierContact: supplierContact,
-                gstAvailable: gstAvailable,
-                gstNumber: gstNumber,
-                address: {
-                    addressLine1: addressLine1,
-                    pincode: pincode,
-                    city: city,
-                    state: state,
-                    country: country
-                },
-                products: [],
-                accountAvailable: accountAvailable,
-                accountDetails: accountDetails
-            };
-
-            console.log(supplierData);
-            alert('Supplier data submitted! Check console for details.');
-            // In a real application, you would send this data to a backend server using fetch() or XMLHttpRequest
-        */
-    </script>
-</body>
-</html>
+        if (!isValid) {
+            // Display summary of errors at the top
+            const ul = document.createElement('ul');
+            ul.className = 'list-disc pl-5';
+            errorMessages.forEach(msg => {
+                const li = document.createElement('li');
+                li.textContent = msg;
+                ul.appendChild(li);
+            });
+            formErrorsDiv.innerHTML = '';
+            formErrorsDiv.appendChild(ul);
+            formErrorsDiv.style.display = 'block';
+            formErrorsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            supplierForm.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

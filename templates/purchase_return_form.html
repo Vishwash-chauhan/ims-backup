@@ -1,285 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchase Return Form</title>
+{% extends "base.html" %}
+{% block content %}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Custom styles for the dynamic amount input */
-        #partial-refund-amount {
-            display: none;
-        }
-        .show-partial-refund #partial-refund-amount {
-            display: block;
-        }
-
-        /* Styles for the product table */
-        #product-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        #product-table th, #product-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        #product-table th {
-            background-color: #f0f0f0;
-        }
-        #product-table tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        #product-table th,
-        #product-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        /* Styles for the mobile table */
-        #product-table-mobile {
-            display: none; /* Initially hide the mobile table */
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        #product-table-mobile th,
-        #product-table-mobile td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        #product-table-mobile th {
-            background-color: #f0f0f0;
-        }
-
-        #product-table-mobile tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        /* Make table scrollable on small screens */
-        @media (max-width: 768px) {
-            #product-table {
-                display: none; /* Hide the default table on small screens */
-            }
-            #product-table-mobile {
-                display: block; /* Show the mobile table on small screens */
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            #product-table-mobile thead,
-            #product-table-mobile tbody,
-            #product-table-mobile tr,
-            #product-table-mobile td,
-            #product-table-mobile th {
-                display: block;
-            }
-
-            #product-table-mobile thead tr {
-                display: table-row;
-            }
-            #product-table thead {
-                display: none;
-            }
-            #product-table-mobile thead {
-                display: none;
-            }
-
-            #product-table-mobile th {
-                text-align: left;
-            }
-
-            #product-table-mobile td,
-            #product-table-mobile th {
-                min-width: 120px;
-            }
-
-            #product-table-mobile input,
-            #product-table-mobile select {
-                width: 100%;
-                margin-bottom: 5px;
-            }
-
-            #product-table-mobile td label {
-                display: block;
-                font-weight: bold;
-                margin-bottom: 5px;
-                color: #718096;
-            }
-        }
-
-        /* Styles for the total and GST display */
-        #total-and-gst-container {
-            display: flex;
-            justify-content: flex-end;
-            flex-direction: column;
-            align-items: flex-end;
-            margin-top: 20px;
-        }
-
-        #final-refund-amount-container {
-            margin-top: 20px;
-        }
-
-        /* Adjust form layout for mobile */
-        @media (max-width: 768px) {
-            .grid.grid-cols-1.md\:grid-cols-2 {
-                grid-template-columns: 1fr;
-            }
-            .grid.gap-4 {
-                gap: 10px;
-            }
-            .mb-4 {
-                margin-bottom: 15px;
-            }
-            #total-and-gst-container {
-                align-items: flex-start;
-            }
-        }
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .logo {
-            max-width: 200px;
-            height: auto;
-        }
-        .powered-by-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 30px;
-            width: 100%;
-        }
-
-        .powered-by-text {
-            margin-bottom: 10px;
-            color: #777;
-        }
-
-        .powered-by-logo {
-            max-width: 150px;
-            height: auto;
-        }
-        .powered-by-container {
-            margin-top: 20px;
-            width: 100%;
-        }
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .form-container {
-            flex-grow: 1;
-        }
-        .original-invoice-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .original-invoice-container select {
-            flex-grow: 1;
-        }
-        .view-invoice-link {
-            color: #3b82f6;
-            text-decoration: underline;
-            font-size: 0.875rem;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        .view-invoice-link:hover {
-            color: #2563eb;
-        }
-        .original-invoice-label-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .original-invoice-label-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .view-invoice-link {
-            color: #3b82f6;
-            text-decoration: underline;
-            font-size: 0.875rem;
-            cursor: pointer;
-        }
-        .view-invoice-link:hover {
-            color: #2563eb;
-        }
-
-        /* Navigation Bar Styles */
-        nav {
-            background-color: #f8f8f8;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-        }
-
-        nav a {
-            color: #333;
-            text-decoration: none;
-            margin-right: 15px;
-            font-weight: 500;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
-        }
-
-        hr {
-            border: 0;
-            height: 1px;
-            background: #ddd;
-            margin: 10px 0;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 font-inter antialiased">
-    <!-- Navigation Bar -->
-    <nav>
-      <a href="/">Home</a> |
-      <a href="/products">Products</a> |
-      <a href="/products/add">Add Product</a> |
-      <a href="/inventory">Inventory</a> |
-      <a href="/customers">Customers</a> |
-      <a href="/orders">Orders</a> |
-      <a href="/orders/create">Create Order</a> |
-      <a href="/invoices">Invoices</a> |
-      <a href="/sales-entry">Sales Entry</a> |
-      <a href="/new-customer">New Customer</a>
-    </nav>
-    <hr>
-    <div class="min-h-screen flex justify-center items-center py-10 main-content">
-        <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
+    <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">    <div class="container mx-auto px-4 py-8">
+        <form id="purchaseReturnForm" method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <div class="logo-container">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
             </div>
             <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Purchase Return</h1>
 
+            <!-- Return Date -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label for="return-date" class="block text-gray-700 text-sm font-bold mb-2">Return Date:</label>
                     <input type="date" id="return-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
-                
             </div>
 
+            <!-- Original Invoice and Supplier -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <div class="original-invoice-label-container">
@@ -298,6 +35,7 @@
                 </div>
             </div>
 
+            <!-- Product Table -->
             <table id="product-table" class="mb-6">
                 <thead>
                     <tr>
@@ -327,6 +65,7 @@
                 </tbody>
             </table>
 
+            <!-- Mobile Product Table -->
             <table id="product-table-mobile" class="mb-6">
                 <thead>
                     <tr>
@@ -364,22 +103,26 @@
                 </tbody>
             </table>
 
+            <!-- Add Product Button -->
             <div class="mb-6">
                 <button id="add-product" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Product</button>
             </div>
+
+            <!-- Total Amount -->
             <div id="total-and-gst-container" class="mb-6">
                 <div class="mb-2">
                     <span class="text-gray-700 text-sm font-bold">Total Refundable Amount: </span>
                     <span id="total-refundable-amount" class="text-gray-700">₹0.00</span>
                 </div>
             </div>
+
+            <!-- Return Reason -->
             <div class="mb-4">
                 <label for="return-reason" class="block text-gray-700 text-sm font-bold mb-2">Return Reason:</label>
                 <input type="text" id="return-reason" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
-            
-
+            <!-- Refund Details -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label for="mode-of-refund" class="block text-gray-700 text-sm font-bold mb-2">Mode of Refund:</label>
@@ -400,22 +143,21 @@
                 </div>
             </div>
 
+            <!-- Partial Refund Amount -->
             <div class="mb-4 show-partial-refund" id="partial-refund-amount">
                 <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Partial Refund Amount:</label>
                 <input type="number" id="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
+            <!-- Final Amount -->
             <div id="final-refund-amount-container" class="mb-6">
                 <label class="block text-gray-700 text-sm font-bold mb-2">Amount Refunded:</label>
                 <input type="number" id="final-refund-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
             </div>
 
+            <!-- Submit Button -->
             <button id="submit-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
-        </div>
-        <div class="powered-by-container">
-            <span class="powered-by-text">Powered By</span>
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="powered-by-logo">
-        </div>
+        </form>
     </div>
 
     <script>
@@ -904,5 +646,4 @@
             alert('Form submitted successfully! Check console for data.');
         });
     </script>
-</body>
-</html>
+{% endblock %}

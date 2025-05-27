@@ -1,5 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 
@@ -212,7 +214,7 @@ class SalesReturnItem(db.Model):
     item_final_value = db.Column(db.Numeric(10,2), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(255), nullable=False)
@@ -224,5 +226,20 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     sales_invoices = db.relationship('SalesInvoice', backref='executive', lazy=True, foreign_keys='SalesInvoice.executive_id')
     sales_returns = db.relationship('SalesReturn', backref='executive', lazy=True, foreign_keys='SalesReturn.executive_id')
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def get_id(self):
+        return str(self.id)
+
+    def is_authenticated(self):
+        return True
+
+    def is_anonymous(self):
+        return False
 
 # ...add more models as needed for your app

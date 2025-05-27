@@ -4,90 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ "Edit Customer" if customer else "Add New Customer" }}</title>
+    <link href="{{ url_for('static', filename='custom.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        /* Custom styles (if needed) */
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
+</head>
+<body class="bg-gray-100 font-inter antialiased">
+    {% extends "base.html" %}
 
-        .logo {
-            max-width: 200px;
-            height: auto;
-        }
+    {% block content %}
+    <div class="min-h-screen flex justify-center items-center py-10 main-content">
+        <div class="bg-white rounded-lg shadow-md w-full max-w-2xl p-6 form-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="mx-auto mb-4" style="max-width: 200px;">
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">{{ "Edit Customer Details" if customer else "New Customer Details" }}</h1>
 
-        .powered-by-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 30px;
-             width: 100%;
-        }
+            <!-- General flashed messages (e.g., success, info) -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% set alert_class = 'bg-blue-100 border-blue-400 text-blue-700' %}
+                        {% if category == 'success' %}
+                            {% set alert_class = 'bg-green-100 border-green-400 text-green-700' %}
+                        {% elif category == 'danger' %}
+                            {% set alert_class = 'bg-red-100 border-red-400 text-red-700' %}
+                        {% elif category == 'warning' %}
+                            {% set alert_class = 'bg-yellow-100 border-yellow-400 text-yellow-700' %}
+                        {% endif %}
+                        <div class="{{ alert_class }} px-4 py-3 rounded relative mb-4" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-        .powered-by-text {
-            margin-bottom: 10px;
-            color: #777;
-        }
+            <!-- Placeholder for client-side validation errors -->
+            <div id="form-errors" class="mb-4"></div>
 
-        .powered-by-logo {
-            max-width: 150px;
-            height: auto;
-        }
+            <!-- Server-side error display -->
+            {% if error %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline">{{ error }}</span>
+                </div>
+            {% endif %}
 
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+            <form method="POST" action="{{ url_for('main.add_customer') if not customer else url_for('main.edit_customer', customer_id=customer.id) }}" id="new-customer-form">
+                <div class="flex flex-wrap -mx-2 mb-4">
+                    <div class="w-1/2 px-2">
+                        <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2">Customer Name:</label>
+                        <input type="text" id="customer-name" name="customer_name" value="{{ form_data.get('customer_name', customer.customer_name if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="w-1/2 px-2">
+                        <label for="contact-number" class="block text-gray-700 text-sm font-bold mb-2">Contact Number:</label>
+                        <input type="text" id="contact-number" name="contact_number" value="{{ form_data.get('contact_number', customer.contact_number if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                </div>
 
-        .form-container {
-            flex-grow: 1;
-        }
+                <div class="mb-4">
+                    <label for="email-address" class="block text-gray-700 text-sm font-bold mb-2">Email Address:</label>
+                    <input type="email" id="email-address" name="email_address" value="{{ form_data.get('email_address', customer.email_address if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
 
-        .address-box {
-            border: 1px solid #e2e8f0; /* Tailwind's border-gray-200 */
-            border-radius: 0.5rem; /* Tailwind's rounded-md */
-            padding: 1rem;           /* Tailwind's p-4 */
-            margin-bottom: 1.5rem;     /* Tailwind's mb-6 */
-            background-color: #f7fafc;  /* Tailwind's bg-gray-50 */
-        }
+                <div class="address-box">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Billing Address</h2>
+                    <div class="mb-4">
+                        <label for="billing-address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
+                        <input type="text" id="billing-address-line1" name="billing_address_line1" value="{{ form_data.get('billing_address_line1', customer.billing_address_line1 if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
 
-        /* Navigation bar styles */
-        nav {
-            background-color: #fff;
-            padding: 10px 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="billing-pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
+                            <input type="text" id="billing-pincode" name="billing_pincode" value="{{ form_data.get('billing_pincode', customer.billing_pincode if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="billing-city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
+                            <input type="text" id="billing-city" name="billing_city" value="{{ form_data.get('billing_city', customer.billing_city if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                    </div>
 
-        nav a {
-            margin-right: 15px;
-            color: #007bff;
-            text-decoration: none;
-        }
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="billing-state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
+                            <input type="text" id="billing-state" name="billing_state" value="{{ form_data.get('billing_state', customer.billing_state if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="billing-country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
+                            <input type="text" id="billing-country" name="billing_country" value="{{ form_data.get('billing_country', customer.billing_country if customer else 'India') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                    </div>
+                </div>
 
-        nav a:hover {
-            text-decoration: underline;
-        }
+                <div class="address-box">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Shipping Address</h2>
+                    <div class="mb-2">
+                        <label for="same-as-billing" class="inline-flex items-center">
+                            <input type="checkbox" id="same-as-billing" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                            <span class="ml-2 text-gray-700 text-sm">Same as Billing Address</span>
+                        </label>
+                    </div>
 
-        hr {
-            border: 0;
-            height: 1px;
-            background: #e2e8f0;
-            margin: 10px 0;
-        }
-    </style>
+                    <div class="mb-4">
+                        <label for="shipping-address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
+                        <input type="text" id="shipping-address-line1" name="shipping_address_line1" value="{{ form_data.get('shipping_address_line1', customer.shipping_address_line1 if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="shipping-pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
+                            <input type="text" id="shipping-pincode" name="shipping_pincode" value="{{ form_data.get('shipping_pincode', customer.shipping_pincode if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="shipping-city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
+                            <input type="text" id="shipping-city" name="shipping_city" value="{{ form_data.get('shipping_city', customer.shipping_city if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap -mx-2 mb-4">
+                        <div class="w-1/2 px-2">
+                            <label for="shipping-state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
+                            <input type="text" id="shipping-state" name="shipping_state" value="{{ form_data.get('shipping_state', customer.shipping_state if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                        <div class="w-1/2 px-2">
+                            <label for="shipping-country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
+                            <input type="text" id="shipping-country" name="shipping_country" value="{{ form_data.get('shipping_country', customer.shipping_country if customer else 'India') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
+                    <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ form_data.get('description', customer.description if customer else '') }}</textarea>
+                </div>
+
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+                    {{ "Update Customer" if customer else "Add Customer" }}
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Pass customer ID to JavaScript if in edit mode
-        const CUSTOMER_ID = {{ customer.id | tojson if customer else 'null' }};
+        window.onload = function() {
+            var CUSTOMER_ID = "{{ customer.id if customer else 'null' }}";
 
-        $(document).ready(function() {
+            // Pincode validation and city/state autofill for billing address
             $('#billing-pincode').on('blur', function() {
                 var pincode = $(this).val();
                 if (pincode.length === 6) {
@@ -97,20 +157,13 @@
                         dataType: 'json',
                         success: function(data) {
                             if (data && data.length > 0 && data[0].Status === "Success") {
-                                var postOffice = data[0].PostOffice[0];
-                                $('#billing-city').val(postOffice.District);
-                                $('#billing-state').val(postOffice.State);
+                                $('#billing-city').val(data[0].PostOffice[0].Name);
+                                $('#billing-state').val(data[0].PostOffice[0].State);
                                 $('#billing-country').val("India");
-
-                                if ($('#same-as-billing').is(':checked')) {
-                                    $('#shipping-city').val(postOffice.District);
-                                    $('#shipping-state').val(postOffice.State);
-                                    $('#shipping-country').val("India");
-                                }
                             } else {
                                 $('#billing-city').val('');
                                 $('#billing-state').val('');
-                                alert('Invalid Pincode. Please enter a valid Indian pincode.');
+                                alert('Invalid pincode. Please enter a valid one.');
                             }
                         },
                         error: function(xhr, status, error) {
@@ -127,6 +180,7 @@
                 }
             });
 
+            // Same as billing checkbox handling
             $('#same-as-billing').change(function() {
                 if (this.checked) {
                     $('#shipping-pincode').val($('#billing-pincode').val());
@@ -134,7 +188,6 @@
                     $('#shipping-state').val($('#billing-state').val());
                     $('#shipping-country').val($('#billing-country').val());
                     $('#shipping-address-line1').val($('#billing-address-line1').val());
-
 
                     $('#shipping-pincode').prop('readonly', true);
                     $('#shipping-city').prop('readonly', true);
@@ -156,6 +209,8 @@
                     $('#shipping-address-line1').val('');
                 }
             });
+
+            // Pincode validation and city/state autofill for shipping address
             $('#shipping-pincode').on('blur', function() {
                 var pincode = $(this).val();
                 if (pincode.length === 6) {
@@ -165,14 +220,13 @@
                         dataType: 'json',
                         success: function(data) {
                             if (data && data.length > 0 && data[0].Status === "Success") {
-                                var postOffice = data[0].PostOffice[0];
-                                $('#shipping-city').val(postOffice.District);
-                                $('#shipping-state').val(postOffice.State);
+                                $('#shipping-city').val(data[0].PostOffice[0].Name);
+                                $('#shipping-state').val(data[0].PostOffice[0].State);
                                 $('#shipping-country').val("India");
                             } else {
                                 $('#shipping-city').val('');
                                 $('#shipping-state').val('');
-                                alert('Invalid Pincode. Please enter a valid Indian pincode.');
+                                alert('Invalid pincode. Please enter a valid one.');
                             }
                         },
                         error: function(xhr, status, error) {
@@ -269,161 +323,8 @@
                     this.submit(); // Native form submission
                 }
             });
-        });
+        };
     </script>
-</head>
-<body class="bg-gray-100 font-inter antialiased">
-    <!-- Navigation Bar -->
-    <!--
-    <nav>
-      <a href="/">Home</a> |
-      <a href="/products">Products</a> |
-      <a href="/products/add">Add Product</a> |
-      <a href="/inventory">Inventory</a> |
-      <a href="/customers">Customers</a> |
-      <a href="/orders">Orders</a> |
-      <a href="/orders/create">Create Order</a> |
-      <a href="/invoices">Invoices</a> |
-      <a href="/sales-entry">Sales Entry</a> |
-      <a href="/new-customer">New Customer</a>
-    </nav>
-    <hr>
-    -->
-    <div class="min-h-screen flex justify-center items-center py-10 main-content">
-        <div class="bg-white rounded-lg shadow-md w-full max-w-2xl p-6 form-container">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
-            </div>
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">{{ "Edit Customer Details" if customer else "New Customer Details" }}</h1>
-
-            <!-- General flashed messages (e.g., success, info) -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        {% set alert_class = 'bg-blue-100 border-blue-400 text-blue-700' %} <!-- Default for info -->
-                        {% if category == 'success' %}
-                            {% set alert_class = 'bg-green-100 border-green-400 text-green-700' %}
-                        {% elif category == 'danger' %}
-                            {% set alert_class = 'bg-red-100 border-red-400 text-red-700' %}
-                        {% elif category == 'warning' %}
-                            {% set alert_class = 'bg-yellow-100 border-yellow-400 text-yellow-700' %}
-                        {% endif %}
-                        <div class="{{ alert_class }} px-4 py-3 rounded relative mb-4" role="alert">
-                            <span class="block sm:inline">{{ message }}</span>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <!-- Placeholder for client-side validation errors -->
-            <div id="form-errors" class="mb-4"></div>
-
-            <!-- Server-side error display -->
-            {% if error %}
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline">{{ error }}</span>
-                </div>
-            {% endif %}
-
-            <form method="POST" action="{{ url_for('main.add_customer') if not customer else url_for('main.edit_customer', customer_id=customer.id) }}" id="new-customer-form">
-                <div class="flex flex-wrap -mx-2 mb-4">
-                    <div class="w-1/2 px-2">
-                        <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2">Customer Name:</label>
-                        <input type="text" id="customer-name" name="customer_name" value="{{ form_data.get('customer_name', customer.customer_name if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="w-1/2 px-2">
-                        <label for="contact-number" class="block text-gray-700 text-sm font-bold mb-2">Contact Number:</label>
-                        <input type="text" id="contact-number" name="contact_number" value="{{ form_data.get('contact_number', customer.contact_number if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label for="email-address" class="block text-gray-700 text-sm font-bold mb-2">Email Address:</label>
-                        <input type="email" id="email-address" name="email_address" value="{{ form_data.get('email_address', customer.email_address if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-
-                <div class="address-box">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Billing Address</h2>
-                    <div class="mb-4">
-                        <label for="billing-address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
-                        <input type="text" id="billing-address-line1" name="billing_address_line1" value="{{ form_data.get('billing_address_line1', customer.billing_address_line1 if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-
-                    <div class="flex flex-wrap -mx-2 mb-4">
-                        <div class="w-1/2 px-2">
-                            <label for="billing-pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
-                            <input type="text" id="billing-pincode" name="billing_pincode" value="{{ form_data.get('billing_pincode', customer.billing_pincode if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </div>
-                        <div class="w-1/2 px-2">
-                            <label for="billing-city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
-                            <input type="text" id="billing-city" name="billing_city" value="{{ form_data.get('billing_city', customer.billing_city if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap -mx-2 mb-4">
-                        <div class="w-1/2 px-2">
-                            <label for="billing-state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
-                            <input type="text" id="billing-state" name="billing_state" value="{{ form_data.get('billing_state', customer.billing_state if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
-                        </div>
-                        <div class="w-1/2 px-2">
-                            <label for="billing-country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
-                            <input type="text" id="billing-country" name="billing_country" value="{{ form_data.get('billing_country', customer.billing_country if customer else 'India') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="address-box">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Shipping Address</h2>
-                    <div class="mb-2">
-                        <label for="same-as-billing" class="inline-flex items-center">
-                            <input type="checkbox" id="same-as-billing" name="same_as_billing" class="form-checkbox h-5 w-5 text-blue-600 rounded">
-                            <span class="ml-2 text-gray-700 text-sm whitespace-nowrap">Same as Billing Address</span>
-                        </label>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="shipping-address-line1" class="block text-gray-700 text-sm font-bold mb-2">Address Line 1:</label>
-                        <input type="text" id="shipping-address-line1" name="shipping_address_line1" value="{{ form_data.get('shipping_address_line1', customer.shipping_address_line1 if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-
-                    <div class="flex flex-wrap -mx-2 mb-4">
-                        <div class="w-1/2 px-2">
-                            <label for="shipping-pincode" class="block text-gray-700 text-sm font-bold mb-2">Pincode:</label>
-                            <input type="text" id="shipping-pincode" name="shipping_pincode" value="{{ form_data.get('shipping_pincode', customer.shipping_pincode if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </div>
-                        <div class="w-1/2 px-2">
-                            <label for="shipping-city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
-                            <input type="text" id="shipping-city" name="shipping_city" value="{{ form_data.get('shipping_city', customer.shipping_city if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap -mx-2 mb-4">
-                        <div class="w-1/2 px-2">
-                            <label for="shipping-state" class="block text-gray-700 text-sm font-bold mb-2">State:</label>
-                            <input type="text" id="shipping-state" name="shipping_state" value="{{ form_data.get('shipping_state', customer.shipping_state if customer else '') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
-                        </div>
-                        <div class="w-1/2 px-2">
-                            <label for="shipping-country" class="block text-gray-700 text-sm font-bold mb-2">Country:</label>
-                            <input type="text" id="shipping-country" name="shipping_country" value="{{ form_data.get('shipping_country', customer.shipping_country if customer else 'India') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-200 leading-tight focus:outline-none focus:shadow-outline" readonly>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
-                    <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ form_data.get('description', customer.description if customer else '') }}</textarea>
-                </div>
-
-                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
-                    {{ "Update Customer" if customer else "Add Customer" }}
-                </button>
-            </form>
-        </div>
-        <div class="powered-by-container">
-            <span class="powered-by-text">Powered By</span>
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="powered-by-logo">
-        </div>
-    </div>
+    {% endblock %}
 </body>
 </html>
