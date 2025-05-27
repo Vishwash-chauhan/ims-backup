@@ -1,73 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title mb-0">Profile</h3>
-                </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}">{{ message }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>Full Name:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            {{ user.full_name }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>Email:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            {{ user.email }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>Role:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            {{ user.role|title }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>Account Status:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            {% if user.is_active %}
-                                <span class="badge bg-success">Active</span>
-                            {% else %}
-                                <span class="badge bg-danger">Inactive</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>Member Since:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            {{ user.created_at.strftime('%B %d, %Y') }}
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="main-content">
+    <div class="form-container">
+        <h2 class="text-2xl font-bold mb-4 text-center text-blue-700">User Profile</h2>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Full Name:</label>
+            <div class="text-gray-900">{{ user.full_name }}</div>
         </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+            <div class="text-gray-900">{{ user.email }}</div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Role:</label>
+            <div class="text-gray-900">{{ user.role|capitalize }}</div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Account Status:</label>
+            <div class="text-gray-900">{{ 'Active' if user.is_active else 'Inactive' }}</div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Member Since:</label>
+            <div class="text-gray-900">{{ user.created_at.strftime('%Y-%m-%d') }}</div>
+        </div>
+        <hr class="my-4">
+        <h3 class="text-lg font-semibold mb-2">Change Password</h3>
+        <form method="POST" action="#">
+            <div class="mb-3">
+                <label class="block text-gray-700 text-sm font-bold mb-2">New Password</label>
+                <input type="password" name="new_password" class="form-input mt-1 block w-full border rounded px-3 py-2" disabled placeholder="(Coming soon)">
+            </div>
+            <div class="mb-3">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Confirm New Password</label>
+                <input type="password" name="confirm_new_password" class="form-input mt-1 block w-full border rounded px-3 py-2" disabled placeholder="(Coming soon)">
+            </div>
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded opacity-50 cursor-not-allowed" disabled>Change Password</button>
+        </form>
     </div>
 </div>
 {% endblock %}

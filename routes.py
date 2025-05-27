@@ -1,9 +1,9 @@
 # routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask_login import login_required
 from datetime import datetime, timedelta
 import uuid
 import re # Added for email validation
-from flask_login import login_required, current_user
 from models import db, Product, Customer, User, SalesInvoice, SalesInvoiceItem, PurchaseInvoice, PurchaseInvoiceItem, SalesReturn, SalesReturnItem, PurchaseReturn, PurchaseReturnItem, Supplier # Add Supplier here
 
 main = Blueprint('main', __name__)
@@ -14,11 +14,13 @@ def index():
 
 # --- Product CRUD ---
 @main.route('/products')
+@login_required
 def product_list():
     products = Product.query.filter_by(deleted=False).all()
     return render_template('view_products.html', products=products)
 
 @main.route('/products/add', methods=['GET', 'POST'])
+@login_required
 def add_product():
     error = None
     if request.method == 'POST':
@@ -104,6 +106,7 @@ def add_product():
     return render_template('new_product_form.html', request=None)
 
 @main.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
+@login_required
 def edit_product(product_id):
     product = Product.query.get_or_404(product_id)
     error = None
@@ -194,6 +197,7 @@ def edit_product(product_id):
     return render_template('new_product_form.html', product=product, request=None)
 
 @main.route('/products/delete/<int:product_id>', methods=['POST'])
+@login_required
 def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
     product.deleted = True
@@ -203,11 +207,13 @@ def delete_product(product_id):
 
 # --- Customer CRUD ---
 @main.route('/customers')
+@login_required
 def customer_list():
     customers = Customer.query.filter_by(deleted=False).all()
     return render_template('view_customers.html', customers=customers)
 
 @main.route('/customers/add', methods=['GET', 'POST'])
+@login_required
 def add_customer():
     error = None
     form_data = request.form if request.method == 'POST' else {}
@@ -271,6 +277,7 @@ def add_customer():
     return render_template('new_customer_form.html', customer=None, form_data=form_data, error=error)
 
 @main.route('/customers/edit/<int:customer_id>', methods=['GET', 'POST'])
+@login_required
 def edit_customer(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     error = None
@@ -331,6 +338,7 @@ def edit_customer(customer_id):
     return render_template('new_customer_form.html', customer=customer, form_data=form_data, error=error)
 
 @main.route('/customers/delete/<int:customer_id>', methods=['POST'])
+@login_required
 def delete_customer(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     # Prevent deletion if customer has related sales invoices or sales returns
@@ -344,11 +352,13 @@ def delete_customer(customer_id):
 
 # --- Supplier CRUD ---
 @main.route('/suppliers')
+@login_required
 def supplier_list():
     suppliers = Supplier.query.filter_by(deleted=False).all()
     return render_template('view_suppliers.html', suppliers=suppliers)
 
 @main.route('/suppliers/add', methods=['GET', 'POST'])
+@login_required
 def add_supplier():
     error = None
     form_data = request.form if request.method == 'POST' else {}
@@ -414,6 +424,7 @@ def add_supplier():
     return render_template('supplier_form.html', form_data=form_data, error=error)
 
 @main.route('/suppliers/edit/<int:supplier_id>', methods=['GET', 'POST'])
+@login_required
 def edit_supplier(supplier_id):
     supplier = Supplier.query.get_or_404(supplier_id)
     error = None
@@ -501,6 +512,7 @@ def edit_supplier(supplier_id):
     return render_template('supplier_form.html', supplier=supplier, form_data=form_data, error=error)
 
 @main.route('/suppliers/delete/<int:supplier_id>', methods=['POST'])
+@login_required
 def delete_supplier(supplier_id):
     supplier = Supplier.query.get_or_404(supplier_id)
     # Optional: Check for related entities before deleting
@@ -516,10 +528,12 @@ def delete_supplier(supplier_id):
 
 # --- SalesInvoice CRUD ---
 @main.route('/sales-invoices')
+@login_required
 def sales_invoice_list():
     return redirect(url_for('main.sales_transactions'))
 
 @main.route('/sales-invoices/add', methods=['GET', 'POST'])
+@login_required
 def add_sales_invoice():
     if request.method == 'POST':
         sales_invoice = SalesInvoice(
@@ -541,6 +555,7 @@ def add_sales_invoice():
     return render_template('sales_invoices/add.html')
 
 @main.route('/sales-invoices/edit/<int:invoice_id>', methods=['GET', 'POST'])
+@login_required
 def edit_sales_invoice(invoice_id):
     sales_invoice = SalesInvoice.query.get_or_404(invoice_id)
     if request.method == 'POST':
@@ -560,6 +575,7 @@ def edit_sales_invoice(invoice_id):
     return render_template('sales_invoices/add.html', sales_invoice=sales_invoice)
 
 @main.route('/sales-invoices/delete/<int:invoice_id>', methods=['POST'])
+@login_required
 def delete_sales_invoice(invoice_id):
     sales_invoice = SalesInvoice.query.get_or_404(invoice_id)
     db.session.delete(sales_invoice)
@@ -569,10 +585,12 @@ def delete_sales_invoice(invoice_id):
 
 # --- PurchaseInvoice CRUD ---
 @main.route('/purchase-invoices')
+@login_required
 def purchase_invoice_list():
     return redirect(url_for('main.purchase_transactions'))
 
 @main.route('/purchase-invoices/add', methods=['GET', 'POST'])
+@login_required
 def add_purchase_invoice():
     if request.method == 'POST':
         purchase_invoice = PurchaseInvoice(
@@ -594,6 +612,7 @@ def add_purchase_invoice():
     return render_template('purchase_invoices/add.html')
 
 @main.route('/purchase-invoices/edit/<int:invoice_id>', methods=['GET', 'POST'])
+@login_required
 def edit_purchase_invoice(invoice_id):
     purchase_invoice = PurchaseInvoice.query.get_or_404(invoice_id)
     if request.method == 'POST':
@@ -613,6 +632,7 @@ def edit_purchase_invoice(invoice_id):
     return render_template('purchase_invoices/add.html', purchase_invoice=purchase_invoice)
 
 @main.route('/purchase-invoices/delete/<int:invoice_id>', methods=['POST'])
+@login_required
 def delete_purchase_invoice(invoice_id):
     purchase_invoice = PurchaseInvoice.query.get_or_404(invoice_id)
     db.session.delete(purchase_invoice)
@@ -622,11 +642,13 @@ def delete_purchase_invoice(invoice_id):
 
 # --- SalesReturn CRUD ---
 @main.route('/sales-returns')
+@login_required
 def sales_return_list():
     sales_returns = SalesReturn.query.all()
     return render_template('sales_returns/list.html', sales_returns=sales_returns)
 
 @main.route('/sales-returns/add', methods=['GET', 'POST'])
+@login_required
 def add_sales_return():
     if request.method == 'POST':
         sales_return = SalesReturn(
@@ -651,6 +673,7 @@ def add_sales_return():
     return render_template('sales_returns/add.html')
 
 @main.route('/sales-returns/edit/<int:return_id>', methods=['GET', 'POST'])
+@login_required
 def edit_sales_return(return_id):
     sales_return = SalesReturn.query.get_or_404(return_id)
     if request.method == 'POST':
@@ -673,6 +696,7 @@ def edit_sales_return(return_id):
     return render_template('sales_returns/add.html', sales_return=sales_return)
 
 @main.route('/sales-returns/delete/<int:return_id>', methods=['POST'])
+@login_required
 def delete_sales_return(return_id):
     sales_return = SalesReturn.query.get_or_404(return_id)
     db.session.delete(sales_return)
@@ -682,11 +706,13 @@ def delete_sales_return(return_id):
 
 # --- PurchaseReturn CRUD ---
 @main.route('/purchase-returns')
+@login_required
 def purchase_return_list():
     purchase_returns = PurchaseReturn.query.all()
     return render_template('purchase_returns/list.html', purchase_returns=purchase_returns)
 
 @main.route('/purchase-returns/add', methods=['GET', 'POST'])
+@login_required
 def add_purchase_return():
     if request.method == 'POST':
         purchase_return = PurchaseReturn(
@@ -710,6 +736,7 @@ def add_purchase_return():
     return render_template('purchase_returns/add.html')
 
 @main.route('/purchase-returns/edit/<int:return_id>', methods=['GET', 'POST'])
+@login_required
 def edit_purchase_return(return_id):
     purchase_return = PurchaseReturn.query.get_or_404(return_id)
     if request.method == 'POST':
@@ -731,6 +758,7 @@ def edit_purchase_return(return_id):
     return render_template('purchase_returns/add.html', purchase_return=purchase_return)
 
 @main.route('/purchase-returns/delete/<int:return_id>', methods=['POST'])
+@login_required
 def delete_purchase_return(return_id):
     purchase_return = PurchaseReturn.query.get_or_404(return_id)
     db.session.delete(purchase_return)
@@ -740,11 +768,13 @@ def delete_purchase_return(return_id):
 
 # --- User CRUD ---
 @main.route('/users')
+@login_required
 def user_list():
     users = User.query.all()
     return render_template('users/list.html', users=users)
 
 @main.route('/users/add', methods=['GET', 'POST'])
+@login_required
 def add_user():
     if request.method == 'POST':
         user = User(
@@ -761,6 +791,7 @@ def add_user():
     return render_template('users/add.html')
 
 @main.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+@login_required
 def edit_user(user_id):
     user = User.query.get_or_404(user_id)
     if request.method == 'POST':
@@ -775,6 +806,7 @@ def edit_user(user_id):
     return render_template('users/add.html', user=user)
 
 @main.route('/users/delete/<int:user_id>', methods=['POST'])
+@login_required
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
@@ -782,292 +814,29 @@ def delete_user(user_id):
     flash('User deleted successfully!', 'success')
     return redirect(url_for('main.user_list'))
 
-# --- API Endpoints ---
-@main.route('/api/products')
-def api_products():
-    products = Product.query.all()
-    return jsonify([
-        {
-            'product_id': p.id,
-            'product_name': p.product_name,
-            'product_code': p.product_code,
-            'price_per_unit': None, # Price is not stored per product, it's per invoice item
-            'gst_percentage': float(p.gst_percentage) if p.gst_percentage else 0.0
-        } for p in products
-    ])
-
-@main.route('/api/customers')
-def api_customers():
-    customers = Customer.query.all()
-    return jsonify([
-        {
-            'customer_id': c.id,
-            'customer_name': c.customer_name
-        } for c in customers
-    ])
-
-@main.route('/api/customer/<int:customer_id>')
-def api_get_customer(customer_id):
-    customer = Customer.query.get(customer_id)
-    if customer:
-        return jsonify({
-            'customer_id': customer.id,
-            'customer_name': customer.customer_name,
-            # Add any other customer details you might need here
-        })
-    else:
-        return jsonify({'error': 'Customer not found'}), 404
-
-
-@main.route('/api/executives')
-def api_executives():
-    executives = User.query.all()  # Fetch all users, not just executives
-    return jsonify([
-        {
-            'executive_id': e.id,
-            'full_name': e.full_name
-        } for e in executives
-    ])
-
-@main.route('/api/suppliers')
-def api_suppliers():
-    suppliers = Supplier.query.filter_by(deleted=False).all()
-    return jsonify([
-        {
-            'supplier_id': s.id,
-            'supplier_name': s.supplier_name
-        } for s in suppliers
-    ])
-
-@main.route('/api/supplier/<int:supplier_id>')
-def api_get_supplier(supplier_id):
-    supplier = Supplier.query.filter_by(id=supplier_id, deleted=False).first()
-    if supplier:
-        return jsonify({
-            'supplier_id': supplier.id,
-            'supplier_name': supplier.supplier_name,
-            # Add any other supplier details you might need here
-        })
-    else:
-        return jsonify({'error': 'Supplier not found'}), 404
-
-@main.route('/api/check_customer_exists', methods=['POST'])
-def api_check_customer_exists():
-    data = request.get_json()
-    field_name = data.get('field')
-    value = data.get('value', '').strip()
-    customer_id_to_exclude = data.get('customer_id')
-
-    if not field_name or value is None: # value can be an empty string which is fine
-        return jsonify({'error': 'Field name and value are required.'}), 400
-
-    query = Customer.query.filter_by(deleted=False)
-
-    if field_name == 'customer_name':
-        if not value: # Empty name is not a "duplicate" for this check, handled by required validation
-             return jsonify({'exists': False})
-        query = query.filter(Customer.customer_name == value)
-    elif field_name == 'email_address':
-        if not value: # An empty email is not considered "existing" for duplicate check
-            return jsonify({'exists': False})
-        query = query.filter(Customer.email_address == value)
-    else:
-        return jsonify({'error': 'Invalid field name.'}), 400
-
-    if customer_id_to_exclude:
-        query = query.filter(Customer.id != int(customer_id_to_exclude))
-
-    exists = query.first() is not None
-    return jsonify({'exists': exists})
-
-@main.route('/api/invoice-details/<string:invoice_number>')
-def api_get_invoice_details(invoice_number):
-    invoice = SalesInvoice.query.filter_by(invoice_number=invoice_number).first()
-
-    if not invoice:
-        return jsonify({'error': 'Invoice not found'}), 404
-
-    if not invoice.customer:
-        # This case should ideally not happen if data integrity is maintained
-        return jsonify({'error': 'Customer details not found for this invoice'}), 500
-
-    items_data = []
-    for item in invoice.items:
-        if not item.product:
-            # This case should ideally not happen
-            items_data.append({
-                'original_sales_invoice_item_id': item.id,
-                'product_id': item.product_id,
-                'product_name': 'Product not found',
-                'price_per_unit_at_return': float(item.price_per_unit_before_gst), # Price at the time of sale
-                'gst_percentage': float(item.gst_percentage), # GST at the time of sale
-                'original_quantity_sold': item.quantity_sold,
-            })
-            continue
-
-        items_data.append({
-            'original_sales_invoice_item_id': item.id,
-            'product_id': item.product.id,
-            'product_name': item.product.product_name,
-            'price_per_unit_at_return': float(item.price_per_unit_before_gst), # Price at the time of sale (before GST)
-            'gst_percentage': float(item.gst_percentage), # GST % applied on this item at time of sale
-            'original_quantity_sold': item.quantity_sold,
-        })
-    return jsonify({
-        'invoice_id': invoice.id, # The primary key of the sales_invoices table
-        'customer_name': invoice.customer.customer_name,
-        'items': items_data
-    })
-
-@main.route('/api/sales', methods=['POST'])
-def api_create_sales_invoice():
-    data = request.get_json()
-
-    # Server-side validation and calculation (essential for security)
-    sales_date_str = data.get('sales_date')
-    customer_id = data.get('customer_id')
-    executive_name = data.get('executive_name')
-    overall_discount_amount = data.get('discount') # Discount amount from frontend
-    mode_of_payment = data.get('mode_of_payment')
-    payment_option = data.get('payment_option')
-    amount_paid = data.get('amount_paid')
-    items_data = data.get('items', [])
-
-    if not sales_date_str or not customer_id or not items_data:
-        return jsonify({'error': 'Missing required fields (sales_date, customer_id, items).'}), 400
-
-    try:
-        sales_date = datetime.strptime(sales_date_str, '%Y-%m-%d').date()
-    except ValueError:
-        return jsonify({'error': 'Invalid sales date format.'}), 400
-
-    customer = Customer.query.get(customer_id)
-    if not customer:
-        return jsonify({'error': 'Customer not found.'}), 404
-
-    executive = User.query.filter_by(full_name=executive_name).first() if executive_name else None
-
-    gross_total_before_discount_gst = 0.0
-    calculated_items = []
-
-    # First pass: Calculate item values before discount/GST and gross total
-    for item_data in items_data:
-        product_id = item_data.get('product_id')
-        quantity_sold = item_data.get('quantity_sold')
-        price_per_unit = item_data.get('price_per_unit')
-
-        if not product_id or quantity_sold is None or price_per_unit is None:
-            return jsonify({'error': 'Invalid item data.'}), 400
-
-        product = Product.query.get(product_id)
-        if not product:
-            return jsonify({'error': f'Product with ID {product_id} not found.'}), 404
-
-        item_value_before_discount_gst = float(quantity_sold) * float(price_per_unit)
-        gross_total_before_discount_gst += item_value_before_discount_gst
-
-        calculated_items.append({
-            'product': product,
-            'quantity_sold': float(quantity_sold),
-            'price_per_unit': float(price_per_unit),
-            'item_value_before_discount_gst': item_value_before_discount_gst,
-            'gst_percentage': float(product.gst_percentage) if product.gst_percentage else 0.0
-        })
-
-    # Apply overall discount
-    net_total_before_gst = max(0.0, gross_total_before_discount_gst - float(overall_discount_amount))
-
-    # Second pass: Calculate GST proportionally and item final amounts
-    total_gst_amount = 0.0
-    final_items_to_save = []
-    for item in calculated_items:
-        item_proportionate_net_value = (item['item_value_before_discount_gst'] / gross_total_before_discount_gst) * net_total_before_gst if gross_total_before_discount_gst > 0 else 0.0
-        item_gst_amount = item_proportionate_net_value * (item['gst_percentage'] / 100)
-        item_final_amount = (item['item_value_before_discount_gst'] - ((item['item_value_before_discount_gst'] / gross_total_before_discount_gst) * float(overall_discount_amount) if gross_total_before_discount_gst > 0 else 0.0)) + item_gst_amount
-
-        total_gst_amount += item_gst_amount
-
-        final_items_to_save.append({
-            'product_id': item['product'].id,
-            'quantity_sold': item['quantity_sold'],
-            'price_per_unit_before_gst': item['price_per_unit'], # Store original price per unit
-            'gst_percentage': item['gst_percentage'],
-            'gst_amount_per_unit': item_gst_amount / item['quantity_sold'] if item['quantity_sold'] > 0 else 0.0, # GST amount per unit based on proportionate value
-            'item_discount_amount': (item['item_value_before_discount_gst'] / gross_total_before_discount_gst) * float(overall_discount_amount) if gross_total_before_discount_gst > 0 else 0.0,
-            'item_sub_total_before_gst': item_proportionate_net_value, # This is the discounted subtotal before item GST
-            'item_total_gst_amount': item_gst_amount,
-            'item_final_amount': item_final_amount # This is the discounted subtotal + item GST
-        })
-
-    total_invoice_amount = net_total_before_gst + total_gst_amount
-
-    # Determine payment status
-    payment_status = 'Pending'
-    if payment_option == 'full-payment' and float(amount_paid) >= total_invoice_amount:
-        payment_status = 'Paid'
-    elif payment_option == 'partial-payment' and float(amount_paid) > 0:
-         payment_status = 'Partial'
-
-    # Create SalesInvoice
-    sales_invoice = SalesInvoice(
-        invoice_number=f"INV-{uuid.uuid4().hex[:8]}", # Generate a unique invoice number
-        invoice_date=sales_date,
-        customer_id=customer.id,
-        executive_id=executive.id if executive else None,
-        total_amount_before_gst=gross_total_before_discount_gst, # Store gross amount before discount/GST
-        total_gst_amount=total_gst_amount,
-        overall_discount_amount=float(overall_discount_amount),
-        total_invoice_amount=total_invoice_amount,
-        payment_status=payment_status,
-        notes=data.get('notes'), # Assuming notes field is added to form
-        # Add mode_of_payment and amount_paid if you want to store them directly in SalesInvoice
-    )
-    db.session.add(sales_invoice)
-    db.session.flush() # Get the invoice ID before committing
-
-    # Create SalesInvoiceItems and update stock
-    for item_data in final_items_to_save:
-        sales_invoice_item = SalesInvoiceItem(
-            sales_invoice_id=sales_invoice.id,
-            product_id=item_data['product_id'],
-            quantity_sold=item_data['quantity_sold'],
-            price_per_unit_before_gst=item_data['price_per_unit_before_gst'],
-            gst_percentage=item_data['gst_percentage'],
-            gst_amount_per_unit=item_data['gst_amount_per_unit'],
-            item_discount_amount=item_data['item_discount_amount'],
-            item_sub_total_before_gst=item_data['item_sub_total_before_gst'],
-            item_total_gst_amount=item_data['item_total_gst_amount'],
-            item_final_amount=item_data['item_final_amount']
-        )
-        db.session.add(sales_invoice_item)
-
-        # Update product stock
-        product = Product.query.get(item_data['product_id'])
-        if product:
-            product.current_stock -= item_data['quantity_sold']
-
-    db.session.commit()
-
-    return jsonify({'message': 'Sales invoice created successfully!', 'invoice_id': sales_invoice.id}), 201
-
-
+# --- Transactions and sensitive pages ---
 @main.route('/sales-entry')
+@login_required
 def sales_entry():
     return render_template('sales_entry.html')
 
 @main.route('/purchase-form')
+@login_required
 def purchases_form():
     return render_template('purchase_form.html')
 
 @main.route('/sales-return')
+@login_required
 def sales_return():
     return render_template('sales_return.html')
 
 @main.route('/purchase-return')
+@login_required
 def purchase_return():
     return render_template('purchase_return_form.html')
 
 @main.route('/dashboard')
+@login_required
 def dashboard():
     return render_template('dashboard.html')
 
