@@ -3,26 +3,34 @@
 {% block content %}
 <link href="{{ url_for('static', filename='custom.css') }}" rel="stylesheet">
 <div class="min-h-screen flex justify-center items-center py-10 main-content">
-    <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="mx-auto mb-4" style="max-width: 200px;">
+    <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container" id="purchase-form-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+        </div>
         <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Purchase Entry</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-                <label for="purchase-date" class="block text-gray-700 text-sm font-bold mb-2">Purchase Date:</label>
+                <label for="purchase-date" class="block text-gray-700 text-sm font-bold mb-2 text-left">Purchase Date:</label>
                 <input type="date" id="purchase-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-                <label for="supplier-id" class="block text-gray-700 text-sm font-bold mb-2">Supplier ID:</label>
-                <select id="supplier-id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    <option value="">Select Supplier ID</option>
-                </select>
+                <div class="supplier-id-label-container flex items-center justify-between mb-2">
+                    <label for="supplier-contact-input" class="text-gray-700 text-sm font-bold text-left">Supplier Contact:</label>
+                    <a href="{{ url_for('main.add_supplier') }}" class="add-supplier-link text-sm text-blue-600 hover:text-blue-800 underline" target="_blank">Add New Supplier</a>
+                </div>
+                <div class="supplier-id-container">
+                    <input type="text" id="supplier-contact-input" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter Supplier Contact Number">
+                    <input type="hidden" id="supplier-id-hidden">
+                </div>
             </div>
             <div>
-                <label for="supplier-name" class="block text-gray-700 text-sm font-bold mb-2">Supplier Name:</label>
+                <!-- Ensure the label is correctly aligned if the above div structure changes vertical alignment -->
+                <label for="supplier-name" class="block text-gray-700 text-sm font-bold mb-2 text-left mt-1 md:mt-0">Supplier Name:</label> 
+                <!-- Added mt-1 md:mt-0 for potential alignment with the new structure above if label was not wrapped -->
                 <input type="text" id="supplier-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
             </div>
         </div>
@@ -49,8 +57,8 @@
                             <option value="">Select Product Name</option>
                         </select>
                     </td>
-                    <td><input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
-                    <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
+                    <td><input type="number" class="quantity-purchased shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0"></td>
+                    <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01"></td>
                     <td class="amount">₹0.00</td>
                 </tr>
             </tbody>
@@ -61,32 +69,32 @@
                 <tr>
                     <th>Product ID</th>
                     <th>Product Name</th>
-                    <th>Quantity</th>
-                    <th>Price Per Unit</th>
-                    <th>Amount</th>
+                    <th>Quantity Purchased</th>
+                    <th>Price Per Unit (Before GST)</th>
+                    <th>Amount (Before Discount/GST)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>
-                        <label for="product-id-mobile-1">Product ID</label>
-                        <select id="product-id-mobile-1" class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <label>Product ID</label>
+                        <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                             <option value="">Select Product ID</option>
                         </select>
                     </td>
                     <td>
-                        <label for="product-name-mobile-1">Product Name</label>
-                        <select id="product-name-mobile-1" class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <label>Product Name</label>
+                        <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                             <option value="">Select Product Name</option>
                         </select>
                     </td>
                     <td>
-                        <label for="quantity-sold-mobile-1">Quantity</label>
-                        <input type="number" id="quantity-sold-mobile-1" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <label>Quantity Purchased</label>
+                        <input type="number" class="quantity-purchased shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0">
                     </td>
                     <td>
-                        <label for="price-per-unit-mobile-1">Price Per Unit</label>
-                        <input type="number" id="price-per-unit-mobile-1" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <label>Price Per Unit (Before GST)</label>
+                        <input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01">
                     </td>
                     <td class="amount">₹0.00</td>
                 </tr>
@@ -97,39 +105,48 @@
             <button id="add-product" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Product</button>
         </div>
 
-        <div class="mb-4">
-            <div class="w-1/2 pr-2">
-                <label for="discount" class="block text-gray-700 text-sm font-bold mb-2">Discount Amount:</label>
-                <input type="number" id="discount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="discount" class="block text-gray-700 text-sm font-bold mb-2 text-left">Overall Discount Amount:</label>
+                <input type="number" id="discount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="" placeholder="Enter discount amount" min="0" step="0.01">
             </div>
         </div>
 
-        <div id="total-and-gst-container" class="mb-6">
-            <div class="mb-2">
-                <span class="text-gray-700 text-sm font-bold">Total Amount: </span>
-                <span id="total-amount" class="text-gray-700">₹0.00</span>
-            </div>
-            <div class="mb-2">
-                <span class="text-gray-700 text-sm font-bold">Discount Amount: </span>
-                <span id="discount-amount" class="text-gray-700">₹0.00</span>
-            </div>
-            <div class="mb-2">
-                <span class="text-gray-700 text-sm font-bold">GST: </span>
-                <span id="cgst" class="text-gray-700">₹0.00</span>
-            </div>
-            <div class="mb-2">
-                <span class="text-gray-700 text-sm font-bold">Total Payable Amount: </span>
-                <span id="total-payable-amount" class="text-gray-700">₹0.00</span>
+        <div class="totals-summary mb-6 p-4 border rounded-md bg-gray-50">
+            <h3 class="text-lg font-semibold mb-3 text-gray-700">Purchase Summary</h3>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <span class="text-gray-600">Gross Amount (Before GST):</span>
+                <span id="gross-amount-display" class="text-right font-medium text-gray-800">₹0.00</span>
+
+                <span class="text-gray-600">Overall Discount:</span>
+                <span id="discount-amount-display" class="text-right font-medium text-gray-800">₹0.00</span>
+
+                <span class="text-gray-600">Net Amount (After Discount, Before GST):</span>
+                <span id="net-amount-after-discount-display" class="text-right font-medium text-gray-800">₹0.00</span>
+
+                <span class="text-gray-600">Total GST:</span>
+                <span id="total-gst-display" class="text-right font-medium text-gray-800">₹0.00</span>
+
+                <hr class="col-span-2 my-1 border-gray-300">
+
+                <span class="text-gray-700 font-bold text-base">Total Payable Amount:</span>
+                <span id="total-payable-amount-display" class="text-right font-bold text-base text-indigo-600">₹0.00</span>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-                <label for="mode-of-payment" class="block text-gray-700 text-sm font-bold mb-2">Mode of Payment:</label>
-                <input type="text" id="mode-of-payment" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <label for="mode-of-payment" class="block text-gray-700 text-sm font-bold mb-2 text-left">Mode of Payment:</label>
+                <select id="mode-of-payment" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="" selected disabled>Select Mode of Payment</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank">Bank</option>
+                </select>
             </div>
             <div>
-                <label for="payment-option" class="block text-gray-700 text-sm font-bold mb-2">Payment Option:</label>
+                <label for="payment-option" class="block text-gray-700 text-sm font-bold mb-2 text-left">Payment Option:</label>
                 <select id="payment-option" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     <option value="full-payment" selected>Full Payment</option>
                     <option value="partial-payment">Partial Payment</option>
@@ -137,343 +154,409 @@
             </div>
         </div>
 
-        <div class="mb-4 show-partial-payment" id="partial-payment-amount">
-            <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Partial Payment Amount:</label>
-            <input type="number" id="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <div class="mb-4" id="partial-payment-amount-div" style="display: none;">
+            <label for="partial-amount-paid" class="block text-gray-700 text-sm font-bold mb-2 text-left">Partial Payment Amount:</label>
+            <input type="number" id="partial-amount-paid" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01">
         </div>
 
         <div id="final-total-amount-container" class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Amount Paid:</label>
-            <input type="text" id="final-total-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+            <label class="block text-gray-700 text-sm font-bold mb-2 text-left">Amount Paid:</label>
+            <input type="number" id="final-amount-paid" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly min="0" step="0.01">
+        </div>
+        <div class="mb-4">
+            <label for="notes" class="block text-gray-700 text-sm font-bold mb-2 text-left">Notes:</label>
+            <textarea id="notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3"></textarea>
         </div>
 
-        <button id="submit-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
-        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
-            <a href="{{ url_for('main.purchase_return') }}" class="btn btn-secondary" style="padding: 12px 24px; background: #f4f7fa; color: #023f90; border: 2px solid #023f90; border-radius: 8px; font-size: 16px; text-decoration: none; transition: background 0.2s, color 0.2s;">
-                Purchase Return
-            </a>
+        <div class="flex flex-row items-center justify-between mt-4">
+            <button id="submit-purchase-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit Purchase</button>
+            <div style="display: flex; justify-content: flex-end; margin-top: 0;">
+                <a href="{{ url_for('main.purchase_return') }}" class="btn btn-secondary" style="padding: 12px 24px; background: #f4f7fa; color: #023f90; border: 2px solid #023f90; border-radius: 8px; font-size: 16px; text-decoration: none; transition: background 0.2s, color 0.2s;">
+                    Purchase Return
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     const paymentOptionSelect = document.getElementById('payment-option');
-    const partialPaymentAmountInput = document.getElementById('partial-payment-amount');
+    const partialPaymentAmountDiv = document.getElementById('partial-payment-amount-div');
+    const partialAmountPaidInput = document.getElementById('partial-amount-paid');
     const addProductButton = document.getElementById('add-product');
-    const productTable = document.getElementById('product-table');
-    const productTableMobile = document.getElementById('product-table-mobile');
-    const totalAmountDisplay = document.getElementById('total-amount');
-    const cgstDisplay = document.getElementById('cgst');
-    const finalTotalAmountInput = document.getElementById('final-total-amount');
+    const productTable = document.getElementById('product-table').getElementsByTagName('tbody')[0];
+    const productTableMobile = document.getElementById('product-table-mobile').getElementsByTagName('tbody')[0];
+    
+    // Summary display elements
+    const grossAmountDisplay = document.getElementById('gross-amount-display');
+    const discountAmountDisplay = document.getElementById('discount-amount-display');
+    const netAmountAfterDiscountDisplay = document.getElementById('net-amount-after-discount-display');
+    const totalGstDisplay = document.getElementById('total-gst-display');
+    const totalPayableAmountDisplay = document.getElementById('total-payable-amount-display');
+
+    const finalAmountPaidInput = document.getElementById('final-amount-paid');
     const finalTotalAmountContainer = document.getElementById('final-total-amount-container');
-    const totalPayableAmountDisplay = document.getElementById('total-payable-amount');
-    const supplierIdSelect = document.getElementById('supplier-id');
+
+    const supplierContactInput = document.getElementById('supplier-contact-input'); 
+    const supplierIdHiddenInput = document.getElementById('supplier-id-hidden');
     const supplierNameInput = document.getElementById('supplier-name');
     const purchaseDateInput = document.getElementById('purchase-date');
-    const discountInput = document.getElementById('discount'); // New
-    const discountAmountDisplay = document.getElementById('discount-amount'); // New
-    // const executiveNameSelect = document.getElementById('executive-name'); // Removed
+    const discountInput = document.getElementById('discount');
+    const modeOfPaymentInput = document.getElementById('mode-of-payment');
+    const notesInput = document.getElementById('notes');
+    const submitPurchaseFormButton = document.getElementById('submit-purchase-form');
 
-    // Sample supplier data (in a real application, this would come from a database)
-    const supplierData = {
-        'S001': 'ABC Corp',
-        'S002': 'XYZ Ltd',
-        'S003': 'PQR Inc',
-        'S004': 'LMN Group',
-        'S005': 'UVW Enterprises'
-    };
+    let allProducts = []; // To store fetched product data {product_id, product_name, product_code, gst_percentage}
+    // let allSuppliers = []; // No longer fetching all suppliers for a dropdown
 
-    // Sample executive names
-    // const executiveNames = ['Alice Johnson', 'Bob Williams', 'Charlie Brown', 'Diana Miller', 'Ethan Davis']; // Removed
+    // HTML structure for a new row (desktop)
+    const desktopRowHTML = `
+        <td>
+            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="">Select Product ID</option>
+            </select>
+        </td>
+        <td>
+            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="">Select Product Name</option>
+            </select>
+        </td>
+        <td><input type="number" class="quantity-purchased shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0"></td>
+        <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01"></td>
+        <td class="amount">₹0.00</td>
+    `;
 
-    // Sample product data (In real app, this would come from DB)
-    const productData = {
-        'P001': 'Laptop',
-        'P002': 'Mouse',
-        'P003': 'Keyboard',
-        'P004': 'Monitor',
-        'P005': 'Printer',
-        'P006': 'Software License',
-        'P007': 'Webcam',
-        'P008': 'External Hard Drive',
-        'P009': 'USB Hub',
-        'P010': 'Headphones'
-    };
+    // HTML structure for a new row (mobile)
+    const mobileRowHTML = `
+        <td>
+            <label>Product ID</label>
+            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="">Select Product ID</option>
+            </select>
+        </td>
+        <td>
+            <label>Product Name</label>
+            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="">Select Product Name</option>
+            </select>
+        </td>
+        <td>
+            <label>Quantity Purchased</label>
+            <input type="number" class="quantity-purchased shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0">
+        </td>
+        <td>
+            <label>Price Per Unit (Before GST)</label>
+            <input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01">
+        </td>
+        <td class="amount">₹0.00</td>
+    `;
 
-    // Function to populate product dropdowns
-    function populateProductDropdowns(productIdSelect, productNameSelect) {
+    document.addEventListener('DOMContentLoaded', async () => {
+        purchaseDateInput.value = new Date().toISOString().split('T')[0];
+        await fetchInitialData();
+        setupSupplierContactInputListener(); // Changed function call
+        attachEventListenersToRow(productTable.querySelector('tr'));
+        attachEventListenersToRow(productTableMobile.querySelector('tr'));
+        calculateTotal();
+        updatePaymentFields();
+    });
+
+    function setupSupplierContactInputListener() { // Renamed function
+        supplierContactInput.addEventListener('blur', async function() {
+            const enteredContact = this.value.trim();
+            supplierNameInput.value = ''; // Clear previous name
+            supplierIdHiddenInput.value = ''; // Clear previous hidden ID
+
+            if (enteredContact === '') {
+                return;
+            }
+
+            try {
+                // Use the new endpoint for lookup by contact
+                const response = await fetch(`/api/supplier/by-contact/${enteredContact}`); 
+                if (response.ok) {
+                    const supplier = await response.json();
+                    if (supplier && supplier.supplier_id) {
+                        supplierNameInput.value = supplier.supplier_name;
+                        supplierIdHiddenInput.value = supplier.supplier_id; // Store the actual ID
+                    } else {
+                        // Should ideally not happen if API returns 404 for not found
+                        supplierNameInput.value = "Supplier data error. Try 'Add New Supplier'.";
+                    }
+                } else if (response.status === 404) {
+                    supplierNameInput.value = "Supplier not found. Use 'Add New Supplier' link.";
+                } else {
+                    supplierNameInput.value = `Error: ${response.statusText}. Please try again.`;
+                    console.error('Failed to fetch supplier by contact:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching supplier details by contact:', error);
+                supplierNameInput.value = 'Network error or invalid response.';
+            }
+        });
+    }
+
+    async function fetchInitialData() {
+        try {
+            const productsRes = await fetch('/api/products');
+
+            if (!productsRes.ok) throw new Error(`Failed to fetch products: ${productsRes.statusText}`);
+            allProducts = await productsRes.json();
+
+            // populateSupplierDropdown(); // Removed as we are not using a dropdown for suppliers anymore
+            populateProductDropdownsInRow(productTable.querySelector('tr'));
+            populateProductDropdownsInRow(productTableMobile.querySelector('tr'));
+
+        } catch (error) {
+            console.error("Error fetching initial data:", error);
+            alert("Error loading initial data. Please check console and ensure backend APIs are running.");
+        }
+    }
+
+    function populateProductDropdownsInRow(rowElement) {
+        const productIdSelect = rowElement.querySelector('.product-id');
+        const productNameSelect = rowElement.querySelector('.product-name');
+
         productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
         productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
-        for (const productId in productData) {
+
+        allProducts.forEach(product => {
             const optionId = document.createElement('option');
-            optionId.value = productId;
-            optionId.textContent = productId;
+            optionId.value = product.product_id;
+            optionId.textContent = `${product.product_code || product.product_id} - ${product.product_name}`;
             productIdSelect.appendChild(optionId);
 
             const optionName = document.createElement('option');
-            optionName.value = productData[productId];
-            optionName.textContent = productData[productId];
+            optionName.value = product.product_id;
+            optionName.textContent = `${product.product_name} (${product.product_code || product.product_id})`;
             productNameSelect.appendChild(optionName);
-        }
-    }
+        });
 
-    // Populate the Supplier ID dropdown
-    for (const supplierId in supplierData) {
-        const option = document.createElement('option');
-        option.value = supplierId;
-        option.textContent = supplierId;
-        supplierIdSelect.appendChild(option);
-    }
-
-    // Set default value for Purchase Date to today
-    purchaseDateInput.value = new Date().toISOString().split('T')[0];
-
-    // Update Supplier Name when Supplier ID is selected
-    supplierIdSelect.addEventListener('change', function() {
-        const selectedSupplierId = this.value;
-        const supplierName = supplierData[selectedSupplierId] || ''; // Default to empty string if ID not found
-        supplierNameInput.value = supplierName;
-    });
-
-    paymentOptionSelect.addEventListener('change', function() {
-        if (this.value === 'partial-payment') {
-            partialPaymentAmountInput.classList.add('show-partial-payment');
-            finalTotalAmountInput.readOnly = false;
-            finalTotalAmountInput.value = '';
-        } else {
-            partialPaymentAmountInput.classList.remove('show-partial-payment');
-            finalTotalAmountInput.readOnly = true;
+        productIdSelect.addEventListener('change', function() {
+            productNameSelect.value = this.value;
             calculateTotal();
+        });
+
+        productNameSelect.addEventListener('change', function() {
+            productIdSelect.value = this.value;
+            calculateTotal();
+        });
+    }
+
+    function updatePaymentFields() {
+        if (paymentOptionSelect.value === 'partial-payment') {
+            partialPaymentAmountDiv.style.display = 'block';
+            finalTotalAmountContainer.style.display = 'none';
+        } else {
+            partialPaymentAmountDiv.style.display = 'none';
+            finalTotalAmountContainer.style.display = 'block';
+            finalAmountPaidInput.readOnly = true;
+            calculateTotal(); // Recalculate to set full amount if switching
         }
-    });
+    }
 
     addProductButton.addEventListener('click', function() {
-        let newRow;
-        if (window.innerWidth < 768) {
-            newRow = productTableMobile.insertRow();
-            const cell1 = newRow.insertCell();
-            const cell2 = newRow.insertCell();
-            const cell3 = newRow.insertCell();
-            const cell4 = newRow.insertCell();
-            const cell5 = newRow.insertCell();
+        if (allProducts.length === 0) { alert("Product data not loaded. Please wait or refresh."); return; }
 
-            // Product ID Dropdown
-            const productIdSelect = document.createElement('select');
-            productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-            
-            // Product Name Dropdown
-            const productNameSelect = document.createElement('select');
-            productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-            
-            populateProductDropdowns(productIdSelect, productNameSelect); // Populate dropdowns for new row
+        const activeTableBody = window.innerWidth < 768 ? productTableMobile : productTable;
+        const newRow = activeTableBody.insertRow();
+        newRow.innerHTML = window.innerWidth < 768 ? mobileRowHTML : desktopRowHTML;
 
-            cell1.appendChild(productIdSelect);
-            cell2.appendChild(productNameSelect);
-            cell3.innerHTML = `<label for="quantity-sold-mobile-${productTableMobile.rows.length}">Quantity</label><input type="number" id="quantity-sold-mobile-${productTableMobile.rows.length}" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">`;
-            cell4.innerHTML = `<label for="price-per-unit-mobile-${productTableMobile.rows.length}">Price Per Unit</label><input type="number" id="price-per-unit-mobile-${productTableMobile.rows.length}" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">`;
-            cell5.className = 'amount';
-            cell5.textContent = '₹0.00';
-
-            // Event Listeners for mobile
-            productIdSelect.addEventListener('change', function() {
-                const selectedProductId = this.value;
-                const productName = productData[selectedProductId] || '';
-                productNameSelect.value = productName;
-                calculateTotal(); // Recalculate on change
-            });
-
-            productNameSelect.addEventListener('change', function() {
-                const selectedProductName = this.value;
-                let productId = '';
-                for (const id in productData) {
-                    if (productData[id] === selectedProductName) {
-                        productId = id;
-                        break;
-                    }
-                }
-                productIdSelect.value = productId;
-                calculateTotal(); // Recalculate on change
-            });
-
-        }
-        else{
-            newRow = productTable.insertRow();
-            const cell1 = newRow.insertCell();
-            const cell2 = newRow.insertCell();
-            const cell3 = newRow.insertCell();
-            const cell4 = newRow.insertCell();
-            const cell5 = newRow.insertCell();
-
-            // Product ID Dropdown
-            const productIdSelect = document.createElement('select');
-            productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-            
-            // Product Name Dropdown
-            const productNameSelect = document.createElement('select');
-            productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-            
-            populateProductDropdowns(productIdSelect, productNameSelect); // Populate dropdowns for new row
-
-            cell1.appendChild(productIdSelect);
-            cell2.appendChild(productNameSelect);
-
-            cell3.innerHTML = `<input type="number" class="quantity-sold shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">`;
-            cell4.innerHTML = `<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">`;
-            cell5.className = 'amount';
-            cell5.textContent = '₹0.00';
-            // Event Listeners
-            productIdSelect.addEventListener('change', function() {
-                const selectedProductId = this.value;
-                const productName = productData[selectedProductId] || '';
-                productNameSelect.value = productName;
-                calculateTotal(); // Recalculate on change
-            });
-
-            productNameSelect.addEventListener('change', function() {
-                const selectedProductName = this.value;
-                let productId = '';
-                for (const id in productData) {
-                    if (productData[id] === selectedProductName) {
-                        productId = id;
-                        break;
-                    }
-                }
-                productIdSelect.value = productId;
-                calculateTotal(); // Recalculate on change
-            });
-        }
-
-        // Re-calculate total when fields in the new row change
-        const inputs = newRow.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('change', calculateTotal);
-        });
-         const selects = newRow.querySelectorAll('select');
-        selects.forEach(select => {
-            select.addEventListener('change', calculateTotal);
-        });
+        populateProductDropdownsInRow(newRow);
+        attachEventListenersToRow(newRow);
     });
 
+    function attachEventListenersToRow(rowElement) {
+        const inputs = rowElement.querySelectorAll('input.quantity-purchased, input.price-per-unit');
+        inputs.forEach(input => {
+            input.addEventListener('input', calculateTotal);
+        });
+    }
+
     function formatIndianCurrency(amount) {
-        const formatter = new Intl.NumberFormat('en-IN', {
+        if (isNaN(amount) || amount === null) amount = 0;
+        return amount.toLocaleString('en-IN', {
             style: 'currency',
             currency: 'INR',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         });
-        return formatter.format(amount);
     }
 
     function calculateTotal() {
-        let total = 0;
-        let discountAmount = 0;
-        let rows;
-        if (window.innerWidth < 768) {
-            rows = productTableMobile.querySelectorAll('tbody tr');
-        }
-        else{
-            rows = productTable.querySelectorAll('tbody tr');
-        }
+        let grossAmountBeforeGST = 0;
+        const activeTableBody = window.innerWidth < 768 ? productTableMobile : productTable;
+        const rows = activeTableBody.querySelectorAll('tr');
+        const itemCalculations = [];
 
         rows.forEach(row => {
-            const quantityInput = row.querySelector('.quantity-sold');
+            const quantityInput = row.querySelector('.quantity-purchased');
             const pricePerUnitInput = row.querySelector('.price-per-unit');
             const amountCell = row.querySelector('.amount');
             const productIdSelect = row.querySelector('.product-id');
-            const productNameSelect = row.querySelector('.product-name');
-            const quantity = parseFloat(quantityInput.value);
-            const pricePerUnit = parseFloat(pricePerUnitInput.value);
-            const selectedProductId = productIdSelect.value;
-            const productName = productData[selectedProductId] || '';
-            productNameSelect.value = productName;
 
-            if (!isNaN(quantity) && !isNaN(pricePerUnit)) {
-                const amount = quantity * pricePerUnit;
-                amountCell.textContent = formatIndianCurrency(amount);
-                total += amount;
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const pricePerUnit = parseFloat(pricePerUnitInput.value) || 0;
+            const selectedProductId = productIdSelect.value;
+
+            const product = allProducts.find(p => String(p.product_id) === selectedProductId);
+            const gstPercentage = product && product.gst_percentage !== null ? parseFloat(product.gst_percentage) : 0;
+
+            if (quantity > 0 && pricePerUnit >= 0) {
+                const itemAmountBeforeGST = quantity * pricePerUnit;
+                amountCell.textContent = formatIndianCurrency(itemAmountBeforeGST);
+                grossAmountBeforeGST += itemAmountBeforeGST;
+
+                itemCalculations.push({
+                    amountBeforeGST: itemAmountBeforeGST,
+                    gstPercentage: gstPercentage
+                });
             } else {
-                amountCell.textContent = '₹0.00';
+                amountCell.textContent = formatIndianCurrency(0);
             }
         });
 
-        const discount = parseFloat(discountInput.value);
-        if (!isNaN(discount)) {
-            discountAmount = discount;
-            total = total - discountAmount;
-            if (total < 0) total = 0;
+        if(grossAmountDisplay) grossAmountDisplay.textContent = formatIndianCurrency(grossAmountBeforeGST);
+
+        const discountValue = parseFloat(discountInput.value) || 0;
+        if(discountAmountDisplay) discountAmountDisplay.textContent = formatIndianCurrency(discountValue);
+
+        const netAmountBeforeGST = Math.max(0, grossAmountBeforeGST - discountValue);
+        if(netAmountAfterDiscountDisplay) netAmountAfterDiscountDisplay.textContent = formatIndianCurrency(netAmountBeforeGST);
+
+        let totalGSTAmount = 0;
+        if (grossAmountBeforeGST > 0) {
+            itemCalculations.forEach(item => {
+                const proportionateNetAmount = (item.amountBeforeGST / grossAmountBeforeGST) * netAmountBeforeGST;
+                const itemGSTAmount = proportionateNetAmount * (item.gstPercentage / 100);
+                if (!isNaN(itemGSTAmount)) totalGSTAmount += itemGSTAmount;
+            });
         }
 
-        totalAmountDisplay.textContent = formatIndianCurrency(total + discountAmount); // Show pre-discount total
-        discountAmountDisplay.textContent = formatIndianCurrency(discountAmount);
-        const cgst = total * 0.18;
-        cgstDisplay.textContent = formatIndianCurrency(cgst);
-        const totalPayable = total + cgst;
-        totalPayableAmountDisplay.textContent = formatIndianCurrency(totalPayable);
+        if(totalGstDisplay) totalGstDisplay.textContent = formatIndianCurrency(totalGSTAmount);
+        const totalPayable = netAmountBeforeGST + totalGSTAmount;
+        if(totalPayableAmountDisplay) totalPayableAmountDisplay.textContent = formatIndianCurrency(totalPayable);
 
         if (paymentOptionSelect.value === 'partial-payment') {
-            const partialPaymentAmount = parseFloat(document.getElementById('amount').value);
-            if (!isNaN(partialPaymentAmount)) {
-                finalTotalAmountInput.value = formatIndianCurrency(partialPaymentAmount);
-            } else {
-                finalTotalAmountInput.value = '';
-            }
+            // For partial payment, finalAmountPaidInput is hidden.
+            // User enters amount in partialAmountPaidInput.
         } else {
-            finalTotalAmountInput.value = formatIndianCurrency(totalPayable);
+            finalAmountPaidInput.value = totalPayable.toFixed(2);
         }
     }
 
-    // Event listener for partial payment amount input
-    document.getElementById('amount').addEventListener('input', function() {
-        if (paymentOptionSelect.value === 'partial-payment') {
-            const partialPaymentAmount = parseFloat(this.value);
-            if (!isNaN(partialPaymentAmount)) {
-                finalTotalAmountInput.value = formatIndianCurrency(partialPaymentAmount);
-            } else {
-                finalTotalAmountInput.value = '';
+    discountInput.addEventListener('input', calculateTotal);
+    paymentOptionSelect.addEventListener('change', updatePaymentFields);
+
+    submitPurchaseFormButton.addEventListener('click', async function(event) {
+        event.preventDefault();
+
+        const purchaseData = {
+            purchase_date: purchaseDateInput.value,
+            supplier_id: supplierIdHiddenInput.value, // Use the hidden ID
+            mode_of_payment: modeOfPaymentInput.value,
+            payment_option: paymentOptionSelect.value,
+            notes: notesInput.value.trim(),
+            overall_discount_amount: parseFloat(discountInput.value) || 0,
+            items: []
+        };
+
+        const activeTableBody = window.innerWidth < 768 ? productTableMobile : productTable;
+        const rows = activeTableBody.querySelectorAll('tr');
+        let hasValidItem = false;
+        rows.forEach(row => {
+            const productId = row.querySelector('.product-id').value;
+            const quantityPurchased = parseFloat(row.querySelector('.quantity-purchased').value);
+            const pricePerUnit = parseFloat(row.querySelector('.price-per-unit').value);
+
+            if (productId && quantityPurchased > 0 && pricePerUnit >= 0) {
+                purchaseData.items.push({
+                    product_id: productId,
+                    quantity_purchased: quantityPurchased,
+                    price_per_unit_before_gst: pricePerUnit
+                });
+                hasValidItem = true;
             }
+        });
+
+        if (!purchaseData.purchase_date) { alert("Purchase Date is required."); return; }
+        // Validate based on the hidden supplier ID
+        if (!purchaseData.supplier_id) { 
+            alert("Supplier contact not found or invalid. Please verify and try again, or use 'Add New Supplier'."); 
+            return; 
+        }
+        if (supplierNameInput.value === '' || supplierNameInput.value.toLowerCase().includes('not found') || supplierNameInput.value.toLowerCase().includes('error')) {
+            alert("Please enter a valid Supplier ID and ensure supplier details are loaded correctly.");
+            return;
+        }
+
+        if (!purchaseData.mode_of_payment) { alert("Mode of Payment is required."); return; }
+        if (!hasValidItem) { alert("Please add at least one valid product item."); return; }
+        if (purchaseData.overall_discount_amount < 0) { alert("Discount cannot be negative."); return; }
+
+        const totalPayableNum = parseFloat(totalPayableAmountDisplay.textContent.replace(/[^0-9.-]+/g,""));
+        const amountPaidValue = purchaseData.payment_option === 'partial-payment' 
+                                ? parseFloat(partialAmountPaidInput.value) || 0 
+                                : totalPayableNum;
+        purchaseData.amount_paid = amountPaidValue;
+
+        if (purchaseData.payment_option === 'full-payment') {
+            if (Math.abs(purchaseData.amount_paid - totalPayableNum) > 0.01) {
+                 alert("For full payment, amount paid must match total payable amount."); return;
+            }
+            purchaseData.amount_paid = totalPayableNum;
+        } else if (purchaseData.payment_option === 'partial-payment') {
+            if (purchaseData.amount_paid <= 0) {
+                alert("For partial payment, amount paid must be greater than zero."); return;
+            }
+            if (purchaseData.amount_paid > totalPayableNum) {
+                alert("Partial amount paid cannot be greater than total payable amount."); return;
+            }
+        }
+
+        try {
+            const response = await fetch('/api/purchases', { // Assuming this endpoint
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(purchaseData),
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(`${result.message || "Purchase recorded successfully!"} Purchase ID: ${result.purchase_id || 'N/A'}`);
+                
+                // Reset form
+                purchaseDateInput.value = new Date().toISOString().split('T')[0];
+                supplierContactInput.value = ''; 
+                supplierIdHiddenInput.value = '';
+                supplierNameInput.value = '';
+                modeOfPaymentInput.value = '';
+                paymentOptionSelect.value = 'full-payment';
+                partialAmountPaidInput.value = '';
+                notesInput.value = '';
+                discountInput.value = '';
+
+                while (productTable.rows.length > 1) productTable.deleteRow(1);
+                while (productTableMobile.rows.length > 1) productTableMobile.deleteRow(1);
+
+                productTable.rows[0].innerHTML = desktopRowHTML;
+                productTableMobile.rows[0].innerHTML = mobileRowHTML;
+
+                populateProductDropdownsInRow(productTable.rows[0]);
+                populateProductDropdownsInRow(productTableMobile.rows[0]);
+                attachEventListenersToRow(productTable.rows[0]);
+                attachEventListenersToRow(productTableMobile.rows[0]);
+
+                updatePaymentFields();
+                calculateTotal();
+            } else {
+                alert(`Error: ${result.error || 'Failed to record purchase.'}`);
+            }
+        } catch (error) {
+            console.error('Error submitting purchase:', error);
+            alert('An error occurred while submitting the purchase. Please try again.');
         }
     });
 
-     // Event listener for discount input
-    discountInput.addEventListener('input', function() {
-        calculateTotal();
-    });
-
-    // Calculate initial total on page load and add event listeners to existing rows
-    calculateTotal();
-
-    // Populate the initial product dropdowns on page load
-    const initialProductIdSelect = productTable.querySelector('.product-id');
-    const initialProductNameSelect = productTable.querySelector('.product-name');
-    populateProductDropdowns(initialProductIdSelect, initialProductNameSelect);
-
-    const initialMobileProductIdSelect = productTableMobile.querySelector('.product-id');
-    const initialMobileProductNameSelect = productTableMobile.querySelector('.product-name');
-    populateProductDropdowns(initialMobileProductIdSelect, initialMobileProductNameSelect);
-
-
-    const initialRows = productTable.querySelectorAll('tbody tr');
-    initialRows.forEach(row => {
-        const inputs = row.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('change', calculateTotal);
-        });
-        const selects = row.querySelectorAll('select');
-        selects.forEach(select => {
-            select.addEventListener('change', calculateTotal);
-        });
-    });
-
-    const initialMobileRows = productTableMobile.querySelectorAll('tbody tr');
-    initialMobileRows.forEach(row => {
-        const inputs = row.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('change', calculateTotal);
-        });
-        const selects = row.querySelectorAll('select');
-        selects.forEach(select => {
-            select.addEventListener('change', calculateTotal);
-        });
-    });
 </script>
 {% endblock %}
