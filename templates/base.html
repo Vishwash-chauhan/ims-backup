@@ -16,8 +16,10 @@
                     <span class="ml-2 font-bold text-2xl text-blue-700">ERP</span>
                 </div>                <div class="hidden sm:flex sm:items-center sm:space-x-1">
                     {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'Admin' %}
                     <a href="{{ url_for('main.dashboard') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Dashboard</a>
                     <span class="text-gray-300 mx-0.5">|</span>
+                    {% endif %}
                     <a href="{{ url_for('main.sales_entry') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Sales Entry</a>
                     <span class="text-gray-300 mx-0.5">|</span>
                     <a href="{{ url_for('main.purchases_form') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Purchase Entry</a>
@@ -50,7 +52,9 @@
         <!-- Mobile menu, show/hide based on menu state. -->
         <div class="sm:hidden" id="mobile-menu" style="display: none;">
             <div class="pt-1 pb-2 space-y-0.5">
+                {% if current_user.is_authenticated and current_user.role == 'Admin' %}
                 <a href="{{ url_for('main.dashboard') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Dashboard</a>
+                {% endif %}
                 <a href="{{ url_for('main.sales_entry') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Sales Entry</a>
                 <a href="{{ url_for('main.purchases_form') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Purchase Entry</a>
                 <a href="{{ url_for('main.add_product') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Add Products</a>

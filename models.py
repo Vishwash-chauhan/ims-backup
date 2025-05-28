@@ -149,7 +149,7 @@ class PurchaseReturnItem(db.Model):
 class SalesInvoice(db.Model):
     __tablename__ = 'sales_invoices'
     id = db.Column(db.Integer, primary_key=True)
-    invoice_number = db.Column(db.String(50), unique=True, nullable=False)
+    invoice_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
     invoice_date = db.Column(db.Date, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
     executive_id = db.Column(db.Integer, db.ForeignKey('users.id'))

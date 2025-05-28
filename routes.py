@@ -1,6 +1,6 @@
 # routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required
+from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import uuid
 import re # Added for email validation
@@ -525,6 +525,83 @@ def delete_supplier(supplier_id):
     flash('Supplier deleted successfully!', 'success')
     return redirect(url_for('main.supplier_list'))
 
+    flash('Supplier deleted successfully!', 'success')
+    return redirect(url_for('main.supplier_list'))
+
+# --- API Endpoints for Sales Entry ---
+@main.route('/api/products')
+@login_required
+def api_products():
+    products = Product.query.filter_by(deleted=False).all()
+    return jsonify([{
+        'product_id': p.id,
+        'product_name': p.product_name,
+        'product_code': p.product_code,
+        'price_per_unit': None,  # Frontend expects this, can be null if not stored directly
+        'gst_percentage': float(p.gst_percentage) if p.gst_percentage is not None else 0.0
+    } for p in products])
+
+@main.route('/api/executives')
+@login_required
+def api_executives():
+    # Assuming executives are users. Adjust if there's a specific 'executive' role.
+    # You might want to filter by role, e.g., User.query.filter_by(role='executive', is_active=True).all()
+    executives = User.query.filter_by(is_active=True).all()
+    return jsonify([{
+        'id': u.id,
+        'full_name': u.full_name
+    } for u in executives])
+
+@main.route('/api/customer/<int:customer_id>')
+@login_required
+def api_customer_details(customer_id):
+    customer = Customer.query.filter_by(id=customer_id, deleted=False).first()
+    if customer:
+        return jsonify({'customer_id': customer.id, 'customer_name': customer.customer_name})
+    return jsonify({'error': 'Customer not found'}), 404
+
+@main.route('/api/customer/by-contact/<string:contact_number>')
+@login_required
+def api_customer_details_by_contact(contact_number):
+    # Basic validation for contact_number can be added here (e.g., length, digits only)
+    customer = Customer.query.filter_by(contact_number=contact_number, deleted=False).first()
+    if customer:
+        return jsonify({
+            'customer_id': customer.id,
+            'customer_name': customer.customer_name,
+            'contact_number': customer.contact_number # Optionally return contact too
+        })
+    return jsonify({'error': 'Customer not found with this contact number'}), 404
+
+
+# --- API Endpoints ---
+@main.route('/api/check-customer-exists', methods=['POST'])
+@login_required
+def api_check_customer_exists():
+    data = request.get_json()
+    field = data.get('field')
+    value = data.get('value')
+    customer_id = data.get('customer_id') # Will be None for 'add' mode, or an ID for 'edit'
+
+    if not field or not value:
+        return jsonify({'exists': False, 'error': 'Missing field or value'}), 400
+
+    query = Customer.query.filter_by(deleted=False)
+
+    if field == 'customer_name':
+        query = query.filter(Customer.customer_name == value)
+    elif field == 'email_address':
+        query = query.filter(Customer.email_address == value)
+    else:
+        return jsonify({'exists': False, 'error': 'Invalid field specified'}), 400
+
+    if customer_id:
+        try:
+            query = query.filter(Customer.id != int(customer_id))
+        except ValueError:
+            return jsonify({'exists': False, 'error': 'Invalid customer_id format'}), 400
+            
+    return jsonify({'exists': query.first() is not None})
 
 # --- SalesInvoice CRUD ---
 @main.route('/sales-invoices')
@@ -838,7 +915,13 @@ def purchase_return():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    # Explicitly check if the current user is an admin
+    # Assumes your User model (current_user) has a 'role' attribute or similar
+    if not hasattr(current_user, 'role') or current_user.role != 'admin':
+        flash("You do not have permission to access this page. Only admins can view the dashboard.", "danger")
+        # Redirect to a general page like index to avoid potential loops with the login page
+        return redirect(url_for('main.index'))
+    return render_template('admin/dashboard.html')
 
 # --- SalesInvoiceItem CRUD ---
 @main.route('/sales-invoice/<int:invoice_id>/items')

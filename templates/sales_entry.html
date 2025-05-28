@@ -32,16 +32,17 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
+            <div class="flex flex-col justify-end">
                 <div class="customer-id-label-container">
-                    <label for="customer-id" class="text-gray-700 text-sm font-bold mb-2 text-left">Customer ID:</label>
+                    <label for="customer-contact-input" class="text-gray-700 text-sm font-bold mb-2 text-left">Customer Contact:</label>
                     <a href="{{ url_for('main.add_customer') }}" class="add-customer-link ml-2" target="_blank">Add New Customer</a>
                 </div>
                 <div class="customer-id-container">
-                    <input type="text" id="customer-id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter Customer ID">
+                    <input type="text" id="customer-contact-input" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter Customer Contact Number">
+                    <input type="hidden" id="customer-id-hidden">
                 </div>
             </div>
-            <div>
+            <div class="flex flex-col justify-end">
                 <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2 text-left">Customer Name:</label>
                 <input type="text" id="customer-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
             </div>
@@ -122,7 +123,29 @@
         <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label for="discount" class="block text-gray-700 text-sm font-bold mb-2 text-left">Overall Discount Amount:</label>
-                <input type="number" id="discount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0" min="0" step="0.01">
+                <input type="number" id="discount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="" placeholder="Enter discount amount" min="0" step="0.01">
+            </div>
+        </div>
+
+        <div class="totals-summary mb-6 p-4 border rounded-md bg-gray-50">
+            <h3 class="text-lg font-semibold mb-3 text-gray-700">Invoice Summary</h3>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <span class="text-gray-600">Gross Amount (Before GST):</span>
+                <span id="total-amount" class="text-right font-medium text-gray-800">₹0.00</span>
+
+                <span class="text-gray-600">Overall Discount:</span>
+                <span id="discount-amount-display" class="text-right font-medium text-gray-800">₹0.00</span>
+
+                <span class="text-gray-600">Net Amount (After Discount, Before GST):</span>
+                <span id="total-after-discount" class="text-right font-medium text-gray-800">₹0.00</span>
+
+                <span class="text-gray-600">Total GST:</span>
+                <span id="cgst" class="text-right font-medium text-gray-800">₹0.00</span>
+
+                <hr class="col-span-2 my-1 border-gray-300">
+
+                <span class="text-gray-700 font-bold text-base">Total Payable Amount:</span>
+                <span id="total-payable-amount" class="text-right font-bold text-base text-indigo-600">₹0.00</span>
             </div>
         </div>
 
@@ -180,7 +203,8 @@
     const cgstDisplay = document.getElementById('cgst');
     const finalTotalAmountInput = document.getElementById('final-total-amount');
     const totalPayableAmountDisplay = document.getElementById('total-payable-amount');
-    const customerIdInput = document.getElementById('customer-id');
+    const customerContactInput = document.getElementById('customer-contact-input'); // Changed from customerIdInput
+    const customerIdHiddenInput = document.getElementById('customer-id-hidden'); // New hidden input for actual ID
     const customerNameInput = document.getElementById('customer-name');
     const salesDateInput = document.getElementById('sales-date');
     const executiveNameSelect = document.getElementById('executive-name');
@@ -195,7 +219,7 @@
 
 
     let allProducts = []; // To store fetched product data {product_id, product_name, product_code, price_per_unit (null), gst_percentage}
-    let allCustomers = [];
+    // let allCustomers = []; // Not fetching all customers initially anymore
     let allExecutives = [];
 
     // HTML structure for a new row (desktop)
@@ -252,42 +276,59 @@
 
     async function fetchInitialData() {
         try {
-            const [productsRes, customersRes, executivesRes] = await Promise.all([
+            const [productsRes, fetchedExecutivesRes] = await Promise.all([
                 fetch('/api/products'),
-                fetch('/api/customers'),
+                // fetch('/api/customers'), // Removed, fetching individual customer on ID input
                 fetch('/api/executives')
             ]);
 
             if (!productsRes.ok) throw new Error(`Failed to fetch products: ${productsRes.statusText}`);
             allProducts = await productsRes.json();
 
-            if (!customersRes.ok) throw new Error(`Failed to fetch customers: ${customersRes.statusText}`);
-            allCustomers = await customersRes.json();
+            // if (!customersRes.ok) throw new Error(`Failed to fetch customers: ${customersRes.statusText}`);
+            // allCustomers = await customersRes.json();
 
-            if (!executivesRes.ok) throw new Error(`Failed to fetch executives: ${executivesRes.statusText}`);
-            allExecutives = await executivesRes.json();
+            if (!fetchedExecutivesRes.ok) throw new Error(`Failed to fetch executives: ${fetchedExecutivesRes.statusText}`);
+            allExecutives = await fetchedExecutivesRes.json();
+
 
             populateExecutiveDropdown();
             populateProductDropdownsInRow(productTable.querySelector('tr'));
             populateProductDropdownsInRow(productTableMobile.querySelector('tr'));
 
-            customerIdInput.addEventListener('change', async function() { // Use 'change' or 'blur' for less frequent API calls
-                const enteredId = this.value.trim();
-                if (enteredId === '') {
+            customerContactInput.addEventListener('blur', async function() { // Listen to contact input
+                const enteredContact = this.value.trim();
+                customerNameInput.value = ''; // Clear previous name
+                customerIdHiddenInput.value = ''; // Clear previous ID
+
+                if (enteredContact === '') {
                     customerNameInput.value = '';
                     return;
                 }
                 try {
-                    const response = await fetch(`/api/customer/${enteredId}`);
+                    const response = await fetch(`/api/customer/by-contact/${enteredContact}`); // New API endpoint
                     if (response.ok) {
                         const customer = await response.json();
-                        customerNameInput.value = customer.customer_name;
+                        if (customer && customer.customer_id) {
+                            customerNameInput.value = customer.customer_name;
+                            customerIdHiddenInput.value = customer.customer_id; // Store the fetched ID
+                        } else {
+                            // This case: 200 OK, but data is not as expected (e.g. API bug or empty success)
+                            // Backend should ideally return 404 if not found.
+                            customerNameInput.value = "Customer data not found. Use 'Add New Customer' link.";
+                        }
+                    } else if (response.status === 404) {
+                        // const errorData = await response.json(); // No need to parse if using a static message
+                        customerNameInput.value = "No customer found. Use 'Add New Customer' link.";
                     } else {
-                        customerNameInput.value = 'Customer not found';
+                        // Other HTTP errors (500, 403, etc.)
+                        customerNameInput.value = `Error: ${response.statusText}. Please try again.`;
+                        console.error('Failed to fetch customer by contact:', response.status, response.statusText);
                     }
                 } catch (error) {
-                    console.error('Error fetching customer details:', error);
-                    customerNameInput.value = 'Error fetching details';
+                    // Network error or JSON parsing error
+                    console.error('Error fetching customer details by contact:', error);
+                    customerNameInput.value = 'Network error or invalid response.';
                 }
             });
 
@@ -301,8 +342,8 @@
         executiveNameSelect.innerHTML = '<option value="">Select Executive</option>';
         allExecutives.forEach(executive => {
             const option = document.createElement('option');
-            option.value = executive.full_name;
-            option.textContent = executive.full_name;
+            option.value = executive.id; // Use ID as value
+            option.textContent = executive.full_name; // Display name
             executiveNameSelect.appendChild(option);
         });
     }
@@ -399,7 +440,7 @@
             const selectedProductId = productIdSelect.value;
 
             const product = allProducts.find(p => String(p.product_id) === selectedProductId);
-            const gstPercentage = product ? parseFloat(product.gst_percentage) || 0 : 0;
+            const gstPercentage = product && product.gst_percentage !== null ? parseFloat(product.gst_percentage) : 0;
 
             if (quantity > 0 && pricePerUnit >= 0) {
                 const itemAmountBeforeGST = quantity * pricePerUnit;
@@ -415,20 +456,20 @@
             }
         });
 
-        totalAmountDisplay.textContent = formatIndianCurrency(grossAmountBeforeGST);
+        if(totalAmountDisplay) totalAmountDisplay.textContent = formatIndianCurrency(grossAmountBeforeGST);
 
         const discountValue = parseFloat(discountInput.value) || 0;
-        discountAmountDisplay.textContent = formatIndianCurrency(discountValue);
+        if(discountAmountDisplay) discountAmountDisplay.textContent = formatIndianCurrency(discountValue);
 
         const netAmountBeforeGST = Math.max(0, grossAmountBeforeGST - discountValue);
-        totalAfterDiscountDisplay.textContent = formatIndianCurrency(netAmountBeforeGST);
+        if(totalAfterDiscountDisplay) totalAfterDiscountDisplay.textContent = formatIndianCurrency(netAmountBeforeGST);
 
         let totalGSTAmount = 0;
         if (grossAmountBeforeGST > 0) {
             itemCalculations.forEach(item => {
                 const proportionateNetAmount = (item.amountBeforeGST / grossAmountBeforeGST) * netAmountBeforeGST;
                 const itemGSTAmount = proportionateNetAmount * (item.gstPercentage / 100);
-                totalGSTAmount += itemGSTAmount;
+                if (!isNaN(itemGSTAmount)) totalGSTAmount += itemGSTAmount;
             });
         }
 
@@ -453,14 +494,14 @@
 
         const salesData = {
             sales_date: salesDateInput.value,
-            executive_name: executiveNameSelect.value,
-            customer_id: customerIdInput.value,
+            executive_id: executiveNameSelect.value, // Now sending ID
+            customer_id: customerIdHiddenInput.value, // Use the hidden ID field
             // customer_name: customerNameInput.value, // Backend can fetch this if needed
-            discount: parseFloat(discountInput.value) || 0,
             mode_of_payment: modeOfPaymentInput.value,
             payment_option: paymentOptionSelect.value,
             // amount_paid will be set below based on payment option
             notes: notesInput.value.trim(),
+            overall_discount_amount: parseFloat(discountInput.value) || 0, // Added for backend
             items: []
         };
 
@@ -476,27 +517,30 @@
                 salesData.items.push({
                     product_id: productId,
                     quantity_sold: quantitySold,
-                    price_per_unit: pricePerUnit
-                }); // Sending base values, backend recalculates everything else
+                    price_per_unit_before_gst: pricePerUnit // Key name matches backend expectation
+                });
                 hasValidItem = true;
             }
         });
 
         if (!salesData.sales_date) { alert("Sales Date is required."); return; }
-        if (!salesData.customer_id) { alert("Customer ID is required."); return; }
-        if (customerNameInput.value === 'Customer not found' || customerNameInput.value === 'Error fetching details' || customerNameInput.value === '') {
+        if (!salesData.customer_id) {
+            alert("Customer details not found or contact is invalid. Please verify customer contact."); return;
+        }
+        // Check if customer name indicates an issue
+        if (customerNameInput.value.toLowerCase().includes('not found') || customerNameInput.value.toLowerCase().includes('error fetching') || customerNameInput.value === '') {
             alert("Please enter a valid Customer ID and ensure customer details are loaded."); return;
         }
          if (!salesData.mode_of_payment) { alert("Mode of Payment is required."); return; }
         if (!hasValidItem) { alert("Please add at least one valid product item."); return; }
-        if (salesData.discount < 0) { alert("Discount cannot be negative."); return; }
+        if (salesData.overall_discount_amount < 0) { alert("Discount cannot be negative."); return; }
 
 
         const totalPayableNum = parseFloat(totalPayableAmountDisplay.textContent.replace(/[^0-9.-]+/g,""));
 
         // Get the amount paid value based on the selected payment option
-        const amountPaidValue = salesData.payment_option === 'partial-payment' ? parseFloat(partialAmountInput.value) || 0 : parseFloat(finalTotalAmountInput.value) || 0;
-        salesData.amount_paid = amountPaidValue;
+        const amountPaidValue = salesData.payment_option === 'partial-payment' ? parseFloat(partialAmountInput.value) || 0 : totalPayableNum; // For full payment, amount paid is total payable
+        salesData.amount_paid_by_customer = amountPaidValue; // Key name matches backend expectation
 
 
         // Validation specific to payment options
@@ -506,7 +550,7 @@
                  alert("For full payment, amount paid must match total payable amount."); return;
             }
             // If it's close enough, set it to the exact total payable amount
-            salesData.amount_paid = totalPayableNum; // Ensure it's exactly the total payable
+            salesData.amount_paid_by_customer = totalPayableNum; // Ensure it's exactly the total payable
         }
 
         if (salesData.payment_option === 'partial-payment') {
@@ -531,14 +575,15 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert(result.message || "Sales invoice created successfully!");
+                alert(`${result.message || "Sales invoice created successfully!"} Invoice Number: ${result.invoice_number}`);
                 // document.getElementById('sales-form-container').reset(); // This might not work well with dynamic rows
 
                 // Clear form fields manually
-                customerIdInput.value = '';
+                customerContactInput.value = ''; // Clear contact input
+                customerIdHiddenInput.value = ''; // Clear hidden ID
                 customerNameInput.value = '';
-                executiveNameSelect.value = ''; // Reset executive dropdown
-                discountInput.value = '0';
+                executiveNameSelect.value = ''; 
+                discountInput.value = ''; // Set to blank
                 modeOfPaymentInput.value = ''; // Reset mode of payment dropdown
                 paymentOptionSelect.value = 'full-payment'; // Reset payment option
                 partialAmountInput.value = ''; // Clear partial amount input
