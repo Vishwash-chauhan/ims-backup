@@ -9,6 +9,17 @@
         </div>
         <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">New Product Entry</h1>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} mb-4">  {# Added mb-4 for spacing #}
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+
         <form id="new-product-form" method="POST" action="{{ url_for('main.add_product') }}" enctype="multipart/form-data">            <div id="form-errors-summary" class="alert alert-danger"></div>
 
             {% if error or form_errors %}
@@ -26,43 +37,46 @@
             </div>
             {% endif %}
 
-            <div class="mb-4">
-                <label for="product-name" class="block text-gray-700 text-sm font-bold mb-2">Product Name:</label>
-                <input type="text" id="product-name" name="product_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                       value="{{ request.form.get('product_name') if request and request.form else product.product_name if product else '' }}">
-                <span class="error-message" id="product-name-error"></span>
+            <!-- Product Name and Code Row -->
+            <div class="form-row mb-4">
+                <div class="form-group">
+                    <label for="product-name" class="block text-gray-700 text-sm font-bold mb-2">Product Name:</label>
+                    <input type="text" id="product-name" name="product_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                           value="{{ request.form.get('product_name') if request and request.form else product.product_name if product else '' }}">
+                    <span class="error-message" id="product-name-error"></span>
+                </div>
+                <div class="form-group">
+                    <label for="product-code" class="block text-gray-700 text-sm font-bold mb-2">Product Code:</label>
+                    <input type="text" id="product-code" name="product_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                           value="{{ request.form.get('product_code') if request and request.form else product.product_code if product else '' }}">
+                    <span class="error-message" id="product-code-error"></span>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label for="product-code" class="block text-gray-700 text-sm font-bold mb-2">Product Code:</label>
-                <input type="text" id="product-code" name="product_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                       value="{{ request.form.get('product_code') if request and request.form else product.product_code if product else '' }}">
-                <span class="error-message" id="product-code-error"></span>
-            </div>
-
-            <div class="hsn-image-container">
-                <div class="hsn-code-wrapper">
+            <!-- HSN and Image Row -->
+            <div class="hsn-image-container mb-4">
+                <div class="hsn-code-wrapper form-group">
                     <label for="hsn-code" class="block text-gray-700 text-sm font-bold mb-2">HSN Code:</label>
                     <input type="text" id="hsn-code" name="hsn_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                            value="{{ request.form.get('hsn_code') if request and request.form else product.hsn_code if product else '' }}">
                     <span class="error-message" id="hsn-code-error"></span>
                 </div>
-                <div class="image-wrapper">
+                <div class="image-wrapper form-group">
                     <label for="image" class="block text-gray-700 text-sm font-bold mb-2">Product Image:</label>
                     <input type="file" id="image" name="product_image" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     <!-- Image preview logic can be added here if needed -->
                     <span class="error-message" id="image-error"></span>
                 </div>
             </div>
-
-            <div class="reorder-measuring-container">
-                <div class="measuring-units-wrapper">
+            <!-- Measuring Units and Reorder Level Row -->
+            <div class="reorder-measuring-container mb-4">
+                <div class="measuring-units-wrapper form-group">
                     <label for="measuring-units" class="block text-gray-700 text-sm font-bold mb-2">Measuring Units:</label>
                     <input type="text" id="measuring-units" name="measuring_units" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                            value="{{ request.form.get('measuring_units') if request and request.form else product.measuring_units if product else '' }}">
                     <span class="error-message" id="measuring-units-error"></span>
                 </div>
-                <div class="reorder-level-wrapper">
+                <div class="reorder-level-wrapper form-group">
                     <label for="reorder-level" class="block text-gray-700 text-sm font-bold mb-2">Reorder Level:</label>
                     <input type="number" id="reorder-level" name="reorder_level" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                            value="{{ request.form.get('reorder_level') if request and request.form else product.reorder_level if product else '' }}">

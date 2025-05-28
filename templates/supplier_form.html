@@ -16,32 +16,35 @@
         <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">
             {% if supplier %}Edit Supplier{% else %}Add New Supplier{% endif %}
         </h1><!-- Flashed Messages -->
+        <!-- General flashed messages (e.g., success, info) -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    {% set alert_class = 'alert alert-info' %}
+                    {% set alert_class = 'bg-blue-100 border-blue-400 text-blue-700' %} {# Default to info #}
                     {% if category == 'success' %}
-                        {% set alert_class = 'alert alert-success' %}
+                        {% set alert_class = 'bg-green-100 border-green-400 text-green-700' %}
                     {% elif category == 'danger' %}
-                        {% set alert_class = 'alert alert-danger' %}
+                        {% set alert_class = 'bg-red-100 border-red-400 text-red-700' %}
                     {% elif category == 'warning' %}
-                        {% set alert_class = 'alert alert-warning' %}
+                        {% set alert_class = 'bg-yellow-100 border-yellow-400 text-yellow-700' %}
                     {% endif %}
-                    <div class="{{ alert_class }}" role="alert">
+                    <div class="{{ alert_class }} px-4 py-3 rounded relative mb-4" role="alert">
                         {{ message }}
                     </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
-        <!-- Form Validation Errors -->
+        <!-- Placeholder for client-side validation errors -->
+        <div id="form-errors" class="mb-4"></div>
+
+        <!-- Server-side error display -->
         {% if error %}
-            <div class="alert alert-danger" role="alert">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                 <strong class="font-bold">Error!</strong>
                 <span class="block sm:inline">{{ error }}</span>
             </div>
-        {% endif %}        <!-- Client-side validation summary -->
-        <div id="form-errors" class="alert alert-danger" style="display:none;"></div>
+        {% endif %}
 
         <form method="POST" action="{{ url_for('main.edit_supplier', supplier_id=supplier.id) if supplier else url_for('main.add_supplier') }}" id="supplier-form">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -211,27 +214,20 @@ document.addEventListener('DOMContentLoaded', function() {
         let isValid = true;
         const errorMessages = [];
 
-        // Clear previous errors
-        document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
-        document.querySelectorAll('.input-error').forEach(input => input.classList.remove('input-error'));
-        formErrorsDiv.style.display = 'none';
+        // Clear previous client-side errors and styles
         formErrorsDiv.innerHTML = '';
+        const allInputsAndTextareas = supplierForm.querySelectorAll('input, textarea, select');
+        allInputsAndTextareas.forEach(el => el.classList.remove('border-red-500'));
 
         function setError(inputId, message) {
             const inputElement = document.getElementById(inputId);
             if (inputElement) {
-                inputElement.classList.add('input-error');
-                // Create or update error message element
-                let errorSpan = document.getElementById(inputId + '-error');
-                if (!errorSpan) {
-                    errorSpan = document.createElement('span');
-                    errorSpan.id = inputId + '-error';
-                    errorSpan.className = 'error-message text-red-500 text-sm mt-1 block';
-                    inputElement.parentNode.appendChild(errorSpan);
-                }
-                errorSpan.textContent = message;
+                inputElement.classList.add('border-red-500');
             }
-            if (!errorMessages.includes(message)) {
+            // To avoid duplicate messages in the summary from multiple fields having the same error type (though less common here)
+            // or if setError is called multiple times for the same conceptual error.
+            // For this form, each message is unique to a field/condition, so this check is good.
+            if (!errorMessages.includes(message)) { 
                 errorMessages.push(message);
             }
             isValid = false;
@@ -303,20 +299,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (!isValid) {
-            // Display summary of errors at the top
-            const ul = document.createElement('ul');
-            ul.className = 'list-disc pl-5';
+            formErrorsDiv.innerHTML = ''; // Clear previous errors from the summary
             errorMessages.forEach(msg => {
-                const li = document.createElement('li');
-                li.textContent = msg;
-                ul.appendChild(li);
+                const errorElement = document.createElement('div');
+                errorElement.className = 'text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm';
+                errorElement.textContent = msg;
+                formErrorsDiv.appendChild(errorElement);
             });
-            formErrorsDiv.innerHTML = '';
-            formErrorsDiv.appendChild(ul);
-            formErrorsDiv.style.display = 'block';
-            formErrorsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            if (errorMessages.length > 0) {
+                // Scroll to the error summary div
+                const formErrorsOffsetTop = formErrorsDiv.getBoundingClientRect().top + window.pageYOffset;
+                window.scrollTo({ top: formErrorsOffsetTop - 20, behavior: 'smooth' });
+            }
         } else {
-            supplierForm.submit();
+            formErrorsDiv.innerHTML = ''; // Clear error messages if form is valid before submission
+            supplierForm.submit(); // Native form submission
         }
     });
 });

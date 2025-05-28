@@ -225,12 +225,8 @@ def add_customer():
 
         errors = []
 
-        if not customer_name:
-            errors.append('Customer name is required.')
-        else:
-            existing_customer_name = Customer.query.filter_by(customer_name=customer_name, deleted=False).first()
-            if existing_customer_name:
-                errors.append(f"Customer name '{customer_name}' already exists.")
+        if not customer_name: # Keep name required, but allow duplicates
+             errors.append('Customer name is required.')
 
         if contact_number:
             existing_customer_contact = Customer.query.filter_by(contact_number=contact_number, deleted=False).first()
@@ -241,9 +237,10 @@ def add_customer():
             if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email_address):
                 errors.append("Invalid email address format.")
             else:
-                existing_customer_email = Customer.query.filter_by(email_address=email_address, deleted=False).first()
+                # Check against all customers, including soft-deleted ones,
+                # as the email_address field has a UNIQUE constraint in the database.
+                existing_customer_email = Customer.query.filter_by(email_address=email_address).first()
                 if existing_customer_email:
-                    # Check if the email belongs to the same customer being edited (not applicable for add)
                     # For add_customer, any existing email is a duplicate.
                     errors.append(f"Email address '{email_address}' already exists.")
 
@@ -305,10 +302,11 @@ def edit_customer(customer_id):
             if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email_address):
                 errors.append("Invalid email address format.")
             else:
+                # Check against all other customers, including soft-deleted ones,
+                # as the email_address field has a UNIQUE constraint.
                 existing_customer_email = Customer.query.filter(
                     Customer.id != customer_id,
-                    Customer.email_address == email_address,
-                    Customer.deleted == False
+                    Customer.email_address == email_address
                 ).first()
                 if existing_customer_email:
                     errors.append(f"Another customer with email '{email_address}' already exists.")
@@ -365,12 +363,35 @@ def add_supplier():
 
     if request.method == 'POST':
         supplier_name = form_data.get('supplier_name', '').strip()
+        supplier_contact = form_data.get('supplier_contact', '').strip()
+        email_address = form_data.get('email_address', '').strip()
+        gst_available_val = form_data.get('gst_available', 'no')
+        gst_number_val = form_data.get('gst_number', '').strip()
 
         errors = []
 
         if not supplier_name:
             errors.append('Supplier name is required.')
         # Removed check for existing supplier name to allow duplicates
+
+        if supplier_contact:
+            existing_contact = Supplier.query.filter_by(supplier_contact=supplier_contact, deleted=False).first()
+            if existing_contact:
+                errors.append(f"Supplier contact number '{supplier_contact}' already exists.")
+
+        if email_address:
+            # Basic email format validation (can be more robust if needed)
+            if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email_address):
+                errors.append("Invalid email address format.")
+            else:
+                existing_email = Supplier.query.filter_by(email_address=email_address, deleted=False).first()
+                if existing_email:
+                    errors.append(f"Email address '{email_address}' already exists for another supplier.")
+
+        if gst_available_val == 'yes' and gst_number_val:
+            existing_gst = Supplier.query.filter_by(gst_number=gst_number_val, deleted=False).first()
+            if existing_gst:
+                errors.append(f"GST number '{gst_number_val}' already exists for another supplier.")
 
         gst_available_val = form_data.get('gst_available', 'no')
         gst_number_val = form_data.get('gst_number', '').strip()
@@ -402,7 +423,8 @@ def add_supplier():
 
         supplier = Supplier(
             supplier_name=supplier_name,
-            supplier_contact=form_data.get('supplier_contact'),
+            supplier_contact=supplier_contact if supplier_contact else None,
+            email_address=email_address if email_address else None,
             gst_available=gst_available_val,
             gst_number=gst_number_val if gst_available_val == 'yes' else None,
             address_line1=form_data.get('address_line1'),
@@ -433,6 +455,11 @@ def edit_supplier(supplier_id):
     if request.method == 'POST':
         form_data = request.form
         supplier_name = form_data.get('supplier_name','').strip()
+        supplier_contact = form_data.get('supplier_contact', '').strip()
+        email_address = form_data.get('email_address', '').strip()
+        gst_available_val = form_data.get('gst_available', 'no')
+        gst_number_val = form_data.get('gst_number', '').strip()
+
         errors = []
 
         if not supplier_name:
@@ -446,9 +473,34 @@ def edit_supplier(supplier_id):
             if existing_supplier_by_name:
                 errors.append(f"Another supplier with name '{supplier_name}' already exists.")
 
-        gst_available_val = form_data.get('gst_available', 'no')
-        gst_number_val = form_data.get('gst_number', '').strip()
-        if gst_available_val == 'yes':
+        if supplier_contact:
+            existing_contact = Supplier.query.filter(
+                Supplier.id != supplier_id,
+                Supplier.supplier_contact == supplier_contact,
+                Supplier.deleted == False
+            ).first()
+            if existing_contact:
+                errors.append(f"Another supplier with contact number '{supplier_contact}' already exists.")
+
+        if email_address:
+            if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email_address):
+                errors.append("Invalid email address format.")
+            else:
+                existing_email = Supplier.query.filter(
+                    Supplier.id != supplier_id,
+                    Supplier.email_address == email_address,
+                    Supplier.deleted == False
+                ).first()
+                if existing_email:
+                    errors.append(f"Another supplier with email '{email_address}' already exists.")
+
+        if gst_available_val == 'yes' and gst_number_val:
+            existing_gst = Supplier.query.filter(
+                Supplier.id != supplier_id, Supplier.gst_number == gst_number_val, Supplier.deleted == False
+            ).first()
+            if existing_gst:
+                errors.append(f"Another supplier with GST number '{gst_number_val}' already exists.")
+
             if not gst_number_val:
                 errors.append('GST Number is required when GST is available.')
             elif not re.match(r"^[a-zA-Z0-9]{15}$", gst_number_val):
@@ -475,7 +527,8 @@ def edit_supplier(supplier_id):
             return render_template('supplier_form.html', supplier=supplier, error=error_message, form_data=form_data)
 
         supplier.supplier_name = supplier_name
-        supplier.supplier_contact = form_data.get('supplier_contact')
+        supplier.supplier_contact = supplier_contact if supplier_contact else None
+        supplier.email_address = email_address if email_address else None
         supplier.gst_available = gst_available_val
         supplier.gst_number = gst_number_val if gst_available_val == 'yes' else None
         supplier.address_line1 = form_data.get('address_line1')
@@ -496,6 +549,7 @@ def edit_supplier(supplier_id):
     form_data = {
         'supplier_name': supplier.supplier_name,
         'supplier_contact': supplier.supplier_contact or '',
+        'email_address': supplier.email_address or '',
         'gst_available': supplier.gst_available,
         'gst_number': supplier.gst_number or '',
         'address_line1': supplier.address_line1 or '',
@@ -1139,3 +1193,485 @@ def purchase_transactions():
 @main.route('/base')
 def base_preview():
     return render_template('base.html')
+
+# --- API Endpoints for Sales Entry Form ---
+
+@main.route('/api/products', methods=['GET'])
+@login_required
+def api_products():
+    """API endpoint to fetch all non-deleted products."""
+    try:
+        products = Product.query.filter_by(deleted=False).all()
+        product_list = [
+            {
+                "product_id": p.id,
+                "product_name": p.product_name,
+                "product_code": p.product_code,
+                "price_per_unit": None,  # Price is typically set at sale time or fetched differently
+                "gst_percentage": p.gst_percentage if p.gst_available == 'yes' else 0.0
+            } for p in products
+        ]
+        return jsonify(product_list)
+    except Exception as e:
+        # Log the exception e
+        return jsonify({"error": "Failed to fetch products"}), 500
+
+@main.route('/api/executives', methods=['GET'])
+@login_required
+def api_executives():
+    """API endpoint to fetch all active users (assumed to be executives)."""
+    try:
+        # Adjust filtering if executives are identified by a specific role
+        # e.g., User.query.filter_by(is_active=True, role='executive').all()
+        executives = User.query.filter_by(is_active=True).all()
+        executive_list = [
+            {
+                "executive_id": u.id,
+                "full_name": u.full_name
+            } for u in executives
+        ]
+        return jsonify(executive_list)
+    except Exception as e:
+        # Log the exception e
+        return jsonify({"error": "Failed to fetch executives"}), 500
+
+@main.route('/api/customer/by-contact/<string:contact_number>', methods=['GET'])
+@login_required
+def api_customer_by_contact(contact_number):
+    """API endpoint to fetch a customer by contact number."""
+    try:
+        customer = Customer.query.filter_by(contact_number=contact_number, deleted=False).first()
+        if customer:
+            return jsonify({
+                "customer_id": customer.id,
+                "customer_name": customer.customer_name,
+                "contact_number": customer.contact_number
+            })
+        else:
+            return jsonify({"error": "Customer not found"}), 404
+    except Exception as e:
+        # Log the exception e
+        return jsonify({"error": "Failed to fetch customer by contact"}), 500
+
+@main.route('/api/supplier/by-contact/<string:contact_number>', methods=['GET'])
+@login_required
+def api_supplier_by_contact(contact_number):
+    """API endpoint to fetch a supplier by contact number."""
+    try:
+        supplier = Supplier.query.filter_by(supplier_contact=contact_number, deleted=False).first()
+        if supplier:
+            return jsonify({
+                "supplier_id": supplier.id,
+                "supplier_name": supplier.supplier_name,
+                "supplier_contact": supplier.supplier_contact
+            })
+        else:
+            return jsonify({"error": "Supplier not found"}), 404
+    except Exception as e:
+        # Log the exception e
+        return jsonify({"error": "Failed to fetch supplier by contact"}), 500
+
+@main.route('/api/check_customer_exists', methods=['POST'])
+@login_required
+def api_check_customer_exists():
+    """
+    API endpoint to check if a customer field (e.g., name, email) already exists.
+    Expects JSON: {"field": "customer_name" | "email_address", "value": "...", "customer_id": "..." | null}
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid request. JSON data expected."}), 400
+
+        field_to_check = data.get('field')
+        value_to_check = data.get('value', '').strip()
+        customer_id_str = data.get('customer_id') # This will be a string like 'null' or an actual ID
+
+        if not field_to_check or not value_to_check:
+            return jsonify({"error": "Missing 'field' or 'value' in request."}), 400
+
+        # If checking customer_name for a NEW customer (customer_id is 'null' or not provided),
+        # report that it doesn't exist for client-side validation purposes,
+        # as server-side add_customer allows duplicate names.
+        if field_to_check == 'customer_name' and (not customer_id_str or customer_id_str == 'null'):
+            return jsonify({"exists": False})
+
+        if field_to_check == 'customer_name':
+            # For customer_name, uniqueness is typically checked against non-deleted, active records,
+            # and in edit mode, it's against *other* non-deleted records.
+            # The add_customer route allows duplicate names, and this API reflects that for new customers.
+            query = Customer.query.filter_by(deleted=False).filter(Customer.customer_name == value_to_check)
+        elif field_to_check == 'email_address':
+            # For email_address, the database UNIQUE constraint applies to all records (deleted or not).
+            # So, the check should not initially filter by deleted=False.
+            query = Customer.query.filter(Customer.email_address == value_to_check)
+        else:
+            return jsonify({"error": "Invalid 'field' specified."}), 400
+
+        # If editing (customer_id is provided and not 'null'), exclude the current customer.
+        # This is relevant for customer_name in edit mode, and for other fields (like email) in both add/edit mode.
+        if customer_id_str and customer_id_str != 'null':
+            query = query.filter(Customer.id != int(customer_id_str))
+
+        exists = query.first() is not None
+        return jsonify({"exists": exists})
+    except Exception as e:
+        # Log the exception e (e.g., import logging; logging.error(f"Error in api_check_customer_exists: {e}"))
+        return jsonify({"error": "Server error during check."}), 500
+
+@main.route('/api/invoice-details/<string:invoice_number>', methods=['GET'])
+@login_required
+def api_invoice_details(invoice_number):
+    if not invoice_number or not invoice_number.strip():
+        return jsonify({"error": "Invoice number is required."}), 400
+
+    sales_invoice = SalesInvoice.query.filter_by(invoice_number=invoice_number.strip(), deleted=False).first() # Assuming SalesInvoice has a 'deleted' flag
+
+    if not sales_invoice:
+        return jsonify({"error": "Invoice not found."}), 404
+
+    if not sales_invoice.customer:
+        return jsonify({"error": "Customer details not found for this invoice."}), 500
+
+    items_data = []
+    for item in sales_invoice.items:
+        if not item.product:
+            # This case should ideally not happen if data integrity is maintained
+            # Log this as a potential data issue
+            continue 
+
+        # Calculate already returned quantity for this item
+        already_returned_qty_query = db.session.query(db.func.sum(SalesReturnItem.quantity_returned)).join(SalesReturn, SalesReturnItem.sales_return_id == SalesReturn.id).filter(
+            SalesReturnItem.original_sales_invoice_item_id == item.id
+        )
+        # Ensure we only count returns linked to the *specific* original invoice if that's the business rule.
+        # However, original_sales_invoice_item_id should be globally unique for items, so linking to SalesReturn.original_invoice_id might be redundant if item IDs are unique across all invoices.
+        # For safety, let's assume original_sales_invoice_item_id is unique enough.
+        already_returned_qty = already_returned_qty_query.scalar() or 0
+
+        remaining_returnable_qty = item.quantity_sold - already_returned_qty
+        items_data.append({
+            "original_sales_invoice_item_id": item.id,
+            "product_id": item.product_id,
+            "product_name": item.product.product_name,
+            "original_quantity_sold": item.quantity_sold,
+            "quantity_already_returned": already_returned_qty,
+            "max_returnable_quantity": remaining_returnable_qty if remaining_returnable_qty > 0 else 0,
+            "price_per_unit_at_return": float(item.price_per_unit_before_gst), # Default to original price, ensure float
+            "gst_percentage": item.gst_percentage
+        })
+
+    return jsonify({
+        "invoice_id": sales_invoice.id,
+        "customer_id": sales_invoice.customer_id,
+        "customer_name": sales_invoice.customer.customer_name,
+        "items": items_data
+    })
+
+@main.route('/api/sales-return', methods=['POST'])
+@login_required
+def api_create_sales_return():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid request. JSON data expected."}), 400
+
+    # --- Basic Validation ---
+    required_fields = ['return_date', 'executive_id', 'original_invoice_number', 
+                       'return_reason', 'mode_of_refund', 'refund_option', 
+                       'final_amount_refunded', 'products']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+        if field == 'products' and (not isinstance(data[field], list) or not data[field]):
+            return jsonify({"error": "No products provided for return."}), 400
+        elif field != 'products' and not data[field]:
+             return jsonify({"error": f"Field '{field}' cannot be empty."}), 400
+
+    try:
+        return_date = datetime.strptime(data['return_date'], '%Y-%m-%d').date()
+        final_amount_refunded = float(data['final_amount_refunded'])
+        if final_amount_refunded < 0:
+            return jsonify({"error": "Final amount refunded cannot be negative."}), 400
+    except ValueError as e:
+        return jsonify({"error": f"Invalid data format: {str(e)}"}), 400
+    except TypeError:
+         return jsonify({"error": "Invalid type for date or amount."}), 400
+
+    executive = User.query.get(data['executive_id'])
+    if not executive:
+        return jsonify({"error": "Invalid executive ID."}), 400
+
+    original_invoice = SalesInvoice.query.filter_by(invoice_number=data['original_invoice_number'].strip()).first()
+    if not original_invoice:
+        return jsonify({"error": "Original invoice not found."}), 404
+    if not original_invoice.customer: # Should be caught by invoice-details, but good to double check
+        return jsonify({"error": "Customer not found for the original invoice."}), 404
+
+    # --- Item and Amount Validation ---
+    server_total_items_value_before_gst = 0.0
+    server_total_gst_reversed = 0.0
+    sales_return_items_to_create = []
+    product_stock_updates = {} # product_id: quantity_to_add_back
+
+    if not data['products']:
+         return jsonify({"error": "No products specified for return."}), 400
+
+    for item_data in data['products']:
+        try:
+            original_sales_invoice_item_id = int(item_data.get('original_sales_invoice_item_id'))
+            quantity_returned = int(item_data.get('quantity_returned'))
+            price_per_unit_at_return = float(item_data.get('price_per_unit_at_return'))
+            gst_percentage_applied = float(item_data.get('gst_percentage_applied', 0.0))
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid data type for product item (ID, quantity, price, or GST)."}), 400
+
+        if quantity_returned <= 0:
+            return jsonify({"error": f"Quantity returned for item ID {original_sales_invoice_item_id} must be positive."}), 400
+        if price_per_unit_at_return < 0:
+            return jsonify({"error": f"Price per unit for item ID {original_sales_invoice_item_id} cannot be negative."}), 400
+        if not (0 <= gst_percentage_applied <= 100):
+            return jsonify({"error": f"GST percentage for item ID {original_sales_invoice_item_id} is invalid."}), 400
+
+        original_invoice_item = SalesInvoiceItem.query.get(original_sales_invoice_item_id)
+        if not original_invoice_item or original_invoice_item.sales_invoice_id != original_invoice.id:
+            return jsonify({"error": f"Original sales item ID {original_sales_invoice_item_id} not found or does not belong to the specified invoice."}), 404
+
+        product = Product.query.get(original_invoice_item.product_id)
+        if not product:
+            return jsonify({"error": f"Product associated with sales item ID {original_sales_invoice_item_id} not found."}), 404
+
+        # Calculate already returned quantity for this specific item
+        already_returned_for_item = db.session.query(db.func.sum(SalesReturnItem.quantity_returned)).filter_by(original_sales_invoice_item_id=original_sales_invoice_item_id).scalar() or 0
+        max_returnable_for_item = original_invoice_item.quantity_sold - already_returned_for_item
+
+        if quantity_returned > max_returnable_for_item:
+            return jsonify({"error": f"Cannot return {quantity_returned} of product '{product.product_name}'. Max returnable is {max_returnable_for_item} (Original: {original_invoice_item.quantity_sold}, Already Returned: {already_returned_for_item})."}), 400
+
+        item_sub_total_before_gst = quantity_returned * price_per_unit_at_return
+        item_total_gst_reversed = item_sub_total_before_gst * (gst_percentage_applied / 100)
+        item_final_value = item_sub_total_before_gst + item_total_gst_reversed
+
+        sales_return_items_to_create.append(SalesReturnItem(
+            product_id=original_invoice_item.product_id,
+            original_sales_invoice_item_id=original_sales_invoice_item_id,
+            quantity_returned=quantity_returned,
+            price_per_unit_at_return=price_per_unit_at_return,
+            gst_percentage_applied=gst_percentage_applied,
+            gst_amount_reversed_per_unit= (price_per_unit_at_return * (gst_percentage_applied / 100)), # For record keeping
+            item_sub_total_before_gst=item_sub_total_before_gst,
+            item_total_gst_reversed=item_total_gst_reversed,
+            item_final_value=item_final_value
+        ))
+
+        server_total_items_value_before_gst += item_sub_total_before_gst
+        server_total_gst_reversed += item_total_gst_reversed
+        
+        # Aggregate stock updates
+        product_stock_updates[product.id] = product_stock_updates.get(product.id, 0) + quantity_returned
+
+    server_net_refundable_amount = round(server_total_items_value_before_gst + server_total_gst_reversed, 2)
+
+    # Validate final_amount_refunded against server-calculated net_refundable_amount and refund_option
+    refund_option = data['refund_option']
+    partial_refund_amount_input_str = data.get('partial_refund_amount_input')
+
+    if refund_option == 'full-refund':
+        if abs(final_amount_refunded - server_net_refundable_amount) > 0.01: # Tolerance for float comparison
+            return jsonify({"error": f"For Full Refund, Amount Refunded ({final_amount_refunded}) must match Total Refundable Amount ({server_net_refundable_amount})."}), 400
+    elif refund_option == 'partial-refund':
+        if not partial_refund_amount_input_str:
+            return jsonify({"error": "Partial refund amount input is required for partial refund option."}), 400
+        try:
+            partial_refund_amount_input = float(partial_refund_amount_input_str)
+            if partial_refund_amount_input <= 0:
+                return jsonify({"error": "Partial refund amount must be positive."}), 400
+            if abs(final_amount_refunded - partial_refund_amount_input) > 0.01:
+                return jsonify({"error": "Final refunded amount does not match the entered partial refund amount."}), 400
+            if final_amount_refunded > server_net_refundable_amount + 0.01: # Allow small tolerance
+                return jsonify({"error": f"Partial refund amount ({final_amount_refunded}) cannot exceed total refundable amount ({server_net_refundable_amount})."}), 400
+        except ValueError:
+            return jsonify({"error": "Invalid partial refund amount input."}), 400
+    else:
+        return jsonify({"error": "Invalid refund option."}), 400
+
+    try:
+        db.session.begin_nested() # For operations that might fail before the main commit
+
+        new_sales_return = SalesReturn(
+            return_date=return_date,
+            original_invoice_id=original_invoice.id,
+            customer_id=original_invoice.customer_id,
+            executive_id=executive.id,
+            return_reason=data['return_reason'].strip(),
+            total_items_value_before_gst=server_total_items_value_before_gst,
+            total_gst_reversed=server_total_gst_reversed,
+            net_refundable_amount=server_net_refundable_amount,
+            mode_of_refund=data['mode_of_refund'],
+            refund_option=refund_option,
+            partial_refund_amount_input=float(partial_refund_amount_input_str) if refund_option == 'partial-refund' and partial_refund_amount_input_str else None,
+            final_amount_refunded=final_amount_refunded,
+            notes=data.get('notes', '').strip()
+        )
+        db.session.add(new_sales_return)
+
+        for item_to_create in sales_return_items_to_create:
+            item_to_create.sales_return = new_sales_return # Associate with the parent return
+            db.session.add(item_to_create)
+
+        # Update product stock
+        for product_id, qty_to_add in product_stock_updates.items():
+            product_to_update = Product.query.get(product_id)
+            if product_to_update: # Should always be true based on earlier checks
+                product_to_update.current_stock = (product_to_update.current_stock or 0) + qty_to_add
+            else:
+                # This should not happen if validation is correct
+                db.session.rollback()
+                return jsonify({"error": f"Critical error: Product ID {product_id} not found during stock update."}), 500
+        
+        db.session.commit()
+        return jsonify({"message": "Sales return created successfully.", "return_id": new_sales_return.id}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        # Log the exception e
+        print(f"Error creating sales return: {e}") # Basic logging
+        return jsonify({"error": f"An internal error occurred: {str(e)}"}), 500
+
+
+# --- End of API Endpoints ---
+
+@main.route('/api/sales', methods=['POST'])
+@login_required
+def api_create_sales():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid request. JSON data expected."}), 400
+
+    # Basic validation
+    required_fields = ['sales_date', 'executive_id', 'customer_id', 'mode_of_payment', 'payment_option', 'overall_discount_amount', 'amount_paid_by_customer', 'items']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+        if field == 'items' and (not isinstance(data[field], list) or not data[field]):
+            return jsonify({"error": "No items provided for sale."}), 400
+        elif field != 'items':
+            # Allow 0 for overall_discount_amount and amount_paid_by_customer
+            if field in ['overall_discount_amount', 'amount_paid_by_customer']:
+                if data[field] is None or data[field] == '':
+                    return jsonify({"error": f"Field '{field}' cannot be empty."}), 400
+            else:
+                if not data[field]:
+                    return jsonify({"error": f"Field '{field}' cannot be empty."}), 400
+
+    try:
+        sales_date = datetime.strptime(data['sales_date'], '%Y-%m-%d').date()
+        executive_id = int(data['executive_id'])
+        customer_id = int(data['customer_id'])
+        mode_of_payment = data['mode_of_payment']
+        payment_option = data['payment_option']
+        overall_discount_amount = float(data.get('overall_discount_amount', 0))
+        amount_paid = float(data.get('amount_paid_by_customer', 0))
+        notes = data.get('notes', '').strip()
+    except Exception as e:
+        return jsonify({"error": f"Invalid data format: {str(e)}"}), 400
+
+    executive = User.query.get(executive_id)
+    if not executive:
+        return jsonify({"error": "Invalid executive ID."}), 400
+    customer = Customer.query.get(customer_id)
+    if not customer:
+        return jsonify({"error": "Invalid customer ID."}), 400
+
+    # Generate a unique invoice number (simple example)
+    invoice_number = f"SI-{int(datetime.utcnow().timestamp())}"
+
+    # Calculate totals
+    total_amount_before_gst = 0
+    total_gst_amount = 0
+    items_to_create = []
+    for item in data['items']:
+        try:
+            product_id = int(item['product_id'])
+            quantity_sold = float(item['quantity_sold'])
+            price_per_unit_before_gst = float(item['price_per_unit_before_gst'])
+        except Exception:
+            return jsonify({"error": "Invalid item data (product_id, quantity, or price)."}), 400
+        if quantity_sold <= 0 or price_per_unit_before_gst < 0:
+            return jsonify({"error": "Quantity must be positive and price non-negative for all items."}), 400
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({"error": f"Product ID {product_id} not found."}), 400
+        gst_percentage = float(product.gst_percentage) if product.gst_available == 'yes' else 0.0
+        item_sub_total_before_gst = quantity_sold * price_per_unit_before_gst
+        item_total_gst_amount = item_sub_total_before_gst * (gst_percentage / 100)
+        item_final_amount = item_sub_total_before_gst + item_total_gst_amount
+        total_amount_before_gst += item_sub_total_before_gst
+        total_gst_amount += item_total_gst_amount
+        items_to_create.append({
+            'product_id': product_id,
+            'quantity_sold': quantity_sold,
+            'price_per_unit_before_gst': price_per_unit_before_gst,
+            'gst_percentage': gst_percentage,
+            'gst_amount_per_unit': price_per_unit_before_gst * (gst_percentage / 100),
+            'item_discount_amount': 0.0,  # No per-item discount in this form
+            'item_sub_total_before_gst': item_sub_total_before_gst,
+            'item_total_gst_amount': item_total_gst_amount,
+            'item_final_amount': item_final_amount
+        })
+
+    net_amount_before_gst = total_amount_before_gst - overall_discount_amount
+    if net_amount_before_gst < 0:
+        return jsonify({"error": "Discount cannot exceed total amount before GST."}), 400
+    total_invoice_amount = net_amount_before_gst + total_gst_amount
+
+    # Payment validation
+    if payment_option == 'full-payment':
+        if abs(amount_paid - total_invoice_amount) > 0.01:
+            return jsonify({"error": "For full payment, amount paid must match total payable amount."}), 400
+    elif payment_option == 'partial-payment':
+        if amount_paid <= 0:
+            return jsonify({"error": "For partial payment, amount paid must be greater than zero."}), 400
+        if amount_paid > total_invoice_amount:
+            return jsonify({"error": "Partial amount paid cannot be greater than total payable amount."}), 400
+    else:
+        return jsonify({"error": "Invalid payment option."}), 400
+
+    try:
+        db.session.begin_nested()
+        new_invoice = SalesInvoice(
+            invoice_number=invoice_number,
+            invoice_date=sales_date,
+            customer_id=customer_id,
+            executive_id=executive_id,
+            total_amount_before_gst=total_amount_before_gst,
+            total_gst_amount=total_gst_amount,
+            overall_discount_amount=overall_discount_amount,
+            total_invoice_amount=total_invoice_amount,
+            payment_status='Paid' if payment_option == 'full-payment' else 'Partial',
+            # amount_paid is not a column in SalesInvoice; payment tracking can be added to a new table/field if needed
+            notes=notes
+        )
+        db.session.add(new_invoice)
+        db.session.flush()  # To get new_invoice.id
+        for item in items_to_create:
+            db.session.add(SalesInvoiceItem(
+                sales_invoice_id=new_invoice.id,
+                product_id=item['product_id'],
+                quantity_sold=item['quantity_sold'],
+                price_per_unit_before_gst=item['price_per_unit_before_gst'],
+                gst_percentage=item['gst_percentage'],
+                gst_amount_per_unit=item['gst_amount_per_unit'],
+                item_discount_amount=item['item_discount_amount'],
+                item_sub_total_before_gst=item['item_sub_total_before_gst'],
+                item_total_gst_amount=item['item_total_gst_amount'],
+                item_final_amount=item['item_final_amount']
+            ))
+            # Update product stock
+            product = Product.query.get(item['product_id'])
+            if product:
+                product.current_stock = (product.current_stock or 0) - item['quantity_sold']
+        db.session.commit()
+        return jsonify({"message": "Sales invoice created successfully!", "invoice_number": invoice_number}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"An error occurred while creating the sales invoice: {str(e)}"}), 500

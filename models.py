@@ -55,6 +55,7 @@ class Supplier(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     supplier_name = db.Column(db.String(255), nullable=False)
     supplier_contact = db.Column(db.String(50))
+    email_address = db.Column(db.String(255), unique=True, nullable=True) # Added email address
     gst_available = db.Column(db.Enum('yes', 'no'), default='no')
     gst_number = db.Column(db.String(15))
     address_line1 = db.Column(db.String(255))

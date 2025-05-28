@@ -1,569 +1,648 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-    <div class="flex justify-center items-center py-10 main-content">
-        <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
-            </div>
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Sales Return</h1>
+<div class="min-h-screen flex justify-center items-center py-10 main-content">
+    <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container" id="sales-return-form-container">
+        <div class="logo-container flex justify-center mb-4">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+        </div>
+        <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Sales Return</h1>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label for="return-date" class="block text-gray-700 text-sm font-bold mb-2">Return Date:</label>
-                    <input type="date" id="return-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div>
-                    <label for="executive-name" class="block text-gray-700 text-sm font-bold mb-2">Executive Name:</label>
-                    <select id="executive-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="">Select Executive</option>
-                    </select>
-                </div>
-            </div>
+        <div id="form-error-message" class="mb-4 hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <div class="original-invoice-label-container">
-                        <label for="original-invoice" class="text-gray-700 text-sm font-bold">Original Invoice:</label>
-                        <span class="view-invoice-link" onclick="window.location.href='{{ url_for('main.sales_transactions') }}'">View Invoices</span>
-                    </div>
-                    <div class="original-invoice-container">                        
-                        <input type="text" id="original-invoice" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter Invoice Number">
-                    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="return-date" class="block text-gray-700 text-sm font-bold mb-2 text-left">Return Date:</label>
+                <input type="date" id="return-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="executive-name" class="block text-gray-700 text-sm font-bold mb-2 text-left">Executive Name:</label>
+                <select id="executive-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Select Executive</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <div class="original-invoice-label-container flex items-center justify-between">
+                    <label for="original-invoice" class="text-gray-700 text-sm font-bold">Original Invoice:</label>
+                    <span class="view-invoice-link text-blue-600 hover:underline cursor-pointer" onclick="window.location.href='{{ url_for('main.sales_transactions') }}'">View Invoices</span>
                 </div>
-                <div>
-                    <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2">Customer Name:</label>
-                    <input type="text" id="customer-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                <div class="original-invoice-container">                        
+                    <input type="text" id="original-invoice" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter Invoice Number">
                 </div>
             </div>
-
-            <table id="product-table" class="mb-6">
-                <thead>
-                    <tr>
-                        <th>Product ID</th>
-                        <th>Product Name</th>
-                        <th>Quantity Returned</th>
-                        <th>Price Per Unit</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Select Product ID</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Select Product Name</option>
-                            </select>
-                        </td>
-                        <td><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
-                        <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
-                        <td class="amount">₹0.00</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table id="product-table-mobile" class="mb-6">
-                <thead>
-                    <tr>
-                        <th>Product ID</th>
-                        <th>Product Name</th>
-                        <th>Quantity Returned</th>
-                        <th>Price Per Unit</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <label>Product ID</label>
-                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Select Product ID</option>
-                            </select>
-                        </td>
-                        <td>
-                            <label>Product Name</label>
-                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Select Product Name</option>
-                            </select>
-                        </td>
-                        <td>
-                            <label>Quantity Returned</label>
-                            <input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </td>
-                        <td>
-                            <label>Price Per Unit</label>
-                            <input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </td>
-                        <td class="amount">₹0.00</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div id="total-and-gst-container" class="mb-6">
-                <div class="mb-2">
-                    <span class="text-green-600 font-bold">Total Refundable Amount: </span>
-                    <span id="total-refundable-amount" class="text-gray-700">₹0.00</span>
-                </div>
+            <div>
+                <label for="customer-name" class="block text-gray-700 text-sm font-bold mb-2 text-left">Customer Name:</label>
+                <input type="text" id="customer-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
             </div>
-            
-            <div class="mb-4">
-                <label for="return-reason" class="block text-gray-700 text-sm font-bold mb-2">Return Reason:</label>
-                <input type="text" id="return-reason" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
+        </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label for="mode-of-refund" class="block text-gray-700 text-sm font-bold mb-2">Mode of Refund:</label>
-                    <select id="mode-of-refund" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="">Select Mode</option>
-                        <option value="upi">UPI</option>
-                        <option value="cash">Cash</option>
-                        <option value="card">Card</option>
-                        <option value="bank">Bank Transfer</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="refund-option" class="block text-gray-700 text-sm font-bold mb-2">Refund Option:</label>
-                    <select id="refund-option" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="full-refund" selected>Full Refund</option>
-                        <option value="partial-refund">Partial Refund</option>
-                    </select>
-                </div>
-            </div>
+        <table id="product-table" class="mb-6 w-full border rounded overflow-hidden">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Product ID</th>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Product Name</th>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Quantity Returned</th>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Price Per Unit</th>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Amount</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
 
-            <div class="mb-4 show-partial-refund" id="partial-refund-amount">
-                <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Partial Refund Amount:</label>
-                <input type="number" id="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
+        <table id="product-table-mobile" class="mb-6 w-full border rounded overflow-hidden md:hidden">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Product ID</th>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Product Name</th>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Quantity Returned</th>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Price Per Unit</th>
+                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700">Amount</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
 
-            <div id="final-refund-amount-container" class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Amount Refunded:</label>
-                <input type="number" id="final-refund-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+        <div class="totals-summary mb-6 p-4 border rounded-md bg-gray-50">
+            <h3 class="text-lg font-semibold mb-3 text-gray-700">Return Summary</h3>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <span class="text-gray-600">Total Refundable Amount:</span>
+                <span id="total-refundable-amount" class="text-right font-medium text-green-700">₹0.00</span>
             </div>
+        </div>
+        
+        <div class="mb-4">
+            <label for="return-reason" class="block text-gray-700 text-sm font-bold mb-2 text-left">Return Reason:</label>
+            <input type="text" id="return-reason" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
 
-            <button id="submit-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="mode-of-refund" class="block text-gray-700 text-sm font-bold mb-2 text-left">Mode of Refund:</label>
+                <select id="mode-of-refund" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Select Mode</option>
+                    <option value="upi">UPI</option>
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                    <option value="bank">Bank Transfer</option>
+                </select>
+            </div>
+            <div>
+                <label for="refund-option" class="block text-gray-700 text-sm font-bold mb-2 text-left">Refund Option:</label>
+                <select id="refund-option" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="full-refund" selected>Full Refund</option>
+                    <option value="partial-refund">Partial Refund</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-4" id="partial-refund-amount" style="display: none;">
+            <label for="amount" class="block text-gray-700 text-sm font-bold mb-2 text-left">Partial Refund Amount:</label>
+            <input type="number" id="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01">
+        </div>
+
+        <div id="final-refund-amount-container" class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2 text-left">Amount Refunded:</label>
+            <input type="number" id="final-refund-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+        </div>
+
+        <div class="flex flex-row items-center justify-between mt-4">
+            <button id="submit-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+            <div style="display: flex; justify-content: flex-end; margin-top: 0;">
+                <a href="{{ url_for('main.sales_transactions') }}" class="btn btn-secondary" style="padding: 12px 24px; background: #f4f7fa; color: #023f90; border: 2px solid #023f90; border-radius: 8px; font-size: 16px; text-decoration: none; transition: background 0.2s, color 0.2s;">Back to Sales</a>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}
 
-    <script>
-        const refundOptionSelect = document.getElementById('refund-option');
-        const partialRefundAmountInput = document.getElementById('partial-refund-amount');
-        const productTable = document.getElementById('product-table');
-        const productTableMobile = document.getElementById('product-table-mobile');
-        const totalRefundableAmountDisplay = document.getElementById('total-refundable-amount');
-        const originalInvoiceInput = document.getElementById('original-invoice');
-        const customerNameInput = document.getElementById('customer-name');
-        const returnDateInput = document.getElementById('return-date');
-        const executiveNameSelect = document.getElementById('executive-name');
-        const finalRefundAmountInput = document.getElementById('final-refund-amount');
-        const returnReasonInput = document.getElementById('return-reason');
-        const modeOfRefundSelect = document.getElementById('mode-of-refund');
-        const submitFormButton = document.getElementById('submit-form');
+<script>
+    const refundOptionSelect = document.getElementById('refund-option');
+    const partialRefundAmountInput = document.getElementById('partial-refund-amount');
+    const productTable = document.getElementById('product-table');
+    const productTableMobile = document.getElementById('product-table-mobile');
+    const totalRefundableAmountDisplay = document.getElementById('total-refundable-amount');
+    const originalInvoiceInput = document.getElementById('original-invoice');
+    const customerNameInput = document.getElementById('customer-name');
+    const returnDateInput = document.getElementById('return-date');
+    const executiveNameSelect = document.getElementById('executive-name');
+    const finalRefundAmountInput = document.getElementById('final-refund-amount');
+    const returnReasonInput = document.getElementById('return-reason');
+    const modeOfRefundSelect = document.getElementById('mode-of-refund');
+    const submitFormButton = document.getElementById('submit-form');
 
-        async function populateExecutives() {
-            try {
-                const response = await fetch('/api/executives');
-                if (!response.ok) throw new Error('Failed to fetch executives');
-                const executives = await response.json();
+    async function populateExecutives() {
+        try {
+            const response = await fetch('/api/executives');
+            if (!response.ok) throw new Error('Failed to fetch executives');
+            const executives = await response.json();
+
+            // Renamed and corrected the inner function to use the fetched 'executives'
+            function populateDropdownWithOptions() {
                 executiveNameSelect.innerHTML = '<option value="">Select Executive</option>';
-                executives.forEach(exec => {
+                executives.forEach(executive => { // Use the 'executives' variable from the outer scope
                     const option = document.createElement('option');
-                    option.value = exec.executive_id;
-                    option.textContent = exec.full_name;
+                    option.value = executive.id; // Use ID as value
+                    option.textContent = executive.full_name; // Display name
                     executiveNameSelect.appendChild(option);
                 });
-            } catch (error) {
-                console.error("Error fetching executives:", error);
             }
+            populateDropdownWithOptions(); // Call the function to populate the dropdown
+        } catch (error) {
+            console.error("Error fetching executives:", error);
+            // Consider adding user-facing error feedback here, e.g., using showFormError()
+        }
+    }
+
+    function clearInvoiceDetails() {
+        customerNameInput.value = '';
+        originalInvoiceInput.dataset.invoiceId = '';
+        const productTableBody = productTable.querySelector('tbody');
+        const productTableMobileBody = productTableMobile.querySelector('tbody');
+        productTableBody.innerHTML = '';
+        productTableMobileBody.innerHTML = '';
+        addRow(null, '', '', '', '', 0, 0);
+        calculateTotal();
+    }
+
+    originalInvoiceInput.addEventListener('blur', async function() {
+        const invoiceNumber = this.value.trim();
+        if (!invoiceNumber) {
+            clearInvoiceDetails();
+            return;
         }
 
-        function clearInvoiceDetails() {
-            customerNameInput.value = '';
-            originalInvoiceInput.dataset.invoiceId = '';
+        try {
+            const response = await fetch(`/api/invoice-details/${invoiceNumber}`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    alert('Invoice not found.');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error fetching invoice details: ${errorData.error || response.statusText}`);
+                }
+                clearInvoiceDetails();
+                return;
+            }
+            const data = await response.json();
+            customerNameInput.value = data.customer_name;
+            originalInvoiceInput.dataset.invoiceId = data.invoice_id;
+
             const productTableBody = productTable.querySelector('tbody');
             const productTableMobileBody = productTableMobile.querySelector('tbody');
             productTableBody.innerHTML = '';
             productTableMobileBody.innerHTML = '';
-            addRow(null, '', '', '', '', 0, 0);
-            calculateTotal();
-        }
 
-        originalInvoiceInput.addEventListener('blur', async function() {
-            const invoiceNumber = this.value.trim();
-            if (!invoiceNumber) {
-                clearInvoiceDetails();
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/invoice-details/${invoiceNumber}`);
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        alert('Invoice not found.');
-                    } else {
-                        const errorData = await response.json();
-                        alert(`Error fetching invoice details: ${errorData.error || response.statusText}`);
-                    }
-                    clearInvoiceDetails();
-                    return;
-                }
-                const data = await response.json();
-                customerNameInput.value = data.customer_name;
-                originalInvoiceInput.dataset.invoiceId = data.invoice_id;
-
-                const productTableBody = productTable.querySelector('tbody');
-                const productTableMobileBody = productTableMobile.querySelector('tbody');
-                productTableBody.innerHTML = '';
-                productTableMobileBody.innerHTML = '';
-
-                if (data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
-                        addRow(
-                            item.original_sales_invoice_item_id,
-                            item.product_id,
-                            item.product_name,
-                            '',
-                            item.price_per_unit_at_return,
-                            item.gst_percentage,
-                            item.original_quantity_sold
-                        );
-                    });
-                } else {
-                    addRow(null, '', '', '', '', 0, 0);
-                    alert('No items found for this invoice or invoice has no items.');
-                }
-                calculateTotal();
-            } catch (error) {
-                console.error('Error fetching invoice details:', error);
-                alert('An error occurred while fetching invoice details.');
-                clearInvoiceDetails();
-            }
-        });
-
-        returnDateInput.value = new Date().toISOString().split('T')[0];
-        populateExecutives();
-        addRow(null, '', '', '', '', 0, 0);
-
-        refundOptionSelect.addEventListener('change', function() {
-            if (this.value === 'partial-refund') {
-                partialRefundAmountInput.classList.add('show-partial-refund');
-                finalRefundAmountInput.readOnly = false;
-                finalRefundAmountInput.value = '';
-            } else {
-                partialRefundAmountInput.classList.remove('show-partial-refund');
-                finalRefundAmountInput.readOnly = true;
-                calculateTotal();
-            }
-        });
-
-        function formatIndianCurrency(amount) {
-            return new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }).format(amount);
-        }
-
-        function calculateTotal() {
-            let totalRefundableBeforeGst = 0;
-            let totalGstReversed = 0;
-
-            const isMobile = window.innerWidth < 768;
-            const tableToQuery = isMobile ? productTableMobile : productTable;
-            const rows = tableToQuery.querySelectorAll('tbody tr');
-
-            rows.forEach(row => {
-                const quantityInput = row.querySelector('.quantity-returned');
-                const pricePerUnitInput = row.querySelector('.price-per-unit');
-                const gstPercentageInput = row.querySelector('.gst-percentage');
-                const amountCellDisplay = row.querySelector(isMobile ? '.amount span' : '.amount');
-
-                const quantity = parseFloat(quantityInput ? quantityInput.value : 0);
-                const pricePerUnit = parseFloat(pricePerUnitInput ? pricePerUnitInput.value : 0);
-                const gstPercentage = parseFloat(gstPercentageInput ? gstPercentageInput.value : 0);
-
-                if (!isNaN(quantity) && quantity > 0 && !isNaN(pricePerUnit)) {
-                    const itemSubTotalBeforeGst = quantity * pricePerUnit;
-                    const itemGstAmount = itemSubTotalBeforeGst * (gstPercentage / 100);
-                    const itemFinalAmount = itemSubTotalBeforeGst + itemGstAmount;
-
-                    if (amountCellDisplay) amountCellDisplay.textContent = formatIndianCurrency(itemFinalAmount);
-                    totalRefundableBeforeGst += itemSubTotalBeforeGst;
-                    totalGstReversed += itemGstAmount;
-                } else {
-                    if (amountCellDisplay) amountCellDisplay.textContent = '₹0.00';
-                }
-            });
-
-            const netRefundableAmount = totalRefundableBeforeGst + totalGstReversed;
-            totalRefundableAmountDisplay.textContent = formatIndianCurrency(netRefundableAmount);
-
-            if (refundOptionSelect.value !== 'partial-refund') {
-                finalRefundAmountInput.value = netRefundableAmount.toFixed(2);
-            }
-        }
-
-        document.getElementById('amount').addEventListener('input', function() {
-            if (refundOptionSelect.value === 'partial-refund') {
-                const partialRefundAmount = parseFloat(this.value);
-                if (!isNaN(partialRefundAmount)) {
-                    finalRefundAmountInput.value = partialRefundAmount;
-                } else {
-                    finalRefundAmountInput.value = '';
-                }
-            }
-        });
-
-        function addRow(originalItemId, productId, productName, quantityReturned, pricePerUnit, gstPercentage, maxQuantity) {
-            let newRow;
-            const isMobile = window.innerWidth < 768;
-            const tableBody = isMobile ? productTableMobile.querySelector('tbody') : productTable.querySelector('tbody');
-            
-            if (!tableBody) {
-                console.error("Table body not found for adding row.");
-                return;
-            }
-            newRow = tableBody.insertRow();
-
-            const originalItemIdInputEl = document.createElement('input');
-            originalItemIdInputEl.type = 'hidden';
-            originalItemIdInputEl.className = 'original-sales-invoice-item-id';
-            originalItemIdInputEl.value = originalItemId || '';
-
-            const gstPercentageInputEl = document.createElement('input');
-            gstPercentageInputEl.type = 'hidden';
-            gstPercentageInputEl.className = 'gst-percentage';
-            gstPercentageInputEl.value = gstPercentage || '0';
-
-            if (isMobile) {
-                const cellProductId = newRow.insertCell();
-                cellProductId.innerHTML = `<label>Product ID</label><span class="product-id-text">${productId || 'N/A'}</span>`;
-                cellProductId.appendChild(originalItemIdInputEl);
-                cellProductId.appendChild(gstPercentageInputEl);
-
-                const cellProductName = newRow.insertCell();
-                cellProductName.innerHTML = `<label>Product Name</label><span class="product-name-text">${productName || 'N/A'}</span>`;
-
-                const cellQuantity = newRow.insertCell();
-                cellQuantity.innerHTML = `<label>Quantity Returned (Max: ${maxQuantity !== undefined && maxQuantity !== null ? maxQuantity : 'N/A'})</label><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${quantityReturned || ''}" min="0" ${maxQuantity !== undefined && maxQuantity !== null ? `max="${maxQuantity}"` : ''}>`;
-
-                const cellPrice = newRow.insertCell();
-                cellPrice.innerHTML = `<label>Price Per Unit</label><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${pricePerUnit || ''}">`;
-
-                const cellAmount = newRow.insertCell();
-                cellAmount.className = 'amount';
-                cellAmount.innerHTML = `<label>Amount</label><span>₹0.00</span>`;
-            } else {
-                const cellProductId = newRow.insertCell();
-                cellProductId.textContent = productId || 'N/A';
-                cellProductId.appendChild(originalItemIdInputEl);
-                cellProductId.appendChild(gstPercentageInputEl);
-
-                const cellProductName = newRow.insertCell();
-                cellProductName.textContent = productName || 'N/A';
-
-                const cellQuantity = newRow.insertCell();
-                cellQuantity.innerHTML = `<input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${quantityReturned || ''}" min="0" ${maxQuantity !== undefined && maxQuantity !== null ? `max="${maxQuantity}"` : ''} title="Max: ${maxQuantity !== undefined && maxQuantity !== null ? maxQuantity : 'N/A'}">`;
-
-                const cellPrice = newRow.insertCell();
-                cellPrice.innerHTML = `<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${pricePerUnit || ''}">`;
-
-                const cellAmount = newRow.insertCell();
-                cellAmount.className = 'amount';
-                cellAmount.textContent = '₹0.00';
-            }
-
-            const quantityInput = newRow.querySelector('.quantity-returned');
-            if (quantityInput) {
-                quantityInput.addEventListener('input', calculateTotal);
-                quantityInput.addEventListener('change', calculateTotal);
-            }
-            const priceInput = newRow.querySelector('.price-per-unit');
-            if (priceInput) {
-                priceInput.addEventListener('input', calculateTotal);
-                priceInput.addEventListener('change', calculateTotal);
-            }
-            calculateTotal();
-        }
-
-        calculateTotal();
-        
-        const initialRows = productTable.querySelectorAll('tbody tr');
-        initialRows.forEach(row => {
-            const inputs = row.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('change', calculateTotal);
-            });
-            const selects = row.querySelectorAll('select');
-            selects.forEach(select => {
-                select.addEventListener('change', calculateTotal);
-            });
-        });
-
-        const initialMobileRows = productTableMobile.querySelectorAll('tbody tr');
-        initialMobileRows.forEach(row => {
-            const inputs = row.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('change', calculateTotal);
-            });
-            const selects = row.querySelectorAll('select');
-            selects.forEach(select => {
-                select.addEventListener('change', calculateTotal);
-            });
-        });
-
-        submitFormButton.addEventListener('click', async function() {
-            const returnDate = returnDateInput.value;
-            const executiveId = executiveNameSelect.value;
-            const originalInvoiceNumber = originalInvoiceInput.value.trim();
-            const customerName = customerNameInput.value;
-            const returnReason = returnReasonInput.value;
-            const modeOfRefund = modeOfRefundSelect.value;
-            const refundOption = refundOptionSelect.value;
-            const partialRefundAmount = document.getElementById('amount').value;
-            const finalRefundAmount = finalRefundAmountInput.value;
-
-            if (!returnDate) {
-                alert('Please enter the return date.');
-                return;
-            }
-            if (!executiveId) {
-                alert('Please select the executive name.');
-                return;
-            }
-            if (!originalInvoiceNumber) {
-                alert('Please select the original invoice.');
-                return;
-            }
-            if (!customerName) {
-                alert('Customer name is not available for this invoice.');
-                return;
-            }
-            if (!returnReason) {
-                alert('Please enter the return reason.');
-                return;
-            }
-            if (!modeOfRefund) {
-                alert('Please select the mode of refund.');
-                return;
-            }
-            if (refundOption === 'partial-refund' && !partialRefundAmount) {
-                alert('Please enter the partial refund amount.');
-                return;
-            }
-            if (!finalRefundAmount) {
-                alert('Please enter the refund amount.');
-                return;
-            }
-
-            const products = [];
-            const isMobile = window.innerWidth < 768;
-            const tableToQuery = isMobile ? productTableMobile : productTable;
-            const rows = tableToQuery.querySelectorAll('tbody tr');
-            let formIsValid = true;
-
-            rows.forEach(row => {
-                const originalItemIdInput = row.querySelector('.original-sales-invoice-item-id');
-                const productIdFromCell = isMobile ? row.querySelector('.product-id-text')?.textContent : row.cells[0]?.textContent.trim();
-                const quantityInput = row.querySelector('.quantity-returned');
-                const pricePerUnitInput = row.querySelector('.price-per-unit');
-                const gstPercentageInput = row.querySelector('.gst-percentage');
-
-                const originalSalesInvoiceItemId = originalItemIdInput ? originalItemIdInput.value : null;
-                const quantity = parseFloat(quantityInput ? quantityInput.value : 0);
-                const pricePerUnit = parseFloat(pricePerUnitInput ? pricePerUnitInput.value : 0);
-                const gstPercentage = parseFloat(gstPercentageInput ? gstPercentageInput.value : 0);
-
-                if (originalSalesInvoiceItemId && !isNaN(quantity) && quantity > 0) {
-                    if (isNaN(pricePerUnit)) {
-                        alert(`Invalid price for an item. Please check product table.`);
-                        formIsValid = false;
-                        return;
-                    }
-
-                    products.push({
-                        original_sales_invoice_item_id: originalSalesInvoiceItemId,
-                        quantity_returned: quantity,
-                        price_per_unit_at_return: pricePerUnit,
-                        gst_percentage_applied: gstPercentage,
-                    });
-                }
-            });
-
-            if (products.length === 0) {
-                alert('Please add at least one product to the return.');
-                return;
-            }
-            if (!formIsValid) return;
-
-            let clientSideTotalItemsValueBeforeGst = 0;
-            let clientSideTotalGstReversed = 0;
-            products.forEach(p => {
-                clientSideTotalItemsValueBeforeGst += p.quantity_returned * p.price_per_unit_at_return;
-                clientSideTotalGstReversed += (p.quantity_returned * p.price_per_unit_at_return) * (p.gst_percentage_applied / 100);
-            });
-            const clientSideNetRefundableAmount = clientSideTotalItemsValueBeforeGst + clientSideTotalGstReversed;
-
-            const finalRefundAmountNum = parseFloat(finalRefundAmount);
-            if (isNaN(finalRefundAmountNum) || finalRefundAmountNum < 0) {
-                alert('Final refund amount is invalid.');
-                return;
-            }
-
-            if (refundOption === 'full-refund' && Math.abs(finalRefundAmountNum - clientSideNetRefundableAmount) > 0.01) {
-                alert('For Full Refund, the Amount Refunded must match the Total Refundable Amount. Calculated: ' + formatIndianCurrency(clientSideNetRefundableAmount));
-                return;
-            }
-            if (refundOption === 'partial-refund') {
-                const partialAmountNum = parseFloat(document.getElementById('amount').value);
-                if (isNaN(partialAmountNum) || partialAmountNum <= 0) {
-                    alert('Please enter a valid partial refund amount.');
-                    return;
-                }
-                if (Math.abs(finalRefundAmountNum - partialAmountNum) > 0.01) {
-                    alert('Final refunded amount does not match the entered partial refund amount.');
-                    return;
-                }
-                if (finalRefundAmountNum > clientSideNetRefundableAmount) {
-                    alert('Partial refund amount cannot exceed the total refundable amount. Max: ' + formatIndianCurrency(clientSideNetRefundableAmount));
-                    return;
-                }
-            }
-
-            const returnData = {
-                return_date: returnDate,
-                executive_id: executiveId,
-                original_invoice_number: originalInvoiceNumber,
-                return_reason: returnReason,
-                mode_of_refund: modeOfRefund,
-                refund_option: refundOption,
-                partial_refund_amount_input: refundOption === 'partial-refund' ? document.getElementById('amount').value : null,
-                final_amount_refunded: finalRefundAmount,
-                products: products,
-            };
-
-            try {
-                const response = await fetch('/api/sales-return', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', },
-                    body: JSON.stringify(returnData),
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(item => {
+                    addRow(
+                        item.original_sales_invoice_item_id,
+                        item.product_id,
+                        item.product_name,
+                        '',
+                        item.price_per_unit_at_return,
+                        item.gst_percentage,
+                        item.original_quantity_sold
+                    );
                 });
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message || 'Sales return created successfully!');
-                    window.location.href = "{{ url_for('main.sales_transactions') }}";
-                } else {
-                    alert(`Error: ${result.error || 'Failed to create sales return.'}`);
-                }
-            } catch (error) {
-                console.error('Error submitting sales return:', error);
-                alert('An error occurred while submitting the sales return.');
+            } else {
+                addRow(null, '', '', '', '', 0, 0);
+                alert('No items found for this invoice or invoice has no items.');
+            }
+            calculateTotal();
+        } catch (error) {
+            console.error('Error fetching invoice details:', error);
+            alert('An error occurred while fetching invoice details.');
+            clearInvoiceDetails();
+        }
+    });
+
+    returnDateInput.value = new Date().toISOString().split('T')[0];
+    populateExecutives();
+    addRow(null, '', '', '', '', 0, 0);
+
+    // Show/hide partial refund field based on option
+    refundOptionSelect.addEventListener('change', function() {
+        if (this.value === 'partial-refund') {
+            document.getElementById('partial-refund-amount').style.display = 'block';
+            finalRefundAmountInput.readOnly = false;
+            finalRefundAmountInput.value = '';
+        } else {
+            document.getElementById('partial-refund-amount').style.display = 'none';
+            finalRefundAmountInput.readOnly = true;
+            calculateTotal();
+        }
+    });
+
+    function formatIndianCurrency(amount) {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(amount);
+    }
+
+    function calculateTotal() {
+        let totalRefundableBeforeGst = 0;
+        let totalGstReversed = 0;
+
+        const isMobile = window.innerWidth < 768;
+        const tableToQuery = isMobile ? productTableMobile : productTable;
+        const rows = tableToQuery.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const quantityInput = row.querySelector('.quantity-returned');
+            const pricePerUnitInput = row.querySelector('.price-per-unit');
+            const gstPercentageInput = row.querySelector('.gst-percentage');
+            const amountCellDisplay = row.querySelector(isMobile ? '.amount span' : '.amount');
+
+            const quantity = parseFloat(quantityInput ? quantityInput.value : 0);
+            const pricePerUnit = parseFloat(pricePerUnitInput ? pricePerUnitInput.value : 0);
+            const gstPercentage = parseFloat(gstPercentageInput ? gstPercentageInput.value : 0);
+
+            if (!isNaN(quantity) && quantity > 0 && !isNaN(pricePerUnit)) {
+                const itemSubTotalBeforeGst = quantity * pricePerUnit;
+                const itemGstAmount = itemSubTotalBeforeGst * (gstPercentage / 100);
+                const itemFinalAmount = itemSubTotalBeforeGst + itemGstAmount;
+
+                if (amountCellDisplay) amountCellDisplay.textContent = formatIndianCurrency(itemFinalAmount);
+                totalRefundableBeforeGst += itemSubTotalBeforeGst;
+                totalGstReversed += itemGstAmount;
+            } else {
+                if (amountCellDisplay) amountCellDisplay.textContent = '₹0.00';
             }
         });
-    </script>
+
+        const netRefundableAmount = totalRefundableBeforeGst + totalGstReversed;
+        totalRefundableAmountDisplay.textContent = formatIndianCurrency(netRefundableAmount);
+
+        if (refundOptionSelect.value !== 'partial-refund') {
+            finalRefundAmountInput.value = netRefundableAmount.toFixed(2);
+        }
+    }
+
+    document.getElementById('amount').addEventListener('input', function() {
+        if (refundOptionSelect.value === 'partial-refund') {
+            const partialRefundAmount = parseFloat(this.value);
+            if (!isNaN(partialRefundAmount)) {
+                finalRefundAmountInput.value = partialRefundAmount;
+            } else {
+                finalRefundAmountInput.value = '';
+            }
+        }
+    });
+
+    function addRow(originalItemId, productId, productName, quantityReturned, pricePerUnit, gstPercentage, maxQuantity) {
+        let newRow;
+        const isMobile = window.innerWidth < 768;
+        const tableBody = isMobile ? productTableMobile.querySelector('tbody') : productTable.querySelector('tbody');
+        
+        if (!tableBody) {
+            console.error("Table body not found for adding row.");
+            return;
+        }
+        newRow = tableBody.insertRow();
+
+        const originalItemIdInputEl = document.createElement('input');
+        originalItemIdInputEl.type = 'hidden';
+        originalItemIdInputEl.className = 'original-sales-invoice-item-id';
+        originalItemIdInputEl.value = originalItemId || '';
+
+        const gstPercentageInputEl = document.createElement('input');
+        gstPercentageInputEl.type = 'hidden';
+        gstPercentageInputEl.className = 'gst-percentage';
+        gstPercentageInputEl.value = gstPercentage || '0';
+
+        if (isMobile) {
+            const cellProductId = newRow.insertCell();
+            cellProductId.innerHTML = `<label>Product ID</label><span class="product-id-text">${productId || 'N/A'}</span>`;
+            cellProductId.appendChild(originalItemIdInputEl);
+            cellProductId.appendChild(gstPercentageInputEl);
+
+            const cellProductName = newRow.insertCell();
+            cellProductName.innerHTML = `<label>Product Name</label><span class="product-name-text">${productName || 'N/A'}</span>`;
+
+            const cellQuantity = newRow.insertCell();
+            cellQuantity.innerHTML = `<label>Quantity Returned (Max: ${maxQuantity !== undefined && maxQuantity !== null ? maxQuantity : 'N/A'})</label><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${quantityReturned || ''}" min="0" ${maxQuantity !== undefined && maxQuantity !== null ? `max="${maxQuantity}"` : ''}>`;
+
+            const cellPrice = newRow.insertCell();
+            cellPrice.innerHTML = `<label>Price Per Unit</label><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${pricePerUnit || ''}">`;
+
+            const cellAmount = newRow.insertCell();
+            cellAmount.className = 'amount';
+            cellAmount.innerHTML = `<label>Amount</label><span>₹0.00</span>`;
+        } else {
+            const cellProductId = newRow.insertCell();
+            cellProductId.textContent = productId || 'N/A';
+            cellProductId.appendChild(originalItemIdInputEl);
+            cellProductId.appendChild(gstPercentageInputEl);
+
+            const cellProductName = newRow.insertCell();
+            cellProductName.textContent = productName || 'N/A';
+
+            const cellQuantity = newRow.insertCell();
+            cellQuantity.innerHTML = `<input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${quantityReturned || ''}" min="0" ${maxQuantity !== undefined && maxQuantity !== null ? `max="${maxQuantity}"` : ''} title="Max: ${maxQuantity !== undefined && maxQuantity !== null ? maxQuantity : 'N/A'}">`;
+
+            const cellPrice = newRow.insertCell();
+            cellPrice.innerHTML = `<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${pricePerUnit || ''}">`;
+
+            const cellAmount = newRow.insertCell();
+            cellAmount.className = 'amount';
+            cellAmount.textContent = '₹0.00';
+        }
+
+        const quantityInput = newRow.querySelector('.quantity-returned');
+        if (quantityInput) {
+            quantityInput.addEventListener('input', calculateTotal);
+            quantityInput.addEventListener('change', calculateTotal);
+        }
+        const priceInput = newRow.querySelector('.price-per-unit');
+        if (priceInput) {
+            priceInput.addEventListener('input', calculateTotal);
+            priceInput.addEventListener('change', calculateTotal);
+        }
+        calculateTotal();
+    }
+
+    calculateTotal();
+    
+    const initialRows = productTable.querySelectorAll('tbody tr');
+    initialRows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('change', calculateTotal);
+        });
+        const selects = row.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('change', calculateTotal);
+        });
+    });
+
+    const initialMobileRows = productTableMobile.querySelectorAll('tbody tr');
+    initialMobileRows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('change', calculateTotal);
+        });
+        const selects = row.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('change', calculateTotal);
+        });
+    });
+
+    // Enhanced form validation and error display
+    function showFormError(message) {
+        const errorDiv = document.getElementById('form-error-message');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+        setTimeout(() => errorDiv.classList.add('hidden'), 4000);
+    }
+
+    function validateSalesReturnForm() {
+        const returnDate = returnDateInput.value;
+        const executiveId = executiveNameSelect.value;
+        const originalInvoiceNumber = originalInvoiceInput.value.trim();
+        const customerName = customerNameInput.value;
+        const returnReason = returnReasonInput.value;
+        const modeOfRefund = modeOfRefundSelect.value;
+        const refundOption = refundOptionSelect.value;
+        const partialRefundAmount = document.getElementById('amount').value;
+        const finalRefundAmount = finalRefundAmountInput.value;
+        const finalRefundAmountNum = parseFloat(finalRefundAmount);
+
+        if (!returnDate) {
+            showFormError('Please enter the return date.');
+            return false;
+        }
+        if (!executiveId) {
+            showFormError('Please select an executive.');
+            return false;
+        }
+        if (!originalInvoiceNumber) {
+            showFormError('Please select the original invoice.');
+            return false;
+        }
+        if (!customerName) {
+            showFormError('Customer name is not available. Please ensure the invoice number is correct and details are loaded.');
+            return false;
+        }
+        if (!returnReason) {
+            showFormError('Please enter the return reason.');
+            return false;
+        }
+        if (!modeOfRefund) {
+            showFormError('Please select the mode of refund.');
+            return false;
+        }
+
+        // Enhanced Refund Amount Validations
+        if (!finalRefundAmount.trim()) {
+            showFormError('Amount Refunded is required.');
+            return false;
+        }
+        if (isNaN(finalRefundAmountNum) || finalRefundAmountNum < 0) {
+            showFormError('Amount Refunded must be a valid non-negative number.');
+            return false;
+        }
+
+        const totalRefundableText = totalRefundableAmountDisplay.textContent.replace(/[₹,]/g, '');
+        const totalRefundableNum = parseFloat(totalRefundableText);
+
+        if (!isNaN(totalRefundableNum) && finalRefundAmountNum > totalRefundableNum + 0.01) { // Allow small tolerance
+            showFormError('Amount Refunded (' + formatIndianCurrency(finalRefundAmountNum) + ') cannot exceed the Total Refundable Amount (' + formatIndianCurrency(totalRefundableNum) + ').');
+            return false;
+        }
+
+        if (refundOption === 'partial-refund') {
+            if (!partialRefundAmount.trim()) {
+                showFormError('Please enter the partial refund amount when "Partial Refund" is selected.');
+                return false;
+            }
+            const partialRefundAmountNum = parseFloat(partialRefundAmount);
+            if (isNaN(partialRefundAmountNum) || partialRefundAmountNum <= 0) {
+                showFormError('Partial refund amount must be a valid positive number.');
+                return false;
+            }
+            if (!isNaN(totalRefundableNum) && partialRefundAmountNum > totalRefundableNum + 0.01) { // Allow small tolerance
+                showFormError('Partial refund amount (' + formatIndianCurrency(partialRefundAmountNum) + ') cannot exceed the Total Refundable Amount (' + formatIndianCurrency(totalRefundableNum) + ').');
+                return false;
+            }
+        }
+
+        // Validate product rows
+        let formIsValid = true; // Changed from const to let
+        const productsDataForValidation = []; // To check if any product has quantity > 0
+        const isMobile = window.innerWidth < 768;
+        const tableToQuery = isMobile ? productTableMobile : productTable;
+        const rows = tableToQuery.querySelectorAll('tbody tr');
+
+        if (rows.length === 0 || !Array.from(rows).some(row => row.querySelector('.quantity-returned')?.value > 0)) {
+            showFormError('Please add at least one product to the return with a quantity greater than zero.');
+            return false;
+        }
+
+        rows.forEach(row => {
+            const originalItemIdInput = row.querySelector('.original-sales-invoice-item-id');
+            const quantityInput = row.querySelector('.quantity-returned');
+            const pricePerUnitInput = row.querySelector('.price-per-unit');
+            const productNameText = isMobile ? row.querySelector('.product-name-text')?.textContent.trim() : row.cells[1]?.textContent.trim();
+            const productIdentifier = productNameText || (isMobile ? row.querySelector('.product-id-text')?.textContent.trim() : row.cells[0]?.textContent.trim()) || 'a product';
+
+            if (originalItemIdInput && quantityInput && pricePerUnitInput) {
+                const quantity = parseFloat(quantityInput.value);
+                const pricePerUnit = parseFloat(pricePerUnitInput.value);
+                const maxQuantity = parseFloat(quantityInput.getAttribute('max'));
+
+                // Only validate rows where quantity is entered or intended
+                if (quantity > 0 || quantityInput.value.trim() !== '') { // Process if quantity is positive or field is not empty
+                    if (isNaN(quantity) || quantity <= 0) {
+                        showFormError(`Please enter a valid positive quantity for ${productIdentifier}.`);
+                        formIsValid = false;
+                    } else if (!isNaN(maxQuantity) && quantity > maxQuantity) {
+                        showFormError(`Quantity returned for ${productIdentifier} (${quantity}) cannot exceed original sold quantity (${maxQuantity}).`);
+                        formIsValid = false;
+                    }
+                    if (isNaN(pricePerUnit) || pricePerUnit < 0) {
+                        showFormError(`Please enter a valid non-negative price for ${productIdentifier}.`);
+                        formIsValid = false;
+                    }
+                    if (quantity > 0) {
+                        productsDataForValidation.push({ quantity });
+                    }
+                } else if (quantity < 0) { // Explicitly disallow negative quantities even if field is not empty
+                    showFormError(`Quantity for ${productIdentifier} cannot be negative.`);
+                    formIsValid = false;
+                }
+            }
+        });
+        if (!formIsValid) return false;
+        if (productsDataForValidation.length === 0) {
+            showFormError('Please enter a quantity greater than zero for at least one product to be returned.');
+            return false;
+        }
+        return true;
+    }
+
+    submitFormButton.addEventListener('click', async function(event) {
+        event.preventDefault();
+        if (!validateSalesReturnForm()) return;
+
+        const returnDate = returnDateInput.value;
+        const executiveId = executiveNameSelect.value;
+        const originalInvoiceNumber = originalInvoiceInput.value.trim();
+        const customerName = customerNameInput.value;
+        const returnReason = returnReasonInput.value;
+        const modeOfRefund = modeOfRefundSelect.value;
+        const refundOption = refundOptionSelect.value;
+        const partialRefundAmount = document.getElementById('amount').value;
+        const finalRefundAmount = finalRefundAmountInput.value;
+
+        const products = [];
+        const isMobile = window.innerWidth < 768;
+        const tableToQuery = isMobile ? productTableMobile : productTable;
+        const rows = tableToQuery.querySelectorAll('tbody tr');
+        let formIsValid = true;
+
+        rows.forEach(row => {
+            const originalItemIdInput = row.querySelector('.original-sales-invoice-item-id');
+            const productIdFromCell = isMobile ? row.querySelector('.product-id-text')?.textContent : row.cells[0]?.textContent.trim();
+            const quantityInput = row.querySelector('.quantity-returned');
+            const pricePerUnitInput = row.querySelector('.price-per-unit');
+            const gstPercentageInput = row.querySelector('.gst-percentage');
+
+            const originalSalesInvoiceItemId = originalItemIdInput ? originalItemIdInput.value : null;
+            const quantity = parseFloat(quantityInput ? quantityInput.value : 0);
+            const pricePerUnit = parseFloat(pricePerUnitInput ? pricePerUnitInput.value : 0);
+            const gstPercentage = parseFloat(gstPercentageInput ? gstPercentageInput.value : 0);
+
+            if (originalSalesInvoiceItemId && !isNaN(quantity) && quantity > 0) {
+                if (isNaN(pricePerUnit)) {
+                    alert(`Invalid price for an item. Please check product table.`);
+                    formIsValid = false;
+                    return;
+                }
+
+                products.push({
+                    original_sales_invoice_item_id: originalSalesInvoiceItemId,
+                    quantity_returned: quantity,
+                    price_per_unit_at_return: pricePerUnit,
+                    gst_percentage_applied: gstPercentage,
+                });
+            }
+        });
+
+        if (products.length === 0) {
+            alert('Please add at least one product to the return.');
+            return;
+        }
+        if (!formIsValid) return;
+
+        let clientSideTotalItemsValueBeforeGst = 0;
+        let clientSideTotalGstReversed = 0;
+        products.forEach(p => {
+            clientSideTotalItemsValueBeforeGst += p.quantity_returned * p.price_per_unit_at_return;
+            clientSideTotalGstReversed += (p.quantity_returned * p.price_per_unit_at_return) * (p.gst_percentage_applied / 100);
+        });
+        const clientSideNetRefundableAmount = clientSideTotalItemsValueBeforeGst + clientSideTotalGstReversed;
+
+        const finalRefundAmountNum = parseFloat(finalRefundAmount);
+        if (isNaN(finalRefundAmountNum) || finalRefundAmountNum < 0) {
+            alert('Final refund amount is invalid.');
+            return;
+        }
+
+        if (refundOption === 'full-refund' && Math.abs(finalRefundAmountNum - clientSideNetRefundableAmount) > 0.01) {
+            alert('For Full Refund, the Amount Refunded must match the Total Refundable Amount. Calculated: ' + formatIndianCurrency(clientSideNetRefundableAmount));
+            return;
+        }
+        if (refundOption === 'partial-refund') {
+            const partialAmountNum = parseFloat(document.getElementById('amount').value);
+            if (isNaN(partialAmountNum) || partialAmountNum <= 0) {
+                alert('Please enter a valid partial refund amount.');
+                return;
+            }
+            if (Math.abs(finalRefundAmountNum - partialAmountNum) > 0.01) {
+                alert('Final refunded amount does not match the entered partial refund amount.');
+                return;
+            }
+            if (finalRefundAmountNum > clientSideNetRefundableAmount) {
+                alert('Partial refund amount cannot exceed the total refundable amount. Max: ' + formatIndianCurrency(clientSideNetRefundableAmount));
+                return;
+            }
+        }
+
+        const returnData = {
+            return_date: returnDate,
+            executive_id: executiveId,
+            original_invoice_number: originalInvoiceNumber,
+            return_reason: returnReason,
+            mode_of_refund: modeOfRefund,
+            refund_option: refundOption,
+            partial_refund_amount_input: refundOption === 'partial-refund' ? document.getElementById('amount').value : null,
+            final_amount_refunded: finalRefundAmount,
+            products: products,
+        };
+
+        try {
+            const response = await fetch('/api/sales-return', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(returnData),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message || 'Sales return created successfully!');
+                window.location.href = "{{ url_for('main.sales_transactions') }}";
+            } else {
+                alert(`Error: ${result.error || 'Failed to create sales return.'}`);
+            }
+        } catch (error) {
+            console.error('Error submitting sales return:', error);
+            alert('An error occurred while submitting the sales return.');
+        }
+    });
+</script>
 </body>
 </html>

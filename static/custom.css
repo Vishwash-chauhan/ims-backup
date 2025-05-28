@@ -583,3 +583,36 @@ hr {
         font-size: 13px;
     }
 }
+
+/* Styles for form rows to place elements side-by-side */
+.form-row,
+.hsn-image-container,
+.reorder-measuring-container {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap if they don't fit */
+    gap: 1rem;       /* Space between items in a row, also acts as vertical gap when flex-direction is column */
+    /* margin-bottom is handled by Tailwind's mb-4 on the container itself in HTML */
+}
+
+.form-row .form-group,
+.hsn-image-container .form-group, /* Targets children with .form-group class */
+.reorder-measuring-container .form-group { /* Targets children with .form-group class */
+    flex: 1 1 0%;    /* Grow, shrink, with a basis of 0 - allows equal distribution */
+    min-width: 200px;/* Minimum width for each item before wrapping or stacking. Adjust as needed. */
+}
+
+/* Responsive adjustments for form rows */
+@media (max-width: 768px) { /* Breakpoint for stacking */
+    .form-row,
+    .hsn-image-container,
+    .reorder-measuring-container {
+        flex-direction: column;
+        /* The 'gap: 1rem;' from the base rule will now apply vertically, creating space between stacked items */
+    }
+
+    .form-row .form-group,
+    .hsn-image-container .form-group,
+    .reorder-measuring-container .form-group {
+        min-width: 100%; /* Ensure items take full width when stacked */
+    }
+}

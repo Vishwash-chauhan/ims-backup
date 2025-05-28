@@ -179,6 +179,18 @@
     </div>
 </div>
 
+<!-- Success Modal Popup -->
+<div id="purchase-success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50" style="display: none;">
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center">
+        <div class="text-green-600 text-4xl mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+        </div>
+        <h2 class="text-xl font-semibold mb-2">Purchase Recorded!</h2>
+        <p id="purchase-success-message" class="mb-4 text-gray-700">Your purchase has been recorded successfully.</p>
+        <button id="close-purchase-success-modal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">OK</button>
+    </div>
+</div>
+
 <script>
     const paymentOptionSelect = document.getElementById('payment-option');
     const partialPaymentAmountDiv = document.getElementById('partial-payment-amount-div');
@@ -523,8 +535,12 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert(`${result.message || "Purchase recorded successfully!"} Purchase ID: ${result.purchase_id || 'N/A'}`);
-                
+                // Show modal instead of alert
+                const modal = document.getElementById('purchase-success-modal');
+                const msg = document.getElementById('purchase-success-message');
+                msg.textContent = `${result.message || "Purchase recorded successfully!"} Purchase ID: ${result.purchase_id || 'N/A'}`;
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
                 // Reset form
                 purchaseDateInput.value = new Date().toISOString().split('T')[0];
                 supplierContactInput.value = ''; 
@@ -535,18 +551,14 @@
                 partialAmountPaidInput.value = '';
                 notesInput.value = '';
                 discountInput.value = '';
-
                 while (productTable.rows.length > 1) productTable.deleteRow(1);
                 while (productTableMobile.rows.length > 1) productTableMobile.deleteRow(1);
-
                 productTable.rows[0].innerHTML = desktopRowHTML;
                 productTableMobile.rows[0].innerHTML = mobileRowHTML;
-
                 populateProductDropdownsInRow(productTable.rows[0]);
                 populateProductDropdownsInRow(productTableMobile.rows[0]);
                 attachEventListenersToRow(productTable.rows[0]);
                 attachEventListenersToRow(productTableMobile.rows[0]);
-
                 updatePaymentFields();
                 calculateTotal();
             } else {
@@ -558,5 +570,10 @@
         }
     });
 
+    // Modal close handler
+    document.getElementById('close-purchase-success-modal').addEventListener('click', function() {
+        document.getElementById('purchase-success-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    });
 </script>
 {% endblock %}
