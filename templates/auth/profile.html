@@ -4,41 +4,9 @@
 <div class="container mx-auto mt-8 max-w-lg">
     <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 class="text-2xl font-bold mb-4">User Profile</h2>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Full Name:</label>
-            <div class="text-gray-900">{{ user.full_name }}</div>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-            <div class="text-gray-900">{{ user.email }}</div>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Role:</label>
-            <div class="text-gray-900">{{ user.role|capitalize }}</div>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Account Status:</label>
-            <div class="text-gray-900">{{ 'Active' if user.is_active else 'Inactive' }}</div>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Member Since:</label>
-            <div class="text-gray-900">{{ user.created_at.strftime('%Y-%m-%d') }}</div>
-        </div>
-        <!--
-        <hr class="my-4">
-        <h3 class="text-lg font-semibold mb-2">Change Password</h3>
-        <form method="POST" action="#">
-            <div class="mb-3">
-                <label class="block text-gray-700 text-sm font-bold mb-2">New Password</label>
-                <input type="password" name="new_password" class="form-input mt-1 block w-full border rounded px-3 py-2" disabled placeholder="(Coming soon)">
-            </div>
-            <div class="mb-3">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Confirm New Password</label>
-                <input type="password" name="confirm_new_password" class="form-input mt-1 block w-full border rounded px-3 py-2" disabled placeholder="(Coming soon)">
-            </div>
-            <button type="submit" class="btn btn-primary" disabled>Change Password</button>
-        </form>
-        -->
+        <p class="text-gray-700 text-sm mb-4">
+            <!-- This page is obsolete. Authentication has been removed from the application. -->
+        </p>
     </div>
 </div>
 {% endblock %}

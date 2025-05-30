@@ -9,6 +9,9 @@
         </div>
         <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Purchase Entry</h1>
 
+        <!-- Error summary div -->
+        <div id="form-errors" class="mb-4"></div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
                 <label for="purchase-date" class="block text-gray-700 text-sm font-bold mb-2 text-left">Purchase Date:</label>
@@ -187,7 +190,10 @@
         </div>
         <h2 class="text-xl font-semibold mb-2">Purchase Recorded!</h2>
         <p id="purchase-success-message" class="mb-4 text-gray-700">Your purchase has been recorded successfully.</p>
-        <button id="close-purchase-success-modal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">OK</button>
+        <div class="flex flex-row justify-center gap-4">
+            <button id="print-purchase-btn" class="bg-gray-200 hover:bg-gray-300 text-blue-700 font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">Print</button>
+            <button id="close-purchase-success-modal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">OK</button>
+        </div>
     </div>
 </div>
 
@@ -217,6 +223,8 @@
     const modeOfPaymentInput = document.getElementById('mode-of-payment');
     const notesInput = document.getElementById('notes');
     const submitPurchaseFormButton = document.getElementById('submit-purchase-form');
+
+    const formErrorsDiv = document.getElementById('form-errors');
 
     let allProducts = []; // To store fetched product data {product_id, product_name, product_code, gst_percentage}
     // let allSuppliers = []; // No longer fetching all suppliers for a dropdown
@@ -462,17 +470,49 @@
 
     submitPurchaseFormButton.addEventListener('click', async function(event) {
         event.preventDefault();
+        // Prevent double submission if already submitting
+        if (submitPurchaseFormButton.disabled && submitPurchaseFormButton.textContent === 'Submitting...') {
+            return;
+        }
+        formErrorsDiv.innerHTML = '';
+        const allInputs = document.querySelectorAll('input, select, textarea');
+        allInputs.forEach(el => el.classList.remove('border-red-500'));
+        let isValid = true;
+        const errorMessages = [];
 
-        const purchaseData = {
-            purchase_date: purchaseDateInput.value,
-            supplier_id: supplierIdHiddenInput.value, // Use the hidden ID
-            mode_of_payment: modeOfPaymentInput.value,
-            payment_option: paymentOptionSelect.value,
-            notes: notesInput.value.trim(),
-            overall_discount_amount: parseFloat(discountInput.value) || 0,
-            items: []
-        };
+        // Disable submit button and show loading style
+        submitPurchaseFormButton.disabled = true;
+        submitPurchaseFormButton.classList.add('opacity-50', 'cursor-not-allowed');
+        submitPurchaseFormButton.textContent = 'Submitting...';
 
+        // Ensure discount is not empty, set to 0 if blank
+        if (!discountInput.value || isNaN(Number(discountInput.value))) {
+            discountInput.value = 0;
+        }
+        // Validate Purchase Date
+        if (!purchaseDateInput.value) {
+            errorMessages.push('Purchase Date is required.');
+            purchaseDateInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        // Validate Supplier
+        if (!supplierIdHiddenInput.value) {
+            errorMessages.push("Supplier contact not found or invalid. Please verify and try again, or use 'Add New Supplier'.");
+            supplierContactInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        if (supplierNameInput.value === '' || supplierNameInput.value.toLowerCase().includes('not found') || supplierNameInput.value.toLowerCase().includes('error')) {
+            errorMessages.push('Please enter a valid Supplier ID and ensure supplier details are loaded correctly.');
+            supplierContactInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        // Validate Mode of Payment
+        if (!modeOfPaymentInput.value) {
+            errorMessages.push('Mode of Payment is required.');
+            modeOfPaymentInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        // Validate at least one product
         const activeTableBody = window.innerWidth < 768 ? productTableMobile : productTable;
         const rows = activeTableBody.querySelectorAll('tr');
         let hasValidItem = false;
@@ -480,54 +520,86 @@
             const productId = row.querySelector('.product-id').value;
             const quantityPurchased = parseFloat(row.querySelector('.quantity-purchased').value);
             const pricePerUnit = parseFloat(row.querySelector('.price-per-unit').value);
+            if (productId && quantityPurchased > 0 && pricePerUnit >= 0) {
+                hasValidItem = true;
+            }
+        });
+        if (!hasValidItem) {
+            errorMessages.push('Please add at least one valid product item.');
+            isValid = false;
+        }
+        // Validate Discount
+        if (parseFloat(discountInput.value) < 0) {
+            errorMessages.push('Discount cannot be negative.');
+            discountInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        // Validate Payment Option
+        const totalPayableNum = parseFloat(totalPayableAmountDisplay.textContent.replace(/[^0-9.-]+/g,""));
+        let amountPaidValue = paymentOptionSelect.value === 'partial-payment' ? parseFloat(partialAmountPaidInput.value) || 0 : totalPayableNum;
+        if (paymentOptionSelect.value === 'full-payment') {
+            if (Math.abs(amountPaidValue - totalPayableNum) > 0.01) {
+                errorMessages.push('For full payment, amount paid must match total payable amount.');
+                finalAmountPaidInput.classList.add('border-red-500');
+                isValid = false;
+            }
+        }
+        if (paymentOptionSelect.value === 'partial-payment') {
+            if (amountPaidValue <= 0) {
+                errorMessages.push('For partial payment, amount paid must be greater than zero.');
+                partialAmountPaidInput.classList.add('border-red-500');
+                isValid = false;
+            }
+            if (amountPaidValue > totalPayableNum) {
+                errorMessages.push('Partial amount paid cannot be greater than total payable amount.');
+                partialAmountPaidInput.classList.add('border-red-500');
+                isValid = false;
+            }
+        }
+        // Show errors if any
+        if (!isValid) {
+            errorMessages.forEach(msg => {
+                const errorElement = document.createElement('div');
+                errorElement.className = 'text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm';
+                errorElement.textContent = msg;
+                formErrorsDiv.appendChild(errorElement);
+            });
+            if (errorMessages.length > 0) {
+                const formErrorsOffsetTop = formErrorsDiv.getBoundingClientRect().top + window.pageYOffset;
+                window.scrollTo({ top: formErrorsOffsetTop - 20, behavior: 'smooth' });
+            }
+            // Re-enable submit button
+            submitPurchaseFormButton.disabled = false;
+            submitPurchaseFormButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitPurchaseFormButton.textContent = 'Submit Purchase';
+            return;
+        }
 
+        const purchaseData = {
+            purchase_date: purchaseDateInput.value,
+            supplier_id: supplierIdHiddenInput.value,
+            mode_of_payment: modeOfPaymentInput.value,
+            payment_option: paymentOptionSelect.value,
+            notes: notesInput.value.trim(),
+            overall_discount_amount: parseFloat(discountInput.value) || 0,
+            items: []
+        };
+        rows.forEach(row => {
+            const productId = row.querySelector('.product-id').value;
+            const quantityPurchased = parseFloat(row.querySelector('.quantity-purchased').value);
+            const pricePerUnit = parseFloat(row.querySelector('.price-per-unit').value);
             if (productId && quantityPurchased > 0 && pricePerUnit >= 0) {
                 purchaseData.items.push({
                     product_id: productId,
                     quantity_purchased: quantityPurchased,
                     price_per_unit_before_gst: pricePerUnit
                 });
-                hasValidItem = true;
             }
         });
-
-        if (!purchaseData.purchase_date) { alert("Purchase Date is required."); return; }
-        // Validate based on the hidden supplier ID
-        if (!purchaseData.supplier_id) { 
-            alert("Supplier contact not found or invalid. Please verify and try again, or use 'Add New Supplier'."); 
-            return; 
-        }
-        if (supplierNameInput.value === '' || supplierNameInput.value.toLowerCase().includes('not found') || supplierNameInput.value.toLowerCase().includes('error')) {
-            alert("Please enter a valid Supplier ID and ensure supplier details are loaded correctly.");
-            return;
-        }
-
-        if (!purchaseData.mode_of_payment) { alert("Mode of Payment is required."); return; }
-        if (!hasValidItem) { alert("Please add at least one valid product item."); return; }
-        if (purchaseData.overall_discount_amount < 0) { alert("Discount cannot be negative."); return; }
-
-        const totalPayableNum = parseFloat(totalPayableAmountDisplay.textContent.replace(/[^0-9.-]+/g,""));
-        const amountPaidValue = purchaseData.payment_option === 'partial-payment' 
-                                ? parseFloat(partialAmountPaidInput.value) || 0 
-                                : totalPayableNum;
         purchaseData.amount_paid = amountPaidValue;
 
-        if (purchaseData.payment_option === 'full-payment') {
-            if (Math.abs(purchaseData.amount_paid - totalPayableNum) > 0.01) {
-                 alert("For full payment, amount paid must match total payable amount."); return;
-            }
-            purchaseData.amount_paid = totalPayableNum;
-        } else if (purchaseData.payment_option === 'partial-payment') {
-            if (purchaseData.amount_paid <= 0) {
-                alert("For partial payment, amount paid must be greater than zero."); return;
-            }
-            if (purchaseData.amount_paid > totalPayableNum) {
-                alert("Partial amount paid cannot be greater than total payable amount."); return;
-            }
-        }
-
         try {
-            const response = await fetch('/api/purchases', { // Assuming this endpoint
+            const response = await fetch('/api/purchases', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(purchaseData),
@@ -543,7 +615,7 @@
                 document.body.style.overflow = 'hidden';
                 // Reset form
                 purchaseDateInput.value = new Date().toISOString().split('T')[0];
-                supplierContactInput.value = ''; 
+                supplierContactInput.value = '';
                 supplierIdHiddenInput.value = '';
                 supplierNameInput.value = '';
                 modeOfPaymentInput.value = '';
@@ -562,18 +634,39 @@
                 updatePaymentFields();
                 calculateTotal();
             } else {
-                alert(`Error: ${result.error || 'Failed to record purchase.'}`);
+                // Show backend error in the error div
+                formErrorsDiv.innerHTML = '';
+                const errorElement = document.createElement('div');
+                errorElement.className = 'text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm';
+                errorElement.textContent = result.error || 'Failed to record purchase.';
+                formErrorsDiv.appendChild(errorElement);
+                window.scrollTo({ top: formErrorsDiv.offsetTop - 20, behavior: 'smooth' });
             }
         } catch (error) {
-            console.error('Error submitting purchase:', error);
-            alert('An error occurred while submitting the purchase. Please try again.');
+            // Show network error in the error div
+            formErrorsDiv.innerHTML = '';
+            const errorElement = document.createElement('div');
+            errorElement.className = 'text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm';
+            errorElement.textContent = 'An error occurred while submitting the purchase. Please try again.';
+            formErrorsDiv.appendChild(errorElement);
+            window.scrollTo({ top: formErrorsDiv.offsetTop - 20, behavior: 'smooth' });
+        } finally {
+            // Always re-enable submit button after submission attempt
+            submitPurchaseFormButton.disabled = false;
+            submitPurchaseFormButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitPurchaseFormButton.textContent = 'Submit Purchase';
         }
     });
 
-    // Modal close handler
+    // Modal close handlers
     document.getElementById('close-purchase-success-modal').addEventListener('click', function() {
         document.getElementById('purchase-success-modal').style.display = 'none';
         document.body.style.overflow = '';
+    });
+    document.getElementById('print-purchase-btn').addEventListener('click', function() {
+        document.getElementById('purchase-success-modal').style.display = 'none';
+        document.body.style.overflow = '';
+        // Future: Add print logic here
     });
 </script>
 {% endblock %}

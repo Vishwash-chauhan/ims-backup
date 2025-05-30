@@ -1,14 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Entry Form</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
-</head>
-<body class="bg-gray-100 font-inter antialiased">
 {% extends 'base.html' %}
 {% block content %}
 <div class="min-h-screen flex justify-center items-center py-10 main-content">
@@ -17,6 +6,38 @@
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
         </div>
         <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Sales Entry</h1>
+
+        <!-- Error messages -->
+        <div id="form-errors" class="mb-4"></div>
+        
+        <!-- Success Modal (initially hidden) -->
+        <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-green-600">Success!</h3>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="rounded-full bg-green-100 p-3">
+                            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p id="success-message" class="text-gray-700 text-center"></p>
+                    <p id="invoice-number" class="text-blue-600 font-semibold mt-2 text-center"></p>
+                </div>
+                <div class="flex justify-center gap-4">
+                    <button id="confirm-modal" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">OK</button>
+                    <button id="print-invoice" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Print</button>
+                </div>
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -181,15 +202,8 @@
         <div class="mb-4">
             <label for="notes" class="block text-gray-700 text-sm font-bold mb-2 text-left">Notes:</label>
             <textarea id="notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3"></textarea>
-        </div>
-
-        <div class="flex flex-row items-center justify-between mt-4">
+        </div>        <div class="flex flex-row items-center justify-between mt-4">
             <button id="submit-sales-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit Sale</button>
-            <div style="display: flex; justify-content: flex-end; margin-top: 0;">
-                <a href="{{ url_for('main.sales_return') }}" class="btn btn-secondary" style="padding: 12px 24px; background: #f4f7fa; color: #023f90; border: 2px solid #023f90; border-radius: 8px; font-size: 16px; text-decoration: none; transition: background 0.2s, color 0.2s;">
-                    Sales Return
-                </a>
-            </div>
         </div>
     </div>
 </div>
@@ -216,6 +230,10 @@
     const partialAmountInput = document.getElementById('amount'); // Input field for partial amount
     const finalTotalAmountContainer = document.getElementById('final-total-amount-container'); // Container for Amount Paid
     const notesInput = document.getElementById('notes');
+    const successModal = document.getElementById('success-modal');
+    const closeModalButton = document.getElementById('close-modal');
+    const confirmModalButton = document.getElementById('confirm-modal');
+    const formErrorsDiv = document.getElementById('form-errors');
 
 
     let allProducts = []; // To store fetched product data {product_id, product_name, product_code, price_per_unit (null), gst_percentage}
@@ -272,7 +290,21 @@
         attachEventListenersToRow(productTableMobile.querySelector('tr'));
         calculateTotal();
         updatePaymentFields(); // Initial call to set visibility
+        
+        // Set up modal close handlers
+        closeModalButton.addEventListener('click', closeModal);
+        confirmModalButton.addEventListener('click', closeModal);
+        // Add this for the Print button
+        const printInvoiceButton = document.getElementById('print-invoice');
+        if (printInvoiceButton) {
+            printInvoiceButton.addEventListener('click', closeModal);
+        }
     });
+
+    // Function to close the modal
+    function closeModal() {
+        successModal.classList.add('hidden');
+    }
 
     async function fetchInitialData() {
         try {
@@ -491,90 +523,133 @@
 
     submitSalesFormButton.addEventListener('click', async function(event) {
         event.preventDefault();
+        // Clear previous errors and highlights
+        formErrorsDiv.innerHTML = '';
+        const allInputs = document.querySelectorAll('input, select, textarea');
+        allInputs.forEach(el => el.classList.remove('border-red-500'));
+        let isValid = true;
+        const errorMessages = [];
+
+        // Disable submit button and show loading style
+        submitSalesFormButton.disabled = true;
+        submitSalesFormButton.classList.add('opacity-50', 'cursor-not-allowed');
+        submitSalesFormButton.textContent = 'Submitting...';
+
         // Ensure discount is not empty, set to 0 if blank
         if (!discountInput.value || isNaN(Number(discountInput.value))) {
             discountInput.value = 0;
         }
-        // Prevent undefined executive or customer
+        // Validate Executive
         if (!executiveNameSelect.value || executiveNameSelect.value === 'undefined') {
-            alert('Please select an Executive.');
-            return;
+            errorMessages.push('Executive is required.');
+            executiveNameSelect.classList.add('border-red-500');
+            isValid = false;
         }
+        // Validate Customer
         if (!customerIdHiddenInput.value || customerIdHiddenInput.value === 'undefined') {
-            alert('Please enter a valid Customer Contact and select a valid customer.');
+            errorMessages.push('Please enter a valid Customer Contact and select a valid customer.');
+            customerContactInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        // Validate Sales Date
+        if (!salesDateInput.value) {
+            errorMessages.push('Sales Date is required.');
+            salesDateInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        // Validate Mode of Payment
+        if (!modeOfPaymentInput.value) {
+            errorMessages.push('Mode of Payment is required.');
+            modeOfPaymentInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        // Validate at least one product
+        let hasValidItem = false;
+        let activeTableBody = window.innerWidth < 768 ? productTableMobile : productTable;
+        let rows = activeTableBody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const productId = row.querySelector('.product-id').value;
+            const quantitySold = parseFloat(row.querySelector('.quantity-sold').value);
+            const pricePerUnit = parseFloat(row.querySelector('.price-per-unit').value);
+            if (productId && quantitySold > 0 && pricePerUnit >= 0) {
+                hasValidItem = true;
+            }
+        });
+        if (!hasValidItem) {
+            errorMessages.push('Please add at least one valid product item.');
+            isValid = false;
+        }
+        // Validate Discount
+        if (parseFloat(discountInput.value) < 0) {
+            errorMessages.push('Discount cannot be negative.');
+            discountInput.classList.add('border-red-500');
+            isValid = false;
+        }
+        // Validate Payment Option
+        let totalPayableNum = parseFloat(totalPayableAmountDisplay.textContent.replace(/[^0-9.-]+/g,""));
+        let amountPaidValue = paymentOptionSelect.value === 'partial-payment' ? parseFloat(partialAmountInput.value) || 0 : totalPayableNum;
+        if (paymentOptionSelect.value === 'full-payment') {
+            if (Math.abs(amountPaidValue - totalPayableNum) > 0.01) {
+                errorMessages.push('For full payment, amount paid must match total payable amount.');
+                finalTotalAmountInput.classList.add('border-red-500');
+                isValid = false;
+            }
+        }
+        if (paymentOptionSelect.value === 'partial-payment') {
+            if (amountPaidValue <= 0) {
+                errorMessages.push('For partial payment, amount paid must be greater than zero.');
+                partialAmountInput.classList.add('border-red-500');
+                isValid = false;
+            }
+            if (amountPaidValue > totalPayableNum) {
+                errorMessages.push('Partial amount paid cannot be greater than total payable amount.');
+                partialAmountInput.classList.add('border-red-500');
+                isValid = false;
+            }
+        }
+        // Show errors if any
+        if (!isValid) {
+            errorMessages.forEach(msg => {
+                const errorElement = document.createElement('div');
+                errorElement.className = 'text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm';
+                errorElement.textContent = msg;
+                formErrorsDiv.appendChild(errorElement);
+            });
+            if (errorMessages.length > 0) {
+                const formErrorsOffsetTop = formErrorsDiv.getBoundingClientRect().top + window.pageYOffset;
+                window.scrollTo({ top: formErrorsOffsetTop - 20, behavior: 'smooth' });
+            }
+            // Re-enable submit button
+            submitSalesFormButton.disabled = false;
+            submitSalesFormButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitSalesFormButton.textContent = 'Submit Sale';
             return;
         }
 
         const salesData = {
             sales_date: salesDateInput.value,
-            executive_id: executiveNameSelect.value, // Now sending ID
-            customer_id: customerIdHiddenInput.value, // Use the hidden ID field
-            // customer_name: customerNameInput.value, // Backend can fetch this if needed
+            executive_id: executiveNameSelect.value,
+            customer_id: customerIdHiddenInput.value,
             mode_of_payment: modeOfPaymentInput.value,
             payment_option: paymentOptionSelect.value,
-            // amount_paid will be set below based on payment option
             notes: notesInput.value.trim(),
-            overall_discount_amount: parseFloat(discountInput.value) || 0, // Added for backend
+            overall_discount_amount: parseFloat(discountInput.value) || 0,
             items: []
         };
 
-        const activeTableBody = window.innerWidth < 768 ? productTableMobile : productTable;
-        const rows = activeTableBody.querySelectorAll('tr');
-        let hasValidItem = false;
         rows.forEach(row => {
             const productId = row.querySelector('.product-id').value;
             const quantitySold = parseFloat(row.querySelector('.quantity-sold').value);
             const pricePerUnit = parseFloat(row.querySelector('.price-per-unit').value);
-
             if (productId && quantitySold > 0 && pricePerUnit >= 0) {
                 salesData.items.push({
                     product_id: productId,
                     quantity_sold: quantitySold,
-                    price_per_unit_before_gst: pricePerUnit // Key name matches backend expectation
+                    price_per_unit_before_gst: pricePerUnit
                 });
-                hasValidItem = true;
             }
         });
-
-        if (!salesData.sales_date) { alert("Sales Date is required."); return; }
-        if (!salesData.customer_id) {
-            alert("Customer details not found or contact is invalid. Please verify customer contact."); return;
-        }
-        // Check if customer name indicates an issue
-        if (customerNameInput.value.toLowerCase().includes('not found') || customerNameInput.value.toLowerCase().includes('error fetching') || customerNameInput.value === '') {
-            alert("Please enter a valid Customer ID and ensure customer details are loaded."); return;
-        }
-         if (!salesData.mode_of_payment) { alert("Mode of Payment is required."); return; }
-        if (!hasValidItem) { alert("Please add at least one valid product item."); return; }
-        if (salesData.overall_discount_amount < 0) { alert("Discount cannot be negative."); return; }
-
-
-        const totalPayableNum = parseFloat(totalPayableAmountDisplay.textContent.replace(/[^0-9.-]+/g,""));
-
-        // Get the amount paid value based on the selected payment option
-        const amountPaidValue = salesData.payment_option === 'partial-payment' ? parseFloat(partialAmountInput.value) || 0 : totalPayableNum; // For full payment, amount paid is total payable
-        salesData.amount_paid_by_customer = amountPaidValue; // Key name matches backend expectation
-
-
-        // Validation specific to payment options
-        if (salesData.payment_option === 'full-payment') {
-             // Allow small rounding differences, or force exact match
-            if (Math.abs(salesData.amount_paid - totalPayableNum) > 0.01) {
-                 alert("For full payment, amount paid must match total payable amount."); return;
-            }
-            // If it's close enough, set it to the exact total payable amount
-            salesData.amount_paid_by_customer = totalPayableNum; // Ensure it's exactly the total payable
-        }
-
-        if (salesData.payment_option === 'partial-payment') {
-            if (salesData.amount_paid <= 0) {
-                alert("For partial payment, amount paid must be greater than zero."); return;
-            }
-            if (salesData.amount_paid > totalPayableNum) {
-                alert("Partial amount paid cannot be greater than total payable amount."); return;
-            }
-        }
-
+        salesData.amount_paid_by_customer = amountPaidValue;
 
         try {
             const response = await fetch('/api/sales', {
@@ -588,8 +663,10 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert(`${result.message || "Sales invoice created successfully!"} Invoice Number: ${result.invoice_number}`);
-                // document.getElementById('sales-form-container').reset(); // This might not work well with dynamic rows
+                // Show success modal instead of alert
+                document.getElementById('success-message').textContent = result.message || "Sales invoice created successfully!";
+                document.getElementById('invoice-number').textContent = `Invoice Number: ${result.invoice_number}`;
+                document.getElementById('success-modal').classList.remove('hidden');
 
                 // Clear form fields manually
                 customerContactInput.value = ''; // Clear contact input
@@ -619,11 +696,27 @@
                 updatePaymentFields(); // Reset payment field visibility and values
                 calculateTotal(); // Recalculate to reset all amounts to zero
             } else {
-                alert(`Error: ${result.error || 'Failed to record sale.'}`);
+                // Show backend error in the error div
+                formErrorsDiv.innerHTML = '';
+                const errorElement = document.createElement('div');
+                errorElement.className = 'text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm';
+                errorElement.textContent = result.error || 'Failed to record sale.';
+                formErrorsDiv.appendChild(errorElement);
+                window.scrollTo({ top: formErrorsDiv.offsetTop - 20, behavior: 'smooth' });
             }
         } catch (error) {
-            console.error('Error submitting sale:', error);
-            alert('An error occurred while submitting the sale. Please try again.');
+            // Show network error in the error div
+            formErrorsDiv.innerHTML = '';
+            const errorElement = document.createElement('div');
+            errorElement.className = 'text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm';
+            errorElement.textContent = 'An error occurred while submitting the sale. Please try again.';
+            formErrorsDiv.appendChild(errorElement);
+            window.scrollTo({ top: formErrorsDiv.offsetTop - 20, behavior: 'smooth' });
+        } finally {
+            // Always re-enable submit button after submission attempt
+            submitSalesFormButton.disabled = false;
+            submitSalesFormButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitSalesFormButton.textContent = 'Submit Sale';
         }
     });
 
@@ -632,5 +725,3 @@
     // No need for partialAmountInput listener to update finalTotalAmountInput anymore as it's hidden
 </script>
 {% endblock %}
-</body>
-</html>

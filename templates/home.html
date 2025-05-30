@@ -179,19 +179,15 @@
 
     <!-- Welcome Text -->
     <h1>WELCOME TO</h1>
-    <h2>VyaapaaNiti ERP</h2>
-
-    <!-- Start Button -->
-    <a href="{{ url_for('main_bp.dashboard') }}">
+    <h2>VyaapaaNiti ERP</h2>    <!-- Start Button -->
+    <a href="{{ url_for('main.dashboard') }}">
       <button class="start-button">START</button>
-    </a>
-
-    <!-- Menu -->
+    </a>    <!-- Menu -->
     <div class="menu">
-      <a href="{{ url_for('main_bp.api_products') }}"><span>🛒</span>Enter Sales</a>
-      <a href="{{ url_for('main_bp.api_customers') }}"><span>📦</span>Record Purchase</a>
-      <a href="{{ url_for('main_bp.api_customers') }}"><span>👤</span>New Customer</a>
-      <a href="{{ url_for('main_bp.api_products') }}"><span>📝</span>New Product</a>
+      <a href="{{ url_for('main.add_sales_invoice') }}"><span>🛒</span>Enter Sales</a>
+      <a href="{{ url_for('main.add_purchase_invoice') }}"><span>📦</span>Record Purchase</a>
+      <a href="{{ url_for('main.add_customer') }}"><span>👤</span>New Customer</a>
+      <a href="{{ url_for('main.add_product') }}"><span>📝</span>New Product</a>
       <a href="https://app.powerbi.com/groups/me/reports/your_dashboard_id" target="_blank"><span>📊</span>Power BI Dashboard</a>
     </div>
 

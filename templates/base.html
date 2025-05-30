@@ -12,10 +12,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-12">
                 <div class="flex-shrink-0 flex items-center">
-                    <img class="h-12 w-auto" src="/static/images/logo.png" alt="Logo">
+                    <a href="{{ url_for('main.index') }}">
+                        <img class="h-12 w-auto" src="/static/images/logo.png" alt="Logo">
+                    </a>
                     <span class="ml-2 font-bold text-2xl text-blue-700">ERP</span>
                 </div>                <div class="hidden sm:flex sm:items-center sm:space-x-1">
-                    {% if current_user.is_authenticated %}
                     <a href="{{ url_for('main.dashboard') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Dashboard</a>
                     <span class="text-gray-300 mx-0.5">|</span>
                     <a href="{{ url_for('main.sales_entry') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Sales Entry</a>
@@ -26,15 +27,6 @@
                     <span class="text-gray-300 mx-0.5">|</span>
                     <a href="{{ url_for('main.add_customer') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Customers</a>
                     <span class="text-gray-300 mx-0.5">|</span>                    <a href="{{ url_for('main.add_supplier') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Suppliers</a>
-                    <span class="text-gray-300 mx-0.5">|</span>
-                    <a href="{{ url_for('auth.profile') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Profile</a>
-                    <span class="text-gray-300 mx-0.5">|</span>
-                    <a href="{{ url_for('auth.logout') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Logout</a>
-                    {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Login</a>
-                    <span class="text-gray-300 mx-0.5">|</span>
-                    <a href="{{ url_for('auth.register') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Register</a>
-                    {% endif %}
                 </div>
                 <div class="-mr-2 flex items-center sm:hidden">
                     <!-- Mobile menu button -->

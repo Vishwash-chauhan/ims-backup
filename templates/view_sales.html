@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>View Sales & Sales Returns</title>
+  <title>View Sales</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
     body { font-family: Arial, sans-serif; background: #f4f7fa; margin: 0; padding: 0; }
@@ -96,7 +96,7 @@
 <body>
   <div class="container">
     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="App Logo" class="logo">
-    <h1>Sales & Sales Returns</h1>
+    <h1>Sales</h1>
     <div class="section">
       <div class="section-title">Sales Entries</div>
       <table class="responsive-table">
@@ -105,19 +105,7 @@
         </thead>
         <tbody>
           <tr><td data-label="Transaction ID">TXN001</td><td data-label="Customer Name">John Doe</td><td data-label="Total Amount">₹80,000</td><td data-label="Invoice"><a href="#" class="invoice-btn">See Invoice</a></td></tr>
-          <tr><td data-label="Transaction ID">TXN002</td><td data-label="Customer Name">Jane Smith</td><td data-label="Total Amount">₹2,500</td><td data-label="Invoice"><a href="#" class="invoice-btn">See Invoice</a></td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="section">
-      <div class="section-title">Sales Returns</div>
-      <table class="responsive-table">
-        <thead>
-          <tr><th>Transaction ID</th><th>Customer Name</th><th>Total Amount</th><th>Invoice</th></tr>
-        </thead>
-        <tbody>
-          <tr><td data-label="Transaction ID">RTN001</td><td data-label="Customer Name">John Doe</td><td data-label="Total Amount">₹40,000</td><td data-label="Invoice"><a href="#" class="invoice-btn">See Invoice</a></td></tr>
-        </tbody>
+          <tr><td data-label="Transaction ID">TXN002</td><td data-label="Customer Name">Jane Smith</td><td data-label="Total Amount">₹2,500</td><td data-label="Invoice"><a href="#" class="invoice-btn">See Invoice</a></td></tr>        </tbody>
       </table>
     </div>
     <div class="powered-by">
