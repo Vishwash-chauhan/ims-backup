@@ -27,6 +27,15 @@
                     <span class="text-gray-300 mx-0.5">|</span>
                     <a href="{{ url_for('main.add_customer') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Customers</a>
                     <span class="text-gray-300 mx-0.5">|</span>                    <a href="{{ url_for('main.add_supplier') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Suppliers</a>
+                    {% if current_user.is_authenticated %}
+                        <span class="text-gray-300 mx-0.5">|</span>
+                        <a href="{{ url_for('main.logout') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-600 hover:text-red-800 hover:underline transition">Logout</a>
+                        <a href="{{ url_for('main.profile') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 transition ml-2" title="Profile">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 rounded-full bg-gray-200 p-1 border border-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.7 0 4.5-1.8 4.5-4.5S14.7 3 12 3 7.5 4.8 7.5 7.5 9.3 12 12 12zm0 1.5c-3 0-9 1.5-9 4.5V21h18v-3c0-3-6-4.5-9-4.5z"/>
+                            </svg>
+                        </a>
+                    {% endif %}
                 </div>
                 <div class="-mr-2 flex items-center sm:hidden">
                     <!-- Mobile menu button -->
@@ -48,6 +57,10 @@
                 <a href="{{ url_for('main.add_product') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Add Products</a>
                 <a href="{{ url_for('main.add_customer') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Add Customers</a>
                 <a href="{{ url_for('main.add_supplier') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition">Add Suppliers</a>
+                {% if current_user.is_authenticated %}
+                     <a href="{{ url_for('main.logout') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-red-600 hover:bg-red-100 hover:text-red-800 hover:underline transition">Logout</a>
+                     <a href="{{ url_for('main.profile') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition flex items-center" title="Profile">Profile</a>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -62,18 +75,22 @@
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=True) %}
       {% if messages %}
-        <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-lg">
+        <div id="flash-messages" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-lg">
           {% for category, message in messages %}
-            <div class="mb-2 px-4 py-3 rounded shadow-lg flex items-center
-              {% if category == 'success' %}bg-green-100 border border-green-400 text-green-800
-              {% elif category == 'info' %}bg-blue-100 border border-blue-400 text-blue-800
-              {% elif category == 'danger' or category == 'error' %}bg-red-100 border border-red-400 text-red-800
-              {% else %}bg-gray-100 border border-gray-300 text-gray-800{% endif %}">
-              <span class="font-semibold capitalize mr-2">{{ category }}:</span>
-              <span>{{ message }}</span>
+            <div class="mb-2 px-4 py-2 rounded shadow
+                {% if category == 'success' %}bg-green-100 text-green-800
+                {% elif category == 'danger' or category == 'error' %}bg-red-100 text-red-800
+                {% else %}bg-blue-100 text-blue-800{% endif %}">
+              {{ message }}
             </div>
           {% endfor %}
         </div>
+        <script>
+          setTimeout(function() {
+            var flash = document.getElementById('flash-messages');
+            if (flash) { flash.style.display = 'none'; }
+          }, 3500); // Hide after 3.5 seconds
+        </script>
       {% endif %}
     {% endwith %}
     <!-- End flash messages -->

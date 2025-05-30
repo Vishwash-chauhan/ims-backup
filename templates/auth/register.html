@@ -1,30 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5" style="max-width:500px;">
-  <h2 class="mb-4">Register New User</h2>
-  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
-  <form method="post">
-    <div class="mb-3">
-      <label for="full_name" class="form-label">Full Name</label>
-      <input type="text" class="form-control" id="full_name" name="full_name" required>
+<div class="min-h-screen flex justify-center items-center py-10 main-content">
+    <div class="bg-white rounded-lg shadow-md w-full max-w-md p-6 form-container" id="register-form-container">
+        <div class="logo-container flex justify-center mb-6">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo h-16">
+        </div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Register</h2>
+        {% if error %}
+        <div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-4 text-sm text-center">{{ error }}</div>
+        {% endif %}
+        <form method="post" class="space-y-4">
+            <div>
+                <label for="full_name" class="block text-gray-700 text-sm font-bold mb-2 text-left">Full Name</label>
+                <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="full_name" name="full_name" required>
+            </div>
+            <div>
+                <label for="email" class="block text-gray-700 text-sm font-bold mb-2 text-left">Email</label>
+                <input type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" name="email" required>
+            </div>
+            <div>
+                <label for="password" class="block text-gray-700 text-sm font-bold mb-2 text-left">Password</label>
+                <input type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" name="password" required>
+            </div>
+            <div>
+                <label for="phone" class="block text-gray-700 text-sm font-bold mb-2 text-left">Phone</label>
+                <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="phone" name="phone" required>
+            </div>
+            <div>
+                <label for="role" class="block text-gray-700 text-sm font-bold mb-2 text-left">Role</label>
+                <select id="role" name="role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="">Select Role</option>
+                    <option value="admin">Admin</option>
+                    <option value="executive">Executive</option>
+                </select>
+            </div>
+            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline">Register</button>
+        </form>
+        <div class="mt-4 text-center">
+            <span class="text-gray-600 text-sm">Already have an account?</span>
+            <a href="{{ url_for('main.login') }}" class="text-blue-600 hover:underline text-sm">Login</a>
+        </div>
     </div>
-    <div class="mb-3">
-      <label for="email" class="form-label">Email</label>
-      <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    <div class="mb-3">
-      <label for="password" class="form-label">Password</label>
-      <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <div class="mb-3">
-      <label for="role" class="form-label">Role</label>
-      <select class="form-control" id="role" name="role" required>
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select>
-    </div>
-    <button type="submit" class="btn btn-success w-100">Register</button>
-  </form>
 </div>
 {% endblock %}

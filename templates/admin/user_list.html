@@ -1,31 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
-  <h2 class="mb-4">User List</h2>
-  <a href="{{ url_for('main.register') }}" class="btn btn-primary mb-3">Add New User</a>
-  <table class="table table-bordered table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Full Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th>Created At</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user in users %}
-      <tr>
-        <td>{{ user.id }}</td>
-        <td>{{ user.full_name }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.role }}</td>
-        <td>{{ 'Active' if user.is_active else 'Inactive' }}</td>
-        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+  <div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; flex-direction: column;">
+    <div class="container" style="background-color: #fff; padding: 40px 30px; border-radius: 15px; max-width: 900px; width: 98%; box-shadow: 0 8px 20px rgba(0,0,0,0.1); text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2 style="font-size: 22px; color: #023f90; font-weight: bold; margin: 0;">User List</h2>
+        <a href="{{ url_for('main.register') }}" style="background: #023f90; color: #fff; font-weight: bold; padding: 10px 22px; border-radius: 5px; text-decoration: none; font-size: 15px;">Add New User</a>
+      </div>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <thead>
+            <tr style="background: #f0f6ff;">
+              <th style="padding: 10px; border-bottom: 2px solid #e3e3e3;">ID</th>
+              <th style="padding: 10px; border-bottom: 2px solid #e3e3e3;">Full Name</th>
+              <th style="padding: 10px; border-bottom: 2px solid #e3e3e3;">Email</th>
+              <th style="padding: 10px; border-bottom: 2px solid #e3e3e3;">Role</th>
+              <th style="padding: 10px; border-bottom: 2px solid #e3e3e3;">Status</th>
+              <th style="padding: 10px; border-bottom: 2px solid #e3e3e3;">Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+              <td style="padding: 10px;">{{ user.id }}</td>
+              <td style="padding: 10px;">{{ user.full_name }}</td>
+              <td style="padding: 10px;">{{ user.email }}</td>
+              <td style="padding: 10px;">{{ user.role }}</td>
+              <td style="padding: 10px;">{{ 'Active' if user.is_active else 'Inactive' }}</td>
+              <td style="padding: 10px;">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 {% endblock %}

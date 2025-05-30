@@ -5,8 +5,20 @@ from models import db, Product, Customer, User, SalesInvoice, SalesInvoiceItem, 
 import re
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
+from werkzeug.security import generate_password_hash
 
 main = Blueprint('main', __name__)
+
+# Admin-only decorator
+def admin_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or str(current_user.role).lower() != 'admin':
+            #flash('Admin access required.', 'danger')
+            return redirect(url_for('main.index'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @main.route('/')
 @login_required
@@ -917,7 +929,7 @@ def api_create_sales():
         items_to_create.append({
             'product_id': product_id,
             'quantity_sold': quantity_sold,
-            'price_per_unit_before_gst': price_per_unit_before_gst,
+            'price_per_unit_before_gst': item['price_per_unit_before_gst'],
             'gst_percentage': gst_percentage,
             'gst_amount_per_unit': price_per_unit_before_gst * (gst_percentage / 100),
             'item_discount_amount': 0.0,  # No per-item discount in this form
@@ -1051,7 +1063,7 @@ def api_create_purchases():
         items_to_create.append({
             'product_id': product_id,
             'quantity_purchased': quantity_purchased,
-            'price_per_unit_before_gst': price_per_unit_before_gst,
+            'price_per_unit_before_gst': item['price_per_unit_before_gst'],
             'gst_percentage': gst_percentage,
             'gst_amount_per_unit': price_per_unit_before_gst * (gst_percentage / 100),
             'item_discount_amount': 0.0,  # No per-item discount in this form
@@ -1118,6 +1130,7 @@ def api_create_purchases():
 # --- Dashboard and Transaction Views ---
 @main.route('/dashboard')
 @login_required
+@admin_required
 def dashboard():
     """Dashboard view with links to main sections"""
     return render_template('dashboard.html')
@@ -1418,7 +1431,7 @@ def login():
                 login_user(user, remember=remember)
                 flash('Logged in successfully!', 'success')
                 next_page = request.args.get('next')
-                return redirect(next_page or url_for('main.dashboard'))
+                return redirect(next_page or url_for('main.index'))
         else:
             error = 'Invalid email or password.'
     return render_template('auth/login.html', error=error)
@@ -1430,17 +1443,6 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.login'))
 
-# Admin-only decorator
-def admin_required(f):
-    from functools import wraps
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != 'admin':
-            flash('Admin access required.', 'danger')
-            return redirect(url_for('main.login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
 @main.route('/register', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -1451,15 +1453,30 @@ def register():
         email = request.form['email']
         password = request.form['password']
         role = request.form['role']
-        if User.query.filter_by(email=email).first():
-            error = 'Email already registered.'
-        else:
-            user = User(full_name=full_name, email=email, role=role, is_active=True)
-            user.set_password(password)
-            db.session.add(user)
+        phone = request.form.get('phone')  # <-- get phone from form
+
+        # Hash the password
+        password_hash = generate_password_hash(password)
+
+        # Create new user instance (make sure User model has a phone field)
+        new_user = User(
+            full_name=full_name,
+            email=email,
+            password_hash=password_hash,
+            phone=phone,  # <-- include phone here
+            role=role,
+            is_active=True
+        )
+
+        try:
+            db.session.add(new_user)
             db.session.commit()
-            flash('User registered successfully!', 'success')
-            return redirect(url_for('main.user_list'))
+            flash('Registration successful! Please log in.', 'success')
+            return redirect(url_for('main.login'))
+        except Exception as e:
+            db.session.rollback()
+            error = str(e)
+            return render_template('auth/register.html', error=error)
     return render_template('auth/register.html', error=error)
 
 @main.route('/users')
@@ -1468,4 +1485,9 @@ def register():
 def user_list():
     users = User.query.all()
     return render_template('admin/user_list.html', users=users)
+
+@main.route('/profile')
+@login_required
+def profile():
+    return render_template('auth/profile.html')
 

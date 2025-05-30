@@ -4,9 +4,18 @@
 <div class="container mx-auto mt-8 max-w-lg">
     <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 class="text-2xl font-bold mb-4">User Profile</h2>
-        <p class="text-gray-700 text-sm mb-4">
-            <!-- This page is obsolete. Authentication has been removed from the application. -->
-        </p>
+        <div class="mb-4">
+            <span class="font-semibold">Name:</span> {{ current_user.full_name }}
+        </div>
+        <div class="mb-4">
+            <span class="font-semibold">Email:</span> {{ current_user.email }}
+        </div>
+        <div class="mb-4">
+            <span class="font-semibold">Role:</span> {{ current_user.role|capitalize }}
+        </div>
+        <div class="mb-4">
+            <span class="font-semibold">Phone:</span> {{ current_user.phone or 'N/A' }}
+        </div>
     </div>
 </div>
 {% endblock %}

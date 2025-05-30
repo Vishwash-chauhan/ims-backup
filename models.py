@@ -187,6 +187,7 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(50))
     is_active = db.Column(db.Boolean, default=True)
     password_hash = db.Column(db.String(255))
+    phone = db.Column(db.String(20))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     sales_invoices = db.relationship('SalesInvoice', backref='executive', lazy=True, foreign_keys='SalesInvoice.executive_id')
