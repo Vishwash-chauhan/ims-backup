@@ -126,6 +126,7 @@ class PurchaseReturn(db.Model):
     refund_receipt_option = db.Column(db.Enum('full-amount','partial-amount'), default='full-amount')
     partial_amount_received_input = db.Column(db.Numeric(12,2))
     final_amount_received = db.Column(db.Numeric(12,2), nullable=False)
+    #final_amount_refunded = db.Column(db.Numeric(12,2), nullable=False)
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

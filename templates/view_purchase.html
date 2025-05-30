@@ -55,7 +55,7 @@
                         <td class="px-4 py-2 text-blue-700 font-semibold">PR-{{ ret.id }}</td>
                         <td class="px-4 py-2">{{ ret.return_date.strftime('%d-%m-%Y') }}</td>
                         <td class="px-4 py-2">{{ ret.supplier.supplier_name }}</td>
-                        <td class="px-4 py-2">₹{{ '%.2f'|format(ret.final_amount_refunded) }}</td>
+                        <td class="px-4 py-2">₹{{ '%.2f'|format(ret.final_amount_received) }}</td>
                         <td class="px-4 py-2">{{ ret.return_reason or '-' }}</td>
                         <td class="px-4 py-2 text-right">
                             <a href="{{ url_for('main.get_invoice_details', invoice_number=ret.original_invoice_id) }}" class="text-blue-600 hover:underline text-sm">View Invoice</a>
