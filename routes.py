@@ -1256,14 +1256,24 @@ def sales_return():
 def sales_transactions():
     """View all sales transactions"""
     sales_invoices = SalesInvoice.query.order_by(SalesInvoice.invoice_date.desc()).all()
-    return render_template('sales_transactions.html', sales_invoices=sales_invoices)
+    sales_returns = SalesReturn.query.order_by(SalesReturn.return_date.desc()).all()
+    return render_template(
+        'view_sales.html',
+        sales_invoices=sales_invoices,
+        sales_returns=sales_returns
+    )
 
 @main.route('/purchase-transactions')
 @login_required
 def purchase_transactions():
     """View all purchase transactions"""
     purchase_invoices = PurchaseInvoice.query.order_by(PurchaseInvoice.invoice_date.desc()).all()
-    return render_template('purchase_transactions.html', purchase_invoices=purchase_invoices)
+    purchase_returns = PurchaseReturn.query.order_by(PurchaseReturn.return_date.desc()).all()
+    return render_template(
+        'view_purchase.html',
+        purchase_invoices=purchase_invoices,
+        purchase_returns=purchase_returns
+    )
 
 @main.route('/api/invoice-details/<string:invoice_number>', methods=['GET'])
 @login_required
