@@ -3,20 +3,25 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from datetime import datetime, timedelta
 from models import db, Product, Customer, User, SalesInvoice, SalesInvoiceItem, PurchaseInvoice, PurchaseInvoiceItem, PurchaseReturn, PurchaseReturnItem, Supplier, SalesReturn, SalesReturnItem
 import re
+from flask_login import login_user, logout_user, login_required, current_user
+from flask_bcrypt import Bcrypt
 
 main = Blueprint('main', __name__)
 
 @main.route('/')
+@login_required
 def index():
     return render_template('index.html') # Assumes index.html exists
 
 # --- Product CRUD ---
 @main.route('/products')
+@login_required
 def product_list():
     products = Product.query.filter_by(deleted=False).all()
     return render_template('view_products.html', products=products)
 
 @main.route('/products/add', methods=['GET', 'POST'])
+@login_required
 def add_product():
     error = None
     if request.method == 'POST':
@@ -102,6 +107,7 @@ def add_product():
     return render_template('new_product_form.html', request=None)
 
 @main.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
+@login_required
 def edit_product(product_id):
     product = Product.query.get_or_404(product_id)
     error = None
@@ -192,6 +198,7 @@ def edit_product(product_id):
     return render_template('new_product_form.html', product=product, request=None)
 
 @main.route('/products/delete/<int:product_id>', methods=['POST'])
+@login_required
 def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
     product.deleted = True
@@ -201,11 +208,13 @@ def delete_product(product_id):
 
 # --- Customer CRUD ---
 @main.route('/customers')
+@login_required
 def customer_list():
     customers = Customer.query.filter_by(deleted=False).all()
     return render_template('view_customers.html', customers=customers)
 
 @main.route('/customers/add', methods=['GET', 'POST'])
+@login_required
 def add_customer():
     error = None
     form_data = request.form if request.method == 'POST' else {}
@@ -266,6 +275,7 @@ def add_customer():
     return render_template('new_customer_form.html', customer=None, form_data=form_data, error=error)
 
 @main.route('/customers/edit/<int:customer_id>', methods=['GET', 'POST'])
+@login_required
 def edit_customer(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     error = None
@@ -327,6 +337,7 @@ def edit_customer(customer_id):
     return render_template('new_customer_form.html', customer=customer, form_data=form_data, error=error)
 
 @main.route('/customers/delete/<int:customer_id>', methods=['POST'])
+@login_required
 def delete_customer(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     # Prevent deletion if customer has related sales invoices
@@ -340,11 +351,13 @@ def delete_customer(customer_id):
 
 # --- Supplier CRUD ---
 @main.route('/suppliers')
+@login_required
 def supplier_list():
     suppliers = Supplier.query.filter_by(deleted=False).all()
     return render_template('view_suppliers.html', suppliers=suppliers)
 
 @main.route('/suppliers/add', methods=['GET', 'POST'])
+@login_required
 def add_supplier():
     error = None
     form_data = request.form if request.method == 'POST' else {}
@@ -434,6 +447,7 @@ def add_supplier():
     return render_template('supplier_form.html', form_data=form_data, error=error)
 
 @main.route('/suppliers/edit/<int:supplier_id>', methods=['GET', 'POST'])
+@login_required
 def edit_supplier(supplier_id):
     supplier = Supplier.query.get_or_404(supplier_id)
     error = None
@@ -553,6 +567,7 @@ def edit_supplier(supplier_id):
     return render_template('supplier_form.html', supplier=supplier, form_data=form_data, error=error)
 
 @main.route('/suppliers/delete/<int:supplier_id>', methods=['POST'])
+@login_required
 def delete_supplier(supplier_id):
     supplier = Supplier.query.get_or_404(supplier_id)
     # Optional: Check for related entities before deleting
@@ -568,10 +583,12 @@ def delete_supplier(supplier_id):
 
 # --- SalesInvoice CRUD ---
 @main.route('/sales-invoices')
+@login_required
 def sales_invoice_list():
     return redirect(url_for('main.sales_transactions'))
 
 @main.route('/sales-invoices/add', methods=['GET', 'POST'])
+@login_required
 def add_sales_invoice():
     if request.method == 'POST':
         sales_invoice = SalesInvoice(
@@ -593,6 +610,7 @@ def add_sales_invoice():
     return render_template('sales_invoices/add.html')
 
 @main.route('/sales-invoices/edit/<int:invoice_id>', methods=['GET', 'POST'])
+@login_required
 def edit_sales_invoice(invoice_id):
     sales_invoice = SalesInvoice.query.get_or_404(invoice_id)
     if request.method == 'POST':
@@ -612,6 +630,7 @@ def edit_sales_invoice(invoice_id):
     return render_template('sales_invoices/add.html', sales_invoice=sales_invoice)
 
 @main.route('/sales-invoices/delete/<int:invoice_id>', methods=['POST'])
+@login_required
 def delete_sales_invoice(invoice_id):
     sales_invoice = SalesInvoice.query.get_or_404(invoice_id)
     db.session.delete(sales_invoice)
@@ -621,10 +640,12 @@ def delete_sales_invoice(invoice_id):
 
 # --- PurchaseInvoice CRUD ---
 @main.route('/purchase-invoices')
+@login_required
 def purchase_invoice_list():
     return redirect(url_for('main.purchase_transactions'))
 
 @main.route('/purchase-invoices/add', methods=['GET', 'POST'])
+@login_required
 def add_purchase_invoice():
     if request.method == 'POST':
         purchase_invoice = PurchaseInvoice(
@@ -646,6 +667,7 @@ def add_purchase_invoice():
     return render_template('purchase_invoices/add.html')
 
 @main.route('/purchase-invoices/edit/<int:invoice_id>', methods=['GET', 'POST'])
+@login_required
 def edit_purchase_invoice(invoice_id):
     purchase_invoice = PurchaseInvoice.query.get_or_404(invoice_id)
     if request.method == 'POST':
@@ -665,6 +687,7 @@ def edit_purchase_invoice(invoice_id):
     return render_template('purchase_invoices/add.html', purchase_invoice=purchase_invoice)
 
 @main.route('/purchase-invoices/delete/<int:invoice_id>', methods=['POST'])
+@login_required
 def delete_purchase_invoice(invoice_id):
     purchase_invoice = PurchaseInvoice.query.get_or_404(invoice_id)
     db.session.delete(purchase_invoice)
@@ -675,6 +698,7 @@ def delete_purchase_invoice(invoice_id):
 # --- API Endpoints for Sales Entry Form ---
 
 @main.route('/api/products', methods=['GET'])
+@login_required
 def api_products():
     """API endpoint to fetch all non-deleted products."""
     try:
@@ -693,6 +717,7 @@ def api_products():
         return jsonify({"error": "Failed to fetch products"}), 500
 
 @main.route('/api/product/<int:product_id>', methods=['GET'])
+@login_required
 def api_product_by_id(product_id):
     """API endpoint to fetch a product by ID."""
     try:
@@ -710,6 +735,7 @@ def api_product_by_id(product_id):
         return jsonify({"error": "Failed to fetch product"}), 500
 
 @main.route('/api/executives', methods=['GET'])
+@login_required
 def api_executives():
     """API endpoint to fetch all active users (assumed to be executives)."""
     try:
@@ -728,6 +754,7 @@ def api_executives():
         return jsonify({"error": "Failed to fetch executives"}), 500
 
 @main.route('/api/customer/by-contact/<string:contact_number>', methods=['GET'])
+@login_required
 def api_customer_by_contact(contact_number):
     """API endpoint to fetch a customer by contact number."""
     try:
@@ -745,6 +772,7 @@ def api_customer_by_contact(contact_number):
         return jsonify({"error": "Failed to fetch customer by contact"}), 500
 
 @main.route('/api/supplier/by-contact/<string:contact_number>', methods=['GET'])
+@login_required
 def api_supplier_by_contact(contact_number):
     """API endpoint to fetch a supplier by contact number."""
     try:
@@ -762,6 +790,7 @@ def api_supplier_by_contact(contact_number):
         return jsonify({"error": "Failed to fetch supplier by contact"}), 500
 
 @main.route('/api/check_customer_exists', methods=['POST'])
+@login_required
 def api_check_customer_exists():
     """
     API endpoint to check if a customer field (e.g., name, email) already exists.
@@ -811,6 +840,7 @@ def api_check_customer_exists():
 # --- End of API Endpoints ---
 
 @main.route('/api/sales', methods=['POST'])
+@login_required
 def api_create_sales():
     data = request.get_json()
     if not data:
@@ -954,6 +984,7 @@ def api_create_sales():
         return jsonify({"error": f"An error occurred while creating the sales invoice: {str(e)}"}), 500
 
 @main.route('/api/purchases', methods=['POST'])
+@login_required
 def api_create_purchases():
     data = request.get_json()
     if not data:
@@ -1086,11 +1117,13 @@ def api_create_purchases():
 
 # --- Dashboard and Transaction Views ---
 @main.route('/dashboard')
+@login_required
 def dashboard():
     """Dashboard view with links to main sections"""
     return render_template('dashboard.html')
 
 @main.route('/sales-entry', methods=['GET', 'POST'])
+@login_required
 def sales_entry():
     """Sales entry form for creating new sales"""
     if request.method == 'POST':
@@ -1100,6 +1133,7 @@ def sales_entry():
     return render_template('sales_entry.html')
 
 @main.route('/purchases-form', methods=['GET', 'POST'])
+@login_required
 def purchases_form():
     """Purchase form for creating new purchases"""
     if request.method == 'POST':
@@ -1109,6 +1143,7 @@ def purchases_form():
     return render_template('purchase_form.html')
 
 @main.route('/purchase-return', methods=['GET', 'POST'])
+@login_required
 def purchase_return():
     """Purchase return form for processing returns"""
     if request.method == 'POST':
@@ -1132,6 +1167,7 @@ def purchase_return():
     return render_template('purchase_return_form.html')
 
 @main.route('/sales-return', methods=['GET', 'POST'])
+@login_required
 def sales_return():
     """Sales return form for processing returns"""
     if request.method == 'POST':
@@ -1203,62 +1239,87 @@ def sales_return():
     return render_template('sales_return_form.html')
 
 @main.route('/sales-transactions')
+@login_required
 def sales_transactions():
     """View all sales transactions"""
     sales_invoices = SalesInvoice.query.order_by(SalesInvoice.invoice_date.desc()).all()
     return render_template('sales_transactions.html', sales_invoices=sales_invoices)
 
 @main.route('/purchase-transactions')
+@login_required
 def purchase_transactions():
     """View all purchase transactions"""
     purchase_invoices = PurchaseInvoice.query.order_by(PurchaseInvoice.invoice_date.desc()).all()
     return render_template('purchase_transactions.html', purchase_invoices=purchase_invoices)
 
 @main.route('/api/invoice-details/<string:invoice_number>', methods=['GET'])
+@login_required
 def get_invoice_details(invoice_number):
-    """Get invoice details by invoice number for returns"""
+    """Get invoice details by invoice number for returns (supports both sales and purchase invoices)"""
     try:
-        # Find the sales invoice by invoice number
+        # Try to find the sales invoice first
         sales_invoice = SalesInvoice.query.filter_by(invoice_number=invoice_number).first()
-        
-        if not sales_invoice:
-            return jsonify({"error": "Invoice not found"}), 404
-        
-        # Get the invoice items
-        invoice_items = SalesInvoiceItem.query.filter_by(sales_invoice_id=sales_invoice.id).all()
-        
-        # Prepare the response data
-        invoice_data = {
-            "invoice_id": sales_invoice.id,
-            "invoice_number": sales_invoice.invoice_number,
-            "invoice_date": sales_invoice.invoice_date.strftime("%Y-%m-%d"),
-            "customer_id": sales_invoice.customer_id,
-            "customer_name": sales_invoice.customer.customer_name if sales_invoice.customer else "",
-            "executive_id": sales_invoice.executive_id,
-            "executive_name": sales_invoice.executive.full_name if sales_invoice.executive else "",
-            "total_amount": float(sales_invoice.total_invoice_amount),
-            "items": []
-        }
-        
-        # Add item details
-        for item in invoice_items:
-            invoice_data["items"].append({
-                "product_id": item.product_id,
-                "product_name": item.product.product_name if item.product else "",
-                "quantity_sold": item.quantity_sold,
-                "price_per_unit": float(item.price_per_unit_before_gst),
-                "gst_percentage": float(item.gst_percentage),
-                "sub_total": float(item.item_sub_total_before_gst),
-                "gst_amount": float(item.item_total_gst_amount),
-                "total_amount": float(item.item_final_amount)
-            })
-        
-        return jsonify(invoice_data), 200
-        
+        if sales_invoice:
+            invoice_items = SalesInvoiceItem.query.filter_by(sales_invoice_id=sales_invoice.id).all()
+            invoice_data = {
+                "invoice_id": sales_invoice.id,
+                "invoice_number": sales_invoice.invoice_number,
+                "invoice_date": sales_invoice.invoice_date.strftime("%Y-%m-%d"),
+                "customer_id": sales_invoice.customer_id,
+                "customer_name": sales_invoice.customer.customer_name if sales_invoice.customer else "",
+                "executive_id": sales_invoice.executive_id,
+                "executive_name": sales_invoice.executive.full_name if sales_invoice.executive else "",
+                "total_amount": float(sales_invoice.total_invoice_amount),
+                "type": "sales",
+                "items": []
+            }
+            for item in invoice_items:
+                invoice_data["items"].append({
+                    "product_id": item.product_id,
+                    "product_name": item.product.product_name if item.product else "",
+                    "quantity_sold": item.quantity_sold,
+                    "price_per_unit": float(item.price_per_unit_before_gst),
+                    "gst_percentage": float(item.gst_percentage),
+                    "sub_total": float(item.item_sub_total_before_gst),
+                    "gst_amount": float(item.item_total_gst_amount),
+                    "total_amount": float(item.item_final_amount)
+                })
+            return jsonify(invoice_data), 200
+        # If not found, try purchase invoice
+        purchase_invoice = PurchaseInvoice.query.filter_by(invoice_number=invoice_number).first()
+        if purchase_invoice:
+            invoice_items = PurchaseInvoiceItem.query.filter_by(purchase_invoice_id=purchase_invoice.id).all()
+            invoice_data = {
+                "invoice_id": purchase_invoice.id,
+                "invoice_number": purchase_invoice.invoice_number,
+                "invoice_date": purchase_invoice.invoice_date.strftime("%Y-%m-%d"),
+                "supplier_id": purchase_invoice.supplier_id,
+                "supplier_name": purchase_invoice.supplier.supplier_name if purchase_invoice.supplier else "",
+                "supplier_contact": purchase_invoice.supplier.supplier_contact if purchase_invoice.supplier else "",
+                "executive_id": None,  # Not tracked for purchase invoices
+                "executive_name": None,
+                "total_amount": float(purchase_invoice.total_invoice_amount),
+                "type": "purchase",
+                "items": []
+            }
+            for item in invoice_items:
+                invoice_data["items"].append({
+                    "product_id": item.product_id,
+                    "product_name": item.product.product_name if item.product else "",
+                    "quantity_sold": item.quantity_purchased,  # For compatibility with return forms
+                    "price_per_unit": float(item.price_per_unit_before_gst),
+                    "gst_percentage": float(item.gst_percentage),
+                    "sub_total": float(item.item_sub_total_before_gst),
+                    "gst_amount": float(item.item_total_gst_amount),
+                    "total_amount": float(item.item_final_amount)
+                })
+            return jsonify(invoice_data), 200
+        return jsonify({"error": "Invoice not found"}), 404
     except Exception as e:
         return jsonify({"error": f"Error fetching invoice details: {str(e)}"}), 500
 
 @main.route('/api/sales-return', methods=['POST'])
+@login_required
 def api_create_sales_return():
     """Handle JSON-based sales return form submission"""
     try:
@@ -1337,4 +1398,74 @@ def api_create_sales_return():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Error processing sales return: {str(e)}"}), 500
+
+# --- Authentication and User Management ---
+
+@main.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    error = None
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        remember = 'remember' in request.form
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            if not user.is_active:
+                error = 'Account is inactive.'
+            else:
+                login_user(user, remember=remember)
+                flash('Logged in successfully!', 'success')
+                next_page = request.args.get('next')
+                return redirect(next_page or url_for('main.dashboard'))
+        else:
+            error = 'Invalid email or password.'
+    return render_template('auth/login.html', error=error)
+
+@main.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('main.login'))
+
+# Admin-only decorator
+def admin_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != 'admin':
+            flash('Admin access required.', 'danger')
+            return redirect(url_for('main.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@main.route('/register', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def register():
+    error = None
+    if request.method == 'POST':
+        full_name = request.form['full_name']
+        email = request.form['email']
+        password = request.form['password']
+        role = request.form['role']
+        if User.query.filter_by(email=email).first():
+            error = 'Email already registered.'
+        else:
+            user = User(full_name=full_name, email=email, role=role, is_active=True)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            flash('User registered successfully!', 'success')
+            return redirect(url_for('main.user_list'))
+    return render_template('auth/register.html', error=error)
+
+@main.route('/users')
+@login_required
+@admin_required
+def user_list():
+    users = User.query.all()
+    return render_template('admin/user_list.html', users=users)
 

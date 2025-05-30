@@ -1,649 +1,379 @@
 {% extends "base.html" %}
+
 {% block content %}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">    <div class="container mx-auto px-4 py-8">
-        <form id="purchaseReturnForm" method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+<link href="{{ url_for('static', filename='custom.css') }}" rel="stylesheet">
+<div class="min-h-screen flex justify-center items-center py-10 main-content">
+    <div class="bg-white rounded-lg shadow-md w-full max-w-3xl p-6 form-container" id="purchase-return-form-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+        </div>
+        <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Purchase Return Entry</h1>
+
+        <!-- Error summary div -->
+        <div id="form-errors" class="mb-4"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="return-date" class="block text-gray-700 text-sm font-bold mb-2 text-left">Return Date:</label>
+                <input type="date" id="return-date" name="return_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Purchase Return</h1>
-
-            <!-- Return Date -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label for="return-date" class="block text-gray-700 text-sm font-bold mb-2">Return Date:</label>
-                    <input type="date" id="return-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
+            <div>
+                <label for="executive-name" class="block text-gray-700 text-sm font-bold mb-2 text-left">Executive Name:</label>
+                <select id="executive-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></select>
             </div>
-
-            <!-- Original Invoice and Supplier -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <div class="original-invoice-label-container">
-                        <label for="original-invoice" class="text-gray-700 text-sm font-bold">Original Invoice:</label>
-                        <span class="view-invoice-link" onclick="window.location.href='purchase_entry_form.html'">View Invoice</span>
-                    </div>
-                    <div class="original-invoice-container">
-                        <select id="original-invoice" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            <option value="">Select Invoice</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label for="supplier-name" class="block text-gray-700 text-sm font-bold mb-2">Supplier Name:</label>
-                    <input type="text" id="supplier-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
-                </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="original-invoice-id" class="block text-gray-700 text-sm font-bold mb-2 text-left">Original Invoice Number<span class="text-red-500">*</span>:</label>
+                <input type="text" id="original-invoice-id" name="original_invoice_id" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
+        </div>
 
-            <!-- Product Table -->
-            <table id="product-table" class="mb-6">
-                <thead>
-                    <tr>
-                        <th>Product ID</th>
-                        <th>Product Name</th>
-                        <th>Quantity Returned</th>
-                        <th>Price Per Unit</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Select Product ID</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Select Product Name</option>
-                            </select>
-                        </td>
-                        <td><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
-                        <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></td>
-                        <td class="amount">₹0.00</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Mobile Product Table -->
-            <table id="product-table-mobile" class="mb-6">
-                <thead>
-                    <tr>
-                        <th>Product ID</th>
-                        <th>Product Name</th>
-                        <th>Quantity Returned</th>
-                        <th>Price Per Unit</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <label>Product ID</label>
-                            <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Select Product ID</option>
-                            </select>
-                        </td>
-                        <td>
-                            <label>Product Name</label>
-                            <select class="product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="">Select Product Name</option>
-                            </select>
-                        </td>
-                        <td>
-                            <label>Quantity Returned</label>
-                            <input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </td>
-                        <td>
-                            <label>Price Per Unit</label>
-                            <input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </td>
-                        <td class="amount">₹0.00</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Add Product Button -->
-            <div class="mb-6">
-                <button id="add-product" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Product</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="supplier-contact-input" class="block text-gray-700 text-sm font-bold mb-2 text-left">Supplier Contact:</label>
+                <input type="text" id="supplier-contact-input" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <input type="hidden" id="supplier-id-hidden">
             </div>
-
-            <!-- Total Amount -->
-            <div id="total-and-gst-container" class="mb-6">
-                <div class="mb-2">
-                    <span class="text-gray-700 text-sm font-bold">Total Refundable Amount: </span>
-                    <span id="total-refundable-amount" class="text-gray-700">₹0.00</span>
-                </div>
+            <div>
+                <label for="supplier-name" class="block text-gray-700 text-sm font-bold mb-2 text-left">Supplier Name:</label>
+                <input type="text" id="supplier-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline" readonly>
             </div>
+        </div>
 
-            <!-- Return Reason -->
-            <div class="mb-4">
-                <label for="return-reason" class="block text-gray-700 text-sm font-bold mb-2">Return Reason:</label>
-                <input type="text" id="return-reason" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <table id="product-table" class="mb-6">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity Returned</th>
+                    <th>Price Per Unit</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></select>
+                    </td>
+                    <td><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0"></td>
+                    <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01"></td>
+                    <td class="amount">₹0.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="totals-summary mb-6 p-4 border rounded-md bg-gray-50">
+            <h3 class="text-lg font-semibold mb-3 text-gray-700">Return Summary</h3>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <span class="text-gray-600">Total Return Amount:</span>
+                <span id="total-return-amount-display" class="text-right font-medium text-gray-800">₹0.00</span>
             </div>
+        </div>
 
-            <!-- Refund Details -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label for="mode-of-refund" class="block text-gray-700 text-sm font-bold mb-2">Mode of Refund:</label>
-                    <select id="mode-of-refund" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="">Select Mode</option>
-                        <option value="upi">UPI</option>
-                        <option value="cash">Cash</option>
-                        <option value="card">Card</option>
-                        <option value="bank">Bank Transfer</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="refund-option" class="block text-gray-700 text-sm font-bold mb-2">Refund Option:</label>
-                    <select id="refund-option" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="full-refund" selected>Full Refund</option>
-                        <option value="partial-refund">Partial Refund</option>
-                    </select>
-                </div>
+        <!-- New fields for return reason, mode of return, refund option, amount refunded -->
+        <div class="mb-4">
+            <label for="return-reason" class="block text-gray-700 text-sm font-bold mb-2 text-left">Return Reason:</label>
+            <textarea id="return-reason" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="2" placeholder="Enter reason for return"></textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="mode-of-return" class="block text-gray-700 text-sm font-bold mb-2 text-left">Mode of Return:</label>
+                <select id="mode-of-return" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Select Mode</option>
+                    <option value="cash">Cash</option>
+                    <option value="upi">UPI</option>
+                    <option value="bank">Bank Transfer</option>
+                    <option value="card">Card</option>
+                    <option value="credit-note">Credit Note</option>
+                </select>
             </div>
-
-            <!-- Partial Refund Amount -->
-            <div class="mb-4 show-partial-refund" id="partial-refund-amount">
-                <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Partial Refund Amount:</label>
-                <input type="number" id="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            <div>
+                <label for="refund-option" class="block text-gray-700 text-sm font-bold mb-2 text-left">Refund Option:</label>
+                <select id="refund-option" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="full" selected>Full Refund</option>
+                    <option value="partial">Partial Refund</option>
+                </select>
             </div>
+        </div>
+        <div class="mb-4">
+            <label for="amount-refunded" class="block text-gray-700 text-sm font-bold mb-2 text-left">Amount Refunded:</label>
+            <input type="number" id="amount-refunded" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01" placeholder="Enter amount refunded">
+        </div>
 
-            <!-- Final Amount -->
-            <div id="final-refund-amount-container" class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Amount Refunded:</label>
-                <input type="number" id="final-refund-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
-            </div>
+        <div class="mb-4">
+            <label for="notes" class="block text-gray-700 text-sm font-bold mb-2 text-left">Notes:</label>
+            <textarea id="notes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3"></textarea>
+        </div>
 
-            <!-- Submit Button -->
-            <button id="submit-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
-        </form>
+        <div class="flex flex-row items-center justify-between mt-4">
+            <button id="submit-purchase-return-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit Return</button>
+        </div>
     </div>
+</div>
 
-    <script>
-        const refundOptionSelect = document.getElementById('refund-option');
-        const partialRefundAmountInput = document.getElementById('partial-refund-amount');
-        const addProductButton = document.getElementById('add-product');
-        const productTable = document.getElementById('product-table');
-        const productTableMobile = document.getElementById('product-table-mobile');
-        const totalRefundableAmountDisplay = document.getElementById('total-refundable-amount');
-        const originalInvoiceSelect = document.getElementById('original-invoice');
-        const supplierNameInput = document.getElementById('supplier-name');
-        const returnDateInput = document.getElementById('return-date');
-        const finalRefundAmountInput = document.getElementById('final-refund-amount');
-        const returnReasonInput = document.getElementById('return-reason');
-        const modeOfRefundSelect = document.getElementById('mode-of-refund');
-        const submitFormButton = document.getElementById('submit-form');
+<!-- Success Modal Popup -->
+<div id="purchase-return-success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50" style="display: none;">
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center">
+        <div class="text-green-600 text-4xl mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+        </div>
+        <h2 class="text-xl font-semibold mb-2">Purchase Return Recorded!</h2>
+        <p id="purchase-return-success-message" class="mb-4 text-gray-700">Your purchase return has been recorded successfully.</p>
+        <div class="flex flex-row justify-center gap-4">
+            <button id="close-purchase-return-success-modal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">OK</button>
+        </div>
+    </div>
+</div>
 
+<script>
+const supplierContactInput = document.getElementById('supplier-contact-input');
+const supplierIdHiddenInput = document.getElementById('supplier-id-hidden');
+const supplierNameInput = document.getElementById('supplier-name');
+const originalInvoiceInput = document.getElementById('original-invoice-id');
+const productTableBody = document.getElementById('product-table').getElementsByTagName('tbody')[0];
+const formErrorsDiv = document.getElementById('form-errors');
+const totalReturnAmountDisplay = document.getElementById('total-return-amount-display');
+const returnDateInput = document.getElementById('return-date');
+const notesInput = document.getElementById('notes');
+const submitBtn = document.getElementById('submit-purchase-return-form');
+const executiveNameSelect = document.getElementById('executive-name');
+const returnReasonInput = document.getElementById('return-reason');
+const modeOfReturnSelect = document.getElementById('mode-of-return');
+const refundOptionSelect = document.getElementById('refund-option');
+const amountRefundedInput = document.getElementById('amount-refunded');
 
-        // Sample invoice data (In a real application, this would come from a database)
-        const invoiceData = {
-            'INV001': { supplierId: 'S001', supplierName: 'ABC Suppliers' , products: [{id: 'P001', name: 'Laptop', price: 1000}, {id: 'P002', name: 'Mouse', price: 20}], total: 1020},
-            'INV002': { supplierId: 'S002', supplierName: 'XYZ Distributors', products: [{id: 'P003', name: 'Keyboard', price: 50}, {id: 'P004', name: 'Monitor', price: 300}], total: 350 },
-            'INV003': { supplierId: 'S003', supplierName: 'Tech Solutions', products: [{id: 'P005', name: 'Printer', price: 200}, {id: 'P006', name: 'Software License', price: 500}], total: 700 },
-        };
+// Set today's date as default for return date
+(function setTodayAsDefaultReturnDate() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    returnDateInput.value = `${yyyy}-${mm}-${dd}`;
+})();
 
-        // Sample supplier data
-        const supplierData = {
-            'S001': 'ABC Suppliers',
-            'S002': 'XYZ Distributors',
-            'S003': 'Tech Solutions',
-            'S004': 'Global Electronics',
-            'S005': 'Best Buy'
-        };
+let invoiceProducts = [];
 
-        // Sample executive names - Not used
-        const executiveNames = ['Alice Johnson', 'Bob Williams', 'Charlie Brown', 'Diana Miller', 'Ethan Davis'];
+// Make supplier fields and product rows read-only
+function setSupplierFieldsReadOnly(readonly) {
+    supplierContactInput.readOnly = readonly;
+    supplierNameInput.readOnly = true;
+}
 
-        // Sample product data (In real app, this would come from DB)
-        const productData = {
-            'P001': 'Laptop',
-            'P002': 'Mouse',
-            'P003': 'Keyboard',
-            'P004': 'Monitor',
-            'P005': 'Printer',
-            'P006': 'Software License',
-            'P007': 'Webcam',
-            'P008': 'External Hard Drive',
-            'P009': 'USB Hub',
-            'P010': 'Headphones'
-        };
+function clearSupplierAndProducts() {
+    supplierContactInput.value = '';
+    supplierIdHiddenInput.value = '';
+    supplierNameInput.value = '';
+    productTableBody.innerHTML = `<tr>
+        <td><select class="product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></select></td>
+        <td><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0"></td>
+        <td><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" step="0.01"></td>
+        <td class="amount">₹0.00</td>
+    </tr>`;
+    invoiceProducts = [];
+    calculateTotalReturnAmount();
+}
 
-        // Function to populate dropdowns in the first row
-        function populateFirstRowDropdowns() {
-            // Populate Product ID dropdown in first row (desktop)
-            const firstRowProductId = productTable.querySelector('tbody tr .product-id');
-            for (const productId in productData) {
-                const option = document.createElement('option');
-                option.value = productId;
-                option.textContent = productId;
-                firstRowProductId.appendChild(option);
-            }
-
-            // Populate Product Name dropdown in first row (desktop)
-            const firstRowProductName = productTable.querySelector('tbody tr .product-name');
-            for (const productName in productData) {
-                const option = document.createElement('option');
-                option.value = productData[productName];
-                option.textContent = productData[productName];
-                firstRowProductName.appendChild(option);
-            }
-            // Add event listener to first row product ID dropdown
-            firstRowProductId.addEventListener('change', function() {
-                const selectedProductId = this.value;
-                const productName = productData[selectedProductId] || '';
-                const firstRowProductNameSelect = productTable.querySelector('tbody tr .product-name');
-                firstRowProductNameSelect.value = productName;
-            });
-
-            // Populate Product ID dropdown in first row (mobile)
-            const firstRowMobileProductId = productTableMobile.querySelector('tbody tr .product-id');
-            for (const productId in productData) {
-                const option = document.createElement('option');
-                option.value = productId;
-                option.textContent = productId;
-                firstRowMobileProductId.appendChild(option);
-            }
-
-            // Populate Product Name dropdown in first row (mobile)
-            const firstRowMobileProductName = productTableMobile.querySelector('tbody tr .product-name');
-            for (const productName in productData) {
-                const option = document.createElement('option');
-                option.value = productData[productName];
-                option.textContent = productData[productName];
-                firstRowMobileProductName.appendChild(option);
-            }
-            // Add event listener to first row product ID dropdown
-            firstRowMobileProductId.addEventListener('change', function() {
-                const selectedProductId = this.value;
-                const productName = productData[selectedProductId] || '';
-                const firstRowMobileProductNameSelect = productTableMobile.querySelector('tbody tr .product-name');
-                firstRowMobileProductNameSelect.value = productName;
-            });
+originalInvoiceInput.addEventListener('blur', async function() {
+    const invoiceNumber = this.value.trim();
+    clearSupplierAndProducts();
+    if (!invoiceNumber) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Original Invoice Number is required.</div>';
+        return;
+    }
+    formErrorsDiv.innerHTML = '';
+    try {
+        const res = await fetch(`/api/invoice-details/${encodeURIComponent(invoiceNumber)}`);
+        if (!res.ok) {
+            formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Invoice not found.</div>';
+            return;
         }
+        const data = await res.json();
+        // Populate supplier fields for purchase invoice, customer fields for sales invoice
+        if (data.type === 'purchase') {
+            supplierIdHiddenInput.value = data.supplier_id || '';
+            supplierContactInput.value = data.supplier_contact || '';
+            supplierNameInput.value = data.supplier_name || '';
+        } else if (data.type === 'sales') {
+            supplierIdHiddenInput.value = data.customer_id || '';
+            supplierContactInput.value = data.customer_id || '';
+            supplierNameInput.value = data.customer_name || '';
+        }
+        setSupplierFieldsReadOnly(true);
+        // Populate products
+        productTableBody.innerHTML = '';
+        invoiceProducts = data.items || [];
+        invoiceProducts.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" class="product-id" value="${item.product_name}" readonly></td>
+                <td><input type="number" class="quantity-returned" min="0" max="${item.quantity_sold}" value="${item.quantity_sold}"></td>
+                <td><input type="number" class="price-per-unit" value="${item.price_per_unit}" min="0" step="0.01"></td>
+                <td class="amount">₹0.00</td>
+            `;
+            productTableBody.appendChild(row);
+        });
+        // Attach event listeners for quantity and price change
+        Array.from(productTableBody.querySelectorAll('.quantity-returned, .price-per-unit')).forEach((input, idx) => {
+            input.addEventListener('input', () => calculateTotalReturnAmount());
+        });
+        calculateTotalReturnAmount();
+    } catch (err) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Error fetching invoice details.</div>';
+    }
+});
 
-        // Populate the Original Invoice dropdown
-        for (const invoiceId in invoiceData) {
+// Fetch executives and populate dropdown
+async function fetchExecutives() {
+    try {
+        const res = await fetch('/api/executives');
+        if (!res.ok) return;
+        const executives = await res.json();
+        executiveNameSelect.innerHTML = '<option value="">Select Executive</option>';
+        executives.forEach(exe => {
             const option = document.createElement('option');
-            option.value = invoiceId;
-            option.textContent = invoiceId;
-            originalInvoiceSelect.appendChild(option);
+            option.value = exe.executive_id;
+            option.textContent = exe.full_name;
+            executiveNameSelect.appendChild(option);
+        });
+    } catch (e) {}
+}
+fetchExecutives();
+
+function setAmountRefundedField() {
+    const refundOption = refundOptionSelect.value;
+    const totalReturnAmount = parseFloat(totalReturnAmountDisplay.textContent.replace(/[^0-9.]/g, '')) || 0;
+    if (refundOption === 'full' || !refundOption) {
+        amountRefundedInput.value = totalReturnAmount.toFixed(2);
+        amountRefundedInput.readOnly = true;
+    } else {
+        amountRefundedInput.readOnly = false;
+        if (!amountRefundedInput.value || parseFloat(amountRefundedInput.value) > totalReturnAmount) {
+            amountRefundedInput.value = '';
         }
+    }
+}
 
-        // Populate the Executive Name dropdown - Not used
-        // executiveNames.forEach(executiveName => {
-        //     const option = document.createElement('option');
-        //     option.value = executiveName;
-        //     option.textContent = executiveName;
-        //     executiveNameSelect.appendChild(option);
-        // });
+refundOptionSelect.addEventListener('change', setAmountRefundedField);
+totalReturnAmountDisplay.addEventListener('DOMSubtreeModified', setAmountRefundedField);
 
-        // Set default value for Return Date to today
-        returnDateInput.value = new Date().toISOString().split('T')[0];
-
-        // Populate dropdowns in the first row
-        populateFirstRowDropdowns();
-
-        // Update Supplier Name and Products when Original Invoice is selected
-        originalInvoiceSelect.addEventListener('change', function() {
-            const selectedInvoice = this.value;
-            const supplierName = invoiceData[selectedInvoice]?.supplierName || '';
-            supplierNameInput.value = supplierName;
-
-            // Clear existing product rows
-            const productTableBody = productTable.querySelector('tbody');
-            const productTableMobileBody = productTableMobile.querySelector('tbody');
-            productTableBody.innerHTML = '';
-            productTableMobileBody.innerHTML = '';
-
-            // Add products from the selected invoice
-            if (invoiceData[selectedInvoice]?.products) {
-                invoiceData[selectedInvoice].products.forEach(product => {
-                    addRow(product.id, product.name, '', '',product.price); //changed to ''
-                });
-            }
-            else{
-                 addRow('', '', '', ''); //changed to ''
-            }
-            calculateTotal();
-        });
-
-        refundOptionSelect.addEventListener('change', function() {
-            if (this.value === 'partial-refund') {
-                partialRefundAmountInput.classList.add('show-partial-refund');
-                finalRefundAmountInput.readOnly = false;
-                finalRefundAmountInput.value = '';
-            } else {
-                partialRefundAmountInput.classList.remove('show-partial-refund');
-                finalRefundAmountInput.readOnly = true;
-                calculateTotal();
-            }
-        });
-
-        addProductButton.addEventListener('click', function() {
-            addRow('', '', '', ''); //changed to ''
-        });
-
-        function formatIndianCurrency(amount) {
-            const formatter = new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            });
-            return formatter.format(amount);
+// Also update on recalculation
+function calculateTotalReturnAmount() {
+    let total = 0;
+    Array.from(productTableBody.querySelectorAll('tr')).forEach((row, idx) => {
+        const qty = parseFloat(row.querySelector('.quantity-returned').value) || 0;
+        const price = parseFloat(row.querySelector('.price-per-unit').value) || 0;
+        const maxQty = invoiceProducts[idx] ? invoiceProducts[idx].quantity_sold : 0;
+        if (qty > maxQty) {
+            row.querySelector('.quantity-returned').value = maxQty;
         }
+        const amount = Math.min(qty, maxQty) * price;
+        row.querySelector('.amount').textContent = `₹${amount.toFixed(2)}`;
+        total += amount;
+    });
+    totalReturnAmountDisplay.textContent = `₹${total.toFixed(2)}`;
+    setAmountRefundedField();
+}
 
-        function calculateTotal() {
-            let total = 0;
-            let rows;
-            if (window.innerWidth < 768) {
-                rows = productTableMobile.querySelectorAll('tbody tr');
-            }
-            else {
-                rows = productTable.querySelectorAll('tbody tr');
-            }
+// Prevent manual add product if invoice is loaded
+const addProductButton = document.getElementById('add-product');
+addProductButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    formErrorsDiv.innerHTML = '<div class="text-yellow-700 bg-yellow-100 border border-yellow-400 p-2 rounded mb-2 text-sm">Products are loaded from the original invoice. To return other products, use a different invoice.</div>';
+});
 
-            rows.forEach(row => {
-                const quantityInput = row.querySelector('.quantity-returned');
-                const pricePerUnitInput = row.querySelector('.price-per-unit');
-                const amountCell = row.querySelector('.amount');
-                const quantity = parseFloat(quantityInput.value);
-                const pricePerUnit = parseFloat(pricePerUnitInput.value);
-
-                if (!isNaN(quantity) && !isNaN(pricePerUnit)) {
-                    const amount = quantity * pricePerUnit;
-                    amountCell.textContent = formatIndianCurrency(amount);
-                    total += amount;
-                } else {
-                    amountCell.textContent = '₹0.00';
-                }
+// Form submission
+submitBtn.addEventListener('click', async function(e) {
+    e.preventDefault();
+    formErrorsDiv.innerHTML = '';
+    // Validate required fields
+    if (!originalInvoiceInput.value.trim()) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Original Invoice Number is required.</div>';
+        return;
+    }
+    if (!returnDateInput.value) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Return Date is required.</div>';
+        return;
+    }
+    if (!supplierIdHiddenInput.value) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Supplier not found for this invoice.</div>';
+        return;
+    }
+    if (!executiveNameSelect.value) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Executive Name is required.</div>';
+        return;
+    }
+    if (!returnReasonInput.value.trim()) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Return Reason is required.</div>';
+        return;
+    }
+    if (!modeOfReturnSelect.value) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Mode of Return is required.</div>';
+        return;
+    }
+    if (!refundOptionSelect.value) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Refund Option is required.</div>';
+        return;
+    }
+    if (!amountRefundedInput.value || parseFloat(amountRefundedInput.value) < 0) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Amount Refunded is required and must be non-negative.</div>';
+        return;
+    }
+    // At least one product with qty > 0
+    let hasProduct = false;
+    const products = [];
+    Array.from(productTableBody.querySelectorAll('tr')).forEach((row, idx) => {
+        const qty = parseFloat(row.querySelector('.quantity-returned').value) || 0;
+        const price = parseFloat(row.querySelector('.price-per-unit').value) || 0;
+        if (qty > 0) {
+            hasProduct = true;
+            products.push({
+                product_id: invoiceProducts[idx].product_id,
+                quantity_returned: qty,
+                price_per_unit: price
             });
-
-            // Apply discount
-            const discount = 0;
-            const discountedTotal = Math.max(0, total - discount); // Ensure total doesn't go negative
-            totalRefundableAmountDisplay.textContent = formatIndianCurrency(discountedTotal);
-            if (refundOptionSelect.value != 'partial-refund'){
-                 finalRefundAmountInput.value = discountedTotal;
-            }
-
         }
-
-        // Event listener for partial refund amount input
-        document.getElementById('amount').addEventListener('input', function() {
-            if (refundOptionSelect.value === 'partial-refund') {
-                const partialRefundAmount = parseFloat(this.value);
-                if (!isNaN(partialRefundAmount)) {
-                    finalRefundAmountInput.value = partialRefundAmount;
-                } else {
-                    finalRefundAmountInput.value = '';
-                }
-            }
+    });
+    if (!hasProduct) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Please enter quantity for at least one product to return.</div>';
+        return;
+    }
+    // Prepare data
+    const payload = {
+        return_date: returnDateInput.value,
+        original_invoice_id: originalInvoiceInput.value.trim(),
+        supplier_id: supplierIdHiddenInput.value,
+        executive_id: executiveNameSelect.value,
+        total_return_amount: totalReturnAmountDisplay.textContent.replace(/[^0-9.]/g, ''),
+        return_reason: returnReasonInput.value.trim(),
+        mode_of_return: modeOfReturnSelect.value,
+        refund_option: refundOptionSelect.value,
+        amount_refunded: parseFloat(amountRefundedInput.value),
+        notes: notesInput.value,
+        products: products
+    };
+    submitBtn.disabled = true;
+    try {
+        const res = await fetch('/purchase-return', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
-
-
-
-       function addRow(productIdValue, productNameValue, quantityValue, pricePerUnitValue) {
-            let newRow;
-            if (window.innerWidth < 768) {
-                newRow = productTableMobile.insertRow();
-                const cell1 = newRow.insertCell();
-                const cell2 = newRow.insertCell();
-                const cell3 = newRow.insertCell();
-                const cell4 = newRow.insertCell();
-                const cell5 = newRow.insertCell();
-
-                // Product ID Dropdown
-                const productIdSelect = document.createElement('select');
-                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
-                for (const productId in productData) {
-                    const option = document.createElement('option');
-                    option.value = productId;
-                    option.textContent = productId;
-                    productIdSelect.appendChild(option);
-                }
-                cell1.innerHTML = '<label>Product ID</label>';
-                cell1.appendChild(productIdSelect);
-                productIdSelect.value = productIdValue;
-
-                // Product Name Dropdown
-                const productNameSelect = document.createElement('select');
-                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
-                for (const productName in productData) {
-                    const option = document.createElement('option');
-                    option.value = productData[productName];
-                    option.textContent = productData[productName];
-                    productNameSelect.appendChild(option);
-                }
-                cell2.innerHTML = '<label>Product Name</label>';
-                cell2.appendChild(productNameSelect);
-                productNameSelect.value = productNameValue;
-
-                cell3.innerHTML = '<label>Quantity Returned</label><input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
-                const quantityInput = newRow.querySelector('.quantity-returned');
-                quantityInput.value = quantityValue;
-
-                cell4.innerHTML = '<label>Price Per Unit</label><input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
-                const pricePerUnitInput = newRow.querySelector('.price-per-unit');
-                pricePerUnitInput.value = pricePerUnitValue;
-                cell5.className = 'amount';
-                cell5.textContent = '₹0.00';
-
-                // Event Listeners for mobile
-                productIdSelect.addEventListener('change', function() {
-                    const selectedProductId = this.value;
-                    const productName = productData[selectedProductId] || '';
-                    productNameSelect.value = productName;
-                });
-
-                productNameSelect.addEventListener('change', function() {
-                    const selectedProductName = this.value;
-                    let productId = '';
-                    for (const id in productData) {
-                        if (productData[id] === selectedProductName) {
-                            productId = id;
-                            break;
-                        }
-                    }
-                    productIdSelect.value = productId;
-                });
-
-            }
-            else {
-                newRow = productTable.insertRow();
-                const cell1 = newRow.insertCell();
-                const cell2 = newRow.insertCell();
-                const cell3 = newRow.insertCell();
-                const cell4 = newRow.insertCell();
-                const cell5 = newRow.insertCell();
-
-                // Product ID Dropdown
-                const productIdSelect = document.createElement('select');
-                productIdSelect.className = 'product-id shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                productIdSelect.innerHTML = '<option value="">Select Product ID</option>';
-                for (const productId in productData) {
-                    const option = document.createElement('option');
-                    option.value = productId;
-                    option.textContent = productId;
-                    productIdSelect.appendChild(option);
-                }
-                cell1.appendChild(productIdSelect);
-                productIdSelect.value = productIdValue;
-
-                // Product Name Dropdown
-                const productNameSelect = document.createElement('select');
-                productNameSelect.className = 'product-name shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                productNameSelect.innerHTML = '<option value="">Select Product Name</option>';
-                for (const productName in productData) {
-                    const option = document.createElement('option');
-                    option.value = productData[productName];
-                    option.textContent = productData[productName];
-                    productNameSelect.appendChild(option);
-                }
-                cell2.appendChild(productNameSelect);
-                productNameSelect.value = productNameValue;
-
-                cell3.innerHTML = '<input type="number" class="quantity-returned shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
-                const quantityInput = newRow.querySelector('.quantity-returned');
-                quantityInput.value = quantityValue;
-
-                cell4.innerHTML = '<input type="number" class="price-per-unit shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">';
-                const pricePerUnitInput = newRow.querySelector('.price-per-unit');
-                pricePerUnitInput.value = pricePerUnitValue;
-                cell5.className = 'amount';
-                cell5.textContent = '₹0.00';
-
-                // Event Listeners
-                productIdSelect.addEventListener('change', function() {
-                    const selectedProductId = this.value;
-                    const productName = productData[selectedProductId] || '';
-                    productNameSelect.value = productName;
-                });
-
-                productNameSelect.addEventListener('change', function() {
-                    const selectedProductName = this.value;
-                    let productId = '';
-                    for (const id in productData) {
-                        if (productData[id] === selectedProductName) {
-                            productId = id;
-                            break;
-                        }
-                    }
-                    productIdSelect.value = productId;
-                });
-            }
-
-            // Re-calculate total when fields in the new row change
-            const inputs = newRow.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('change', calculateTotal);
-            });
-            const selects = newRow.querySelectorAll('select');
-            selects.forEach(select => {
-                select.addEventListener('change', calculateTotal);
-            });
-             calculateTotal();
+        if (res.ok) {
+            document.getElementById('purchase-return-success-modal').style.display = 'flex';
+        } else {
+            const data = await res.json();
+            formErrorsDiv.innerHTML = `<div class='text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm'>${data.error || 'Error processing return.'}</div>`;
         }
+    } catch (err) {
+        formErrorsDiv.innerHTML = '<div class="text-red-600 bg-red-100 border border-red-400 p-2 rounded mb-2 text-sm">Network error. Please try again.</div>';
+    } finally {
+        submitBtn.disabled = false;
+    }
+});
 
-        // Calculate initial total on page load and add event listeners to existing rows
-        calculateTotal();
-        const initialRows = productTable.querySelectorAll('tbody tr');
-        initialRows.forEach(row => {
-            const inputs = row.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('change', calculateTotal);
-            });
-            const selects = row.querySelectorAll('select');
-            selects.forEach(select => {
-                select.addEventListener('change', calculateTotal);
-            });
-        });
-
-        const initialMobileRows = productTableMobile.querySelectorAll('tbody tr');
-        initialMobileRows.forEach(row => {
-            const inputs = row.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('change', calculateTotal);
-            });
-            const selects = row.querySelectorAll('select');
-            selects.forEach(select => {
-                select.addEventListener('change', calculateTotal);
-            });
-        });
-
-        // Form Submission Logic
-        submitFormButton.addEventListener('click',function() {
-            const returnDate = returnDateInput.value;
-            const originalInvoice = originalInvoiceSelect.value;
-            const supplierName = supplierNameInput.value;
-            const returnReason = returnReasonInput.value;
-            const modeOfRefund = modeOfRefundSelect.value;
-            const refundOption = refundOptionSelect.value;
-            const partialRefundAmount = document.getElementById('amount').value;
-            const finalRefundAmount = finalRefundAmountInput.value;
-
-            if (!returnDate) {
-                alert('Please enter the return date.');
-                return;
-            }
-            
-            if (!originalInvoice) {
-                alert('Please select the original invoice.');
-                return;
-            }
-            if (!supplierName) {
-                alert('Supplier name is not available for this invoice.');
-                return;
-            }
-            if (!returnReason) {
-                alert('Please enter the return reason.');
-                return;
-            }
-             if (!modeOfRefund) {
-                alert('Please select the mode of refund.');
-                return;
-            }
-            if (refundOption === 'partial-refund' && !partialRefundAmount) {
-                alert('Please enter the partial refund amount.');
-                return;
-            }
-            if (!finalRefundAmount) {
-                alert('Please enter the refund amount.');
-                return;
-            }
-
-            const products = [];
-            let rows;
-             if (window.innerWidth < 768) {
-                rows = productTableMobile.querySelectorAll('tbody tr');
-            }
-            else{
-                 rows = productTable.querySelectorAll('tbody tr');
-            }
-            rows.forEach(row => {
-                const productIdSelect = row.querySelector('.product-id');
-                const quantityInput = row.querySelector('.quantity-returned');
-                const pricePerUnitInput = row.querySelector('.price-per-unit');
-
-                const productId = productIdSelect.value;
-                const quantity = parseFloat(quantityInput.value);
-                const pricePerUnit = parseFloat(pricePerUnitInput.value);
-
-                if (productId && !isNaN(quantity) && !isNaN(pricePerUnit)) {
-                    products.push({
-                        productId: productId,
-                        quantity: quantity,
-                        pricePerUnit: pricePerUnit,
-                    });
-                }
-                else if (productId || !isNaN(quantity) || !isNaN(pricePerUnit)) {
-                     alert('Please enter valid data for all product fields.');
-                     return;
-                }
-            });
-
-            if (products.length === 0) {
-                alert('Please add at least one product to the return.');
-                return;
-            }
-
-            const returnData = {
-                returnDate: returnDate,
-                originalInvoice: originalInvoice,
-                supplierName: supplierName,
-                returnReason: returnReason,
-                modeOfRefund: modeOfRefund,
-                refundOption: refundOption,
-                partialRefundAmount: partialRefundAmount,
-                finalRefundAmount: finalRefundAmount,
-                products: products,
-            };
-
-            console.log(returnData);
-            alert('Form submitted successfully! Check console for data.');
-        });
-    </script>
+document.getElementById('close-purchase-return-success-modal').addEventListener('click', function() {
+    document.getElementById('purchase-return-success-modal').style.display = 'none';
+    window.location.reload();
+});
+</script>
 {% endblock %}
