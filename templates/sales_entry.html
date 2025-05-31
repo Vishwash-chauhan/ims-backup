@@ -34,7 +34,7 @@
                 </div>
                 <div class="flex justify-center gap-4">
                     <button id="confirm-modal" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">OK</button>
-                    <button id="print-invoice" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Print</button>
+                    <button id="print-invoice" type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Print</button>
                 </div>
             </div>
         </div>
@@ -294,11 +294,7 @@
         // Set up modal close handlers
         closeModalButton.addEventListener('click', closeModal);
         confirmModalButton.addEventListener('click', closeModal);
-        // Add this for the Print button
-        const printInvoiceButton = document.getElementById('print-invoice');
-        if (printInvoiceButton) {
-            printInvoiceButton.addEventListener('click', closeModal);
-        }
+        // Update Print button to do nothing here; handler will be set after sale
     });
 
     // Function to close the modal
@@ -667,6 +663,18 @@
                 document.getElementById('success-message').textContent = result.message || "Sales invoice created successfully!";
                 document.getElementById('invoice-number').textContent = `Invoice Number: ${result.invoice_number}`;
                 document.getElementById('success-modal').classList.remove('hidden');
+
+                // Set Print button to open the bill PDF in a new tab
+                const printInvoiceButton = document.getElementById('print-invoice');
+                if (printInvoiceButton && result.invoice_number) {
+                    // Remove previous handlers by replacing the node
+                    const newPrintButton = printInvoiceButton.cloneNode(true);
+                    printInvoiceButton.parentNode.replaceChild(newPrintButton, printInvoiceButton);
+                    newPrintButton.onclick = function() {
+                        window.open(`/documents/sales/bill/${result.invoice_number}`, '_blank');
+                        closeModal();
+                    };
+                }
 
                 // Clear form fields manually
                 customerContactInput.value = ''; // Clear contact input

@@ -6,6 +6,7 @@ import re
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from werkzeug.security import generate_password_hash
+from utils.pdf_generator import generate_pdf_from_template
 
 main = Blueprint('main', __name__)
 
@@ -989,6 +990,48 @@ def api_create_sales():
             if product:
                 current_stock = product.current_stock if product.current_stock is not None else 0
                 product.current_stock = current_stock - item['quantity_sold']
+        db.session.commit()
+        # Generate PDF and store in DB
+        # Fetch the invoice with related data
+        invoice = SalesInvoice.query.options(
+            db.joinedload(SalesInvoice.customer),
+            db.joinedload(SalesInvoice.items)
+        ).filter_by(id=new_invoice.id).first()
+
+        # Prepare items for the bill
+        items = []
+        for item in invoice.items:
+            items.append({
+                'product_name': item.product.product_name,
+                'quantity': item.quantity_sold,
+                'unit_price': float(item.price_per_unit_before_gst),
+                'subtotal': float(item.item_sub_total_before_gst)
+            })
+
+        bill = {
+            'id': invoice.invoice_number,
+            'date': invoice.invoice_date.strftime('%Y-%m-%d'),
+            'customer_name': invoice.customer.customer_name,
+            'customer_address': invoice.customer.billing_address_line1,
+            'customer_contact': invoice.customer.contact_number,
+            'items': items,
+            'subtotal': float(invoice.total_amount_before_gst),
+            'tax_rate': float(items[0]['unit_price'] if items else 0),  # Adjust if you want GST %
+            'tax_amount': float(invoice.total_gst_amount),
+            'discount': float(invoice.overall_discount_amount or 0),
+            'total_amount': float(invoice.total_invoice_amount),
+            'payment_method': invoice.payment_status,
+            'logo_path': 'img/company_logo.png'
+        }
+        context = {
+            'bill': bill,
+            'title': 'Sales Bill',
+            'bill_type_label': 'Bill To'
+        }
+
+        # Generate PDF and store in DB
+        pdf_bytes = generate_pdf_from_template('bills/sales_bill_template.html', context)
+        invoice.bill_pdf = pdf_bytes
         db.session.commit()
         return jsonify({"message": "Sales invoice created successfully!", "invoice_number": invoice_number}), 201
     except Exception as e:

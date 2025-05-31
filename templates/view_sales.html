@@ -21,9 +21,8 @@
                         <td class="px-4 py-2 text-blue-700 font-semibold">{{ invoice.invoice_number }}</td>
                         <td class="px-4 py-2">{{ invoice.invoice_date.strftime('%d-%m-%Y') }}</td>
                         <td class="px-4 py-2">{{ invoice.customer.customer_name }}</td>
-                        <td class="px-4 py-2">₹{{ '%.2f'|format(invoice.total_invoice_amount) }}</td>
-                        <td class="px-4 py-2 text-right">
-                            <a href="{{ url_for('main.get_invoice_details', invoice_number=invoice.invoice_number) }}" class="text-blue-600 hover:underline text-sm">View Invoice</a>
+                        <td class="px-4 py-2">₹{{ '%.2f'|format(invoice.total_invoice_amount) }}</td>                        <td class="px-4 py-2 text-right">
+                            <a href="{{ url_for('documents.sales_bill_pdf', invoice_number=invoice.invoice_number) }}" class="text-blue-600 hover:underline text-sm" target="_blank">View Invoice</a>
                         </td>
                     </tr>
                     {% else %}
@@ -56,9 +55,8 @@
                         <td class="px-4 py-2">{{ ret.return_date.strftime('%d-%m-%Y') }}</td>
                         <td class="px-4 py-2">{{ ret.customer.customer_name }}</td>
                         <td class="px-4 py-2">₹{{ '%.2f'|format(ret.final_amount_refunded) }}</td>
-                        <td class="px-4 py-2">{{ ret.return_reason or '-' }}</td>
-                        <td class="px-4 py-2 text-right">
-                            <a href="{{ url_for('main.get_invoice_details', invoice_number=ret.original_invoice_id) }}" class="text-blue-600 hover:underline text-sm">View Invoice</a>
+                        <td class="px-4 py-2">{{ ret.return_reason or '-' }}</td>                        <td class="px-4 py-2 text-right">
+                            <a href="{{ url_for('documents.sales_return_bill_pdf', return_number='SR-' + ret.id|string) }}" class="text-blue-600 hover:underline text-sm" target="_blank">View Return</a>
                         </td>
                     </tr>
                     {% else %}

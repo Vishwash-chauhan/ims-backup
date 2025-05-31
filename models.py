@@ -164,6 +164,7 @@ class SalesInvoice(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     items = db.relationship('SalesInvoiceItem', backref='sales_invoice', lazy=True)
     sales_returns = db.relationship('SalesReturn', backref='original_sales_invoice', lazy=True, foreign_keys='SalesReturn.original_invoice_id')
+    bill_pdf = db.Column(db.LargeBinary, nullable=True)  # <-- Add this line
 
 class SalesInvoiceItem(db.Model):
     __tablename__ = 'sales_invoice_items'

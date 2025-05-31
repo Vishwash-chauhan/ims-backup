@@ -183,16 +183,30 @@
 </div>
 
 <!-- Success Modal Popup -->
-<div id="purchase-success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50" style="display: none;">
-    <div class="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center">
-        <div class="text-green-600 text-4xl mb-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+<div id="purchase-success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-green-600">Success!</h3>
+            <button id="close-purchase-success-modal" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
-        <h2 class="text-xl font-semibold mb-2">Purchase Recorded!</h2>
-        <p id="purchase-success-message" class="mb-4 text-gray-700">Your purchase has been recorded successfully.</p>
-        <div class="flex flex-row justify-center gap-4">
-            <button id="print-purchase-btn" class="bg-gray-200 hover:bg-gray-300 text-blue-700 font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">Print</button>
-            <button id="close-purchase-success-modal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline">OK</button>
+        <div class="mb-4">
+            <div class="flex items-center justify-center mb-4">
+                <div class="rounded-full bg-green-100 p-3">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+            </div>
+            <p id="purchase-success-message" class="text-gray-700 text-center"></p>
+            <p id="purchase-invoice-number" class="text-blue-600 font-semibold mt-2 text-center"></p>
+        </div>
+        <div class="flex justify-center gap-4">
+            <button id="confirm-purchase-modal" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">OK</button>
+            <button id="print-purchase-btn" type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Print</button>
         </div>
     </div>
 </div>
@@ -607,12 +621,35 @@
             const result = await response.json();
 
             if (response.ok) {
-                // Show modal instead of alert
+                document.getElementById('purchase-success-message').textContent = result.message || "Purchase recorded successfully!";
+                document.getElementById('purchase-invoice-number').textContent = `Purchase ID: PI-${result.purchase_id}`;
                 const modal = document.getElementById('purchase-success-modal');
-                const msg = document.getElementById('purchase-success-message');
-                msg.textContent = `${result.message || "Purchase recorded successfully!"} Purchase ID: ${result.purchase_id || 'N/A'}`;
-                modal.style.display = 'flex';
+                modal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
+
+                // Set Print button to open the bill PDF in a new tab
+                const printPurchaseBtn = document.getElementById('print-purchase-btn');
+                if (printPurchaseBtn && result.purchase_id) {
+                    // Remove previous handlers by replacing the node
+                    const newPrintBtn = printPurchaseBtn.cloneNode(true);
+                    printPurchaseBtn.parentNode.replaceChild(newPrintBtn, printPurchaseBtn);
+                    newPrintBtn.onclick = function() {
+                        window.open(`/documents/purchases/bill/PI-${result.purchase_id}`, '_blank');
+                        closePurchaseModal();
+                    };
+                }
+
+                // Modal close handlers
+                const closePurchaseModalButton = document.getElementById('close-purchase-success-modal');
+                const confirmPurchaseModalButton = document.getElementById('confirm-purchase-modal');
+                closePurchaseModalButton.onclick = closePurchaseModal;
+                confirmPurchaseModalButton.onclick = closePurchaseModal;
+
+                function closePurchaseModal() {
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+
                 // Reset form
                 purchaseDateInput.value = new Date().toISOString().split('T')[0];
                 supplierContactInput.value = '';
@@ -659,14 +696,31 @@
     });
 
     // Modal close handlers
-    document.getElementById('close-purchase-success-modal').addEventListener('click', function() {
-        document.getElementById('purchase-success-modal').style.display = 'none';
+    const purchaseSuccessModal = document.getElementById('purchase-success-modal');
+    const closePurchaseModalButton = document.getElementById('close-purchase-success-modal');
+    const confirmPurchaseModalButton = document.getElementById('confirm-purchase-modal');
+    closePurchaseModalButton.addEventListener('click', closePurchaseModal);
+    confirmPurchaseModalButton.addEventListener('click', closePurchaseModal);
+
+    function closePurchaseModal() {
+        purchaseSuccessModal.classList.add('hidden');
         document.body.style.overflow = '';
-    });
-    document.getElementById('print-purchase-btn').addEventListener('click', function() {
-        document.getElementById('purchase-success-modal').style.display = 'none';
-        document.body.style.overflow = '';
-        // Future: Add print logic here
-    });
+    }
+
+    // Update the Print button logic after successful purchase
+    // Place this inside your if (response.ok) block after showing the modal:
+    const printPurchaseBtn = document.getElementById('print-purchase-btn');
+    if (printPurchaseBtn && result.purchase_id) {
+        // Remove previous handlers by replacing the node
+        const newPrintBtn = printPurchaseBtn.cloneNode(true);
+        printPurchaseBtn.parentNode.replaceChild(newPrintBtn, printPurchaseBtn);
+        newPrintBtn.onclick = function() {
+            window.open(`/documents/purchases/bill/PI-${result.purchase_id}`, '_blank');
+            closePurchaseModal();
+        };
+    }
+
+    // Also, set the invoice number in the modal (like sales)
+    document.getElementById('purchase-invoice-number').textContent = `Purchase ID: PI-${result.purchase_id}`;
 </script>
 {% endblock %}

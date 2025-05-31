@@ -86,7 +86,7 @@
                 viewCell.setAttribute('data-label', viewLinkText);
                 viewCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
                 const viewLink = document.createElement('a');                // Construct the href for viewing details
-                viewLink.href = `/sales-invoices/edit/${item[idKey]}`;
+                viewLink.href = `/documents/sales/bill/${item.invoice_number}`;
                 viewLink.textContent = viewLinkText;
                 // Tailwind classes for a styled button-like link
                 viewLink.className = 'inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-150';

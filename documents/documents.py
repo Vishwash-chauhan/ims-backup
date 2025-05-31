@@ -78,6 +78,14 @@ def sales_bill_pdf(invoice_number):
     if not sales_invoice:
         abort(404, "Sales invoice not found.")
 
+    # Serve PDF from database if it exists
+    if sales_invoice.bill_pdf:
+        response = make_response(sales_invoice.bill_pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'inline; filename=sales_bill_{sales_invoice.invoice_number}.pdf'
+        return response
+
+    # If not present, generate PDF as fallback
     items = []
     for item in sales_invoice.items:
         items.append({
