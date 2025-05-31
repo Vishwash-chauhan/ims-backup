@@ -618,36 +618,22 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(purchaseData),
             });
-            const result = await response.json();
-
-            if (response.ok) {
+            const result = await response.json();            if (response.ok) {
+                // Show success modal
                 document.getElementById('purchase-success-message').textContent = result.message || "Purchase recorded successfully!";
-                document.getElementById('purchase-invoice-number').textContent = `Purchase ID: PI-${result.purchase_id}`;
-                const modal = document.getElementById('purchase-success-modal');
-                modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
+                document.getElementById('purchase-invoice-number').textContent = `Purchase Invoice: ${result.invoice_number}`;
+                document.getElementById('purchase-success-modal').classList.remove('hidden');
 
                 // Set Print button to open the bill PDF in a new tab
                 const printPurchaseBtn = document.getElementById('print-purchase-btn');
-                if (printPurchaseBtn && result.purchase_id) {
+                if (printPurchaseBtn && result.invoice_number) {
                     // Remove previous handlers by replacing the node
                     const newPrintBtn = printPurchaseBtn.cloneNode(true);
                     printPurchaseBtn.parentNode.replaceChild(newPrintBtn, printPurchaseBtn);
                     newPrintBtn.onclick = function() {
-                        window.open(`/documents/purchases/bill/PI-${result.purchase_id}`, '_blank');
+                        window.open(`/documents/purchases/bill/${result.invoice_number}`, '_blank');
                         closePurchaseModal();
                     };
-                }
-
-                // Modal close handlers
-                const closePurchaseModalButton = document.getElementById('close-purchase-success-modal');
-                const confirmPurchaseModalButton = document.getElementById('confirm-purchase-modal');
-                closePurchaseModalButton.onclick = closePurchaseModal;
-                confirmPurchaseModalButton.onclick = closePurchaseModal;
-
-                function closePurchaseModal() {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = '';
                 }
 
                 // Reset form
@@ -693,9 +679,7 @@
             submitPurchaseFormButton.classList.remove('opacity-50', 'cursor-not-allowed');
             submitPurchaseFormButton.textContent = 'Submit Purchase';
         }
-    });
-
-    // Modal close handlers
+    });    // Modal close handlers
     const purchaseSuccessModal = document.getElementById('purchase-success-modal');
     const closePurchaseModalButton = document.getElementById('close-purchase-success-modal');
     const confirmPurchaseModalButton = document.getElementById('confirm-purchase-modal');
@@ -703,24 +687,6 @@
     confirmPurchaseModalButton.addEventListener('click', closePurchaseModal);
 
     function closePurchaseModal() {
-        purchaseSuccessModal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    // Update the Print button logic after successful purchase
-    // Place this inside your if (response.ok) block after showing the modal:
-    const printPurchaseBtn = document.getElementById('print-purchase-btn');
-    if (printPurchaseBtn && result.purchase_id) {
-        // Remove previous handlers by replacing the node
-        const newPrintBtn = printPurchaseBtn.cloneNode(true);
-        printPurchaseBtn.parentNode.replaceChild(newPrintBtn, printPurchaseBtn);
-        newPrintBtn.onclick = function() {
-            window.open(`/documents/purchases/bill/PI-${result.purchase_id}`, '_blank');
-            closePurchaseModal();
-        };
-    }
-
-    // Also, set the invoice number in the modal (like sales)
-    document.getElementById('purchase-invoice-number').textContent = `Purchase ID: PI-${result.purchase_id}`;
+        purchaseSuccessModal.classList.add('hidden');    }
 </script>
 {% endblock %}

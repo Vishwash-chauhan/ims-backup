@@ -1159,13 +1159,12 @@ def api_create_purchases():
                 item_sub_total_before_gst=item['item_sub_total_before_gst'],
                 item_total_gst_amount=item['item_total_gst_amount'],
                 item_final_amount=item['item_final_amount']
-            ))
-            # Update product stock
+            ))            # Update product stock
             product = Product.query.get(item['product_id'])
             if product:
                 product.current_stock = (product.current_stock or 0) + item['quantity_purchased']
         db.session.commit()
-        return jsonify({"message": "Purchase invoice created successfully!", "purchase_id": new_invoice.id}), 201
+        return jsonify({"message": "Purchase invoice created successfully!", "purchase_id": new_invoice.id, "invoice_number": new_invoice.invoice_number}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"An error occurred while creating the purchase invoice: {str(e)}"}), 500
@@ -1298,8 +1297,8 @@ def sales_return():
 @login_required
 def sales_transactions():
     """View all sales transactions"""
-    sales_invoices = SalesInvoice.query.order_by(SalesInvoice.invoice_date.desc()).all()
-    sales_returns = SalesReturn.query.order_by(SalesReturn.return_date.desc()).all()
+    sales_invoices = SalesInvoice.query.order_by(SalesInvoice.invoice_date.desc(), SalesInvoice.created_at.desc()).all()
+    sales_returns = SalesReturn.query.order_by(SalesReturn.return_date.desc(), SalesReturn.created_at.desc()).all()
     return render_template(
         'view_sales.html',
         sales_invoices=sales_invoices,
@@ -1310,8 +1309,8 @@ def sales_transactions():
 @login_required
 def purchase_transactions():
     """View all purchase transactions"""
-    purchase_invoices = PurchaseInvoice.query.order_by(PurchaseInvoice.invoice_date.desc()).all()
-    purchase_returns = PurchaseReturn.query.order_by(PurchaseReturn.return_date.desc()).all()
+    purchase_invoices = PurchaseInvoice.query.order_by(PurchaseInvoice.invoice_date.desc(), PurchaseInvoice.created_at.desc()).all()
+    purchase_returns = PurchaseReturn.query.order_by(PurchaseReturn.return_date.desc(), PurchaseReturn.created_at.desc()).all()
     return render_template(
         'view_purchase.html',
         purchase_invoices=purchase_invoices,
