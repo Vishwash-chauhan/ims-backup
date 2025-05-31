@@ -666,11 +666,9 @@ def add_purchase_invoice():
             invoice_date=request.form['invoice_date'],
             supplier_id=request.form['supplier_id'],
             total_amount_before_gst=request.form.get('total_amount_before_gst', 0.0),
-            total_gst_amount=request.form.get('total_gst_amount', 0.0),
-            overall_discount_amount=request.form.get('overall_discount_amount', 0.0),
+            total_gst_amount=request.form.get('total_gst_amount', 0.0),            overall_discount_amount=request.form.get('overall_discount_amount', 0.0),
             total_invoice_amount=request.form.get('total_invoice_amount', 0.0),
             payment_status=request.form.get('payment_status', 'Pending'),
-            bill_copy_path=request.form.get('bill_copy_path'),
             notes=request.form.get('notes')
         )
         db.session.add(purchase_invoice)
@@ -692,7 +690,6 @@ def edit_purchase_invoice(invoice_id):
         purchase_invoice.overall_discount_amount = request.form.get('overall_discount_amount', 0.0)
         purchase_invoice.total_invoice_amount = request.form.get('total_invoice_amount', 0.0)
         purchase_invoice.payment_status = request.form.get('payment_status', 'Pending')
-        purchase_invoice.bill_copy_path = request.form.get('bill_copy_path')
         purchase_invoice.notes = request.form.get('notes')
         db.session.commit()
         flash('Purchase invoice updated successfully!', 'success')
@@ -1159,11 +1156,55 @@ def api_create_purchases():
                 item_sub_total_before_gst=item['item_sub_total_before_gst'],
                 item_total_gst_amount=item['item_total_gst_amount'],
                 item_final_amount=item['item_final_amount']
-            ))            # Update product stock
+            ))
+            # Update product stock
             product = Product.query.get(item['product_id'])
             if product:
                 product.current_stock = (product.current_stock or 0) + item['quantity_purchased']
+        
         db.session.commit()
+        
+        # Generate PDF and store in DB
+        # Fetch the invoice with related data
+        invoice = PurchaseInvoice.query.options(
+            db.joinedload(PurchaseInvoice.supplier),
+            db.joinedload(PurchaseInvoice.items)
+        ).filter_by(id=new_invoice.id).first()
+
+        # Prepare items for the bill
+        items = []
+        for item in invoice.items:
+            items.append({
+                'product_name': item.product.product_name,
+                'quantity': item.quantity_purchased,
+                'unit_price': float(item.price_per_unit_before_gst),
+                'subtotal': float(item.item_sub_total_before_gst)
+            })
+
+        bill = {
+            'id': invoice.invoice_number,
+            'date': invoice.invoice_date.strftime('%Y-%m-%d'),
+            'supplier_name': invoice.supplier.supplier_name,
+            'supplier_address': invoice.supplier.address_line1,
+            'supplier_contact': invoice.supplier.supplier_contact,
+            'items': items,
+            'subtotal': float(invoice.total_amount_before_gst),
+            'tax_rate': float(items[0]['unit_price'] if items else 0),  # Adjust if you want GST %
+            'tax_amount': float(invoice.total_gst_amount),
+            'discount': float(invoice.overall_discount_amount or 0),
+            'total_amount': float(invoice.total_invoice_amount),
+            'payment_method': invoice.payment_status,
+            'logo_path': 'img/company_logo.png'
+        }
+        context = {
+            'bill': bill,
+            'title': 'Purchase Bill',
+            'bill_type_label': 'Bill From'
+        }        # Generate PDF and store in DB
+        pdf_bytes = generate_pdf_from_template('bills/purchase_bill_template.html', context)
+        invoice.bill_pdf = pdf_bytes
+        db.session.commit()
+        
         return jsonify({"message": "Purchase invoice created successfully!", "purchase_id": new_invoice.id, "invoice_number": new_invoice.invoice_number}), 201
     except Exception as e:
         db.session.rollback()

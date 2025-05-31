@@ -90,7 +90,7 @@ class PurchaseInvoice(db.Model):
     overall_discount_amount = db.Column(db.Numeric(10,2), default=0.00)
     total_invoice_amount = db.Column(db.Numeric(12,2), nullable=False)
     payment_status = db.Column(db.String(50), default='Pending')
-    bill_copy_path = db.Column(db.String(255))
+    bill_pdf = db.Column(db.LargeBinary, nullable=True)
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

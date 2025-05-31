@@ -131,6 +131,14 @@ def purchase_bill_pdf(invoice_number):
     if not purchase_invoice:
         abort(404, "Purchase bill not found.")
 
+    # Check if PDF exists in database first
+    if purchase_invoice.bill_pdf:
+        response = make_response(purchase_invoice.bill_pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'inline; filename=purchase_bill_{purchase_invoice.invoice_number}.pdf'
+        return response
+
+    # Fallback: Generate PDF on-demand if not stored in database
     items = []
     for item in purchase_invoice.items:
         items.append({
