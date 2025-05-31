@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title or "Bill" }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .header { padding: 20px 0; border-bottom: 2px solid #333; display: flex; align-items: center; }
+        .company-logo { height: 60px; margin-right: 20px; }
+        .company-info { font-size: 1.1em; }
+        .bill-info, .party-info { margin: 20px 0; }
+        .clearfix::after { content: ""; display: table; clear: both; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+        .total-section { float: right; width: 300px; margin-top: 20px; }
+        .total-section table { border: none; }
+        .total-section td { border: none; padding: 4px 8px; }
+        footer { text-align: center; font-size: 0.9em; color: #888; margin-top: 40px; padding: 10px 0; border-top: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div class="header clearfix">
+        <img class="company-logo" src="{{ url_for('static', filename=bill.logo_path) }}" alt="Company Logo">
+        <div class="company-info">
+            <strong>Company Name Pvt. Ltd.</strong><br>
+            789 Business Park, City, State, 111222<br>
+            Contact: 0123-456789, info@company.com
+        </div>
+    </div>
+    <div class="bill-info clearfix">
+        <div style="float:left;">
+            <strong>{{ bill_type_label or "Bill To" }}:</strong><br>
+            {% if bill.customer_name %}
+                {{ bill.customer_name }}<br>
+                {{ bill.customer_address }}<br>
+                {{ bill.customer_contact }}
+            {% elif bill.supplier_name %}
+                {{ bill.supplier_name }}<br>
+                {{ bill.supplier_address }}<br>
+                {{ bill.supplier_contact }}
+            {% endif %}
+        </div>
+        <div style="float:right;">
+            <strong>Bill #:</strong> {{ bill.id }}<br>
+            <strong>Date:</strong> {{ bill.date }}<br>
+            {% if bill.reference_id %}
+                <strong>Reference ID:</strong> {{ bill.reference_id }}<br>
+            {% endif %}
+        </div>
+    </div>
+    <div style="clear:both;"></div>
+    {% block content %}{% endblock %}
+    <footer>
+        Thank you for your business!
+    </footer>
+</body>
+</html>

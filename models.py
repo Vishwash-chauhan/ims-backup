@@ -236,3 +236,5 @@ class SalesReturnItem(db.Model):
     item_total_gst_amount = db.Column(db.Numeric(10,2), nullable=False)
     item_final_amount = db.Column(db.Numeric(10,2), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    product = db.relationship('Product', backref='sales_return_items')

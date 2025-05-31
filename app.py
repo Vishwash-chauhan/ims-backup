@@ -24,5 +24,8 @@ from models import User
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-if __name__ == '__main__':
+from documents.documents import documents_bp
+app.register_blueprint(documents_bp)
+
+if __name__ == "__main__":
     app.run(debug=True)

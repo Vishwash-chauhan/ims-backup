@@ -1,0 +1,37 @@
+{% extends "bills/base_bill.html" %}
+{% set title = "Sales Bill" %}
+{% set bill_type_label = "Bill To" %}
+{% block content %}
+    <h2>Sales Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in bill['items'] %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ "%.2f"|format(item.unit_price) }}</td>
+                <td>₹{{ "%.2f"|format(item.subtotal) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="total-section">
+        <table>
+            <tr><td>Subtotal:</td><td>₹{{ "%.2f"|format(bill.subtotal) }}</td></tr>
+            <tr><td>Tax ({{ bill.tax_rate }}%):</td><td>₹{{ "%.2f"|format(bill.tax_amount) }}</td></tr>
+            {% if bill.discount %}
+            <tr><td>Discount:</td><td>₹{{ "%.2f"|format(bill.discount) }}</td></tr>
+            {% endif %}
+            <tr><td><strong>Total:</strong></td><td><strong>₹{{ "%.2f"|format(bill.total_amount) }}</strong></td></tr>
+        </table>
+        <div><strong>Payment Method:</strong> {{ bill.payment_method }}</div>
+    </div>
+{% endblock %}
