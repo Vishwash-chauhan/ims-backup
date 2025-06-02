@@ -26,6 +26,11 @@ def admin_required(f):
 def index():
     return render_template('index.html') # Assumes index.html exists
 
+@main.route('/manage-entities')
+@login_required
+def manage_entities():
+    return render_template('manage_entities.html')
+
 # --- Product CRUD ---
 @main.route('/products')
 @login_required
@@ -1583,4 +1588,10 @@ def user_list():
 @login_required
 def profile():
     return render_template('auth/profile.html')
+
+@main.route('/analytics')
+@login_required
+def analytics():
+    """Analytics dashboard view with business insights"""
+    return render_template('analytics.html')
 

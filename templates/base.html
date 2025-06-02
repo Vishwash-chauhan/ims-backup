@@ -23,10 +23,7 @@
                     <span class="text-gray-300 mx-0.5">|</span>
                     <a href="{{ url_for('main.purchases_form') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Purchase Entry</a>
                     <span class="text-gray-300 mx-0.5">|</span>
-                    <a href="{{ url_for('main.add_product') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Products</a>
-                    <span class="text-gray-300 mx-0.5">|</span>
-                    <a href="{{ url_for('main.add_customer') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Customers</a>
-                    <span class="text-gray-300 mx-0.5">|</span>                    <a href="{{ url_for('main.add_supplier') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Add Suppliers</a>
+                    <a href="{{ url_for('main.manage_entities') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 hover:text-blue-700 hover:underline transition">Manage Entities</a>
                     {% if current_user.is_authenticated %}
                         <span class="text-gray-300 mx-0.5">|</span>
                         <a href="{{ url_for('main.logout') }}" class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-600 hover:text-red-800 hover:underline transition">Logout</a>
@@ -49,14 +46,11 @@
             </div>
         </div>
         <!-- Mobile menu, show/hide based on menu state. -->
-        <div class="sm:hidden" id="mobile-menu" style="display: none;">
-            <div class="pt-1 pb-2 space-y-0.5">
+        <div class="sm:hidden" id="mobile-menu" style="display: none;">            <div class="pt-1 pb-2 space-y-0.5">
                 <a href="{{ url_for('main.dashboard') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Dashboard</a>
                 <a href="{{ url_for('main.sales_entry') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Sales Entry</a>
                 <a href="{{ url_for('main.purchases_form') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Purchase Entry</a>
-                <a href="{{ url_for('main.add_product') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Add Products</a>
-                <a href="{{ url_for('main.add_customer') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition border-b border-gray-200">Add Customers</a>
-                <a href="{{ url_for('main.add_supplier') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition">Add Suppliers</a>
+                <a href="{{ url_for('main.manage_entities') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 hover:underline transition">Manage Entities</a>
                 {% if current_user.is_authenticated %}
                      <a href="{{ url_for('main.logout') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-red-600 hover:bg-red-100 hover:text-red-800 hover:underline transition">Logout</a>
                      <a href="{{ url_for('main.profile') }}" class="block pl-3 pr-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition flex items-center" title="Profile">Profile</a>

@@ -173,11 +173,7 @@
 
         <div class="flex flex-row items-center justify-between mt-4">
             <button id="submit-purchase-form" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit Purchase</button>
-            <div style="display: flex; justify-content: flex-end; margin-top: 0;">
-                <a href="{{ url_for('main.purchase_return') }}" class="btn btn-secondary" style="padding: 12px 24px; background: #f4f7fa; color: #023f90; border: 2px solid #023f90; border-radius: 8px; font-size: 16px; text-decoration: none; transition: background 0.2s, color 0.2s;">
-                    Purchase Return
-                </a>
-            </div>
+            <a href="{{ url_for('main.purchase_return') }}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-decoration-none">Purchase Return</a>
         </div>
     </div>
 </div>
