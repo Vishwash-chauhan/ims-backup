@@ -1,3 +1,7 @@
+html {
+  font-size: 20px; /* Increase this value for more zoom */
+}
+
 /* Custom styles for the dynamic amount input */
 /* #partial-payment-amount display is now controlled by JS */
 

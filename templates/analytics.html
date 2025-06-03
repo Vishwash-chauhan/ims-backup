@@ -1,50 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="min-h-screen py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Page Header -->
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p class="mt-2 text-sm text-gray-600">Business insights and performance metrics</p>
-        </div>
-
-        <!-- Power BI Report Container -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-800">Business Performance Report</h2>
-            </div>
-            
-            <!-- Power BI Embed Container -->
-            <div class="relative" style="height: 80vh;">
-                <iframe 
-                    id="powerbi-report"
-                    class="w-full h-full border-0"
-                    src="https://app.powerbi.com/reportEmbed?reportId=e1f492dd-c26a-402e-9d98-de4913cb5468&autoAuth=true&ctid=c6e549b3-5f45-4032-aae9-d4244dc5b2c4"
-                    frameborder="0" 
-                    allowfullscreen="true">
-                </iframe>
-                
-                <!-- Loading Spinner (optional) -->
-                <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center bg-gray-50">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <span class="ml-3 text-gray-600">Loading analytics...</span>
-                </div>
-            </div>
-        </div>
-    </div>
+<div style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
+    <img src="{{ url_for('static', filename='images/ecommerce-dashboard.png') }}" alt="Ecommerce Dashboard" style="max-width: 100%; max-height: 99vh; object-fit: contain; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
 </div>
-
-<script>
-    // Hide loading spinner when iframe loads
-    document.getElementById('powerbi-report').onload = function() {
-        document.getElementById('loading-spinner').style.display = 'none';
-    };
-
-    // Optional: Handle iframe errors
-    document.getElementById('powerbi-report').onerror = function() {
-        document.getElementById('loading-spinner').innerHTML = 
-            '<div class="text-center"><div class="text-red-600 text-lg">⚠️</div><p class="text-gray-600 mt-2">Failed to load report</p></div>';
-    };
-</script>
 {% endblock %}
